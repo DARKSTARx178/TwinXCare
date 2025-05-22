@@ -1,37 +1,39 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Platform } from 'react-native';
 import { Tabs } from 'expo-router';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { AccessibilityProvider, useAccessibility } from '@/contexts/AccessibilityContext';
+import { getThemeColors } from '@/utils/theme';
 
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+function TabLayout() {
+  const { scheme } = useAccessibility();
+  const theme = getThemeColors(scheme);
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: isDark ? '#0af' : '#06f',
+        tabBarActiveTintColor: theme.primary,
         tabBarStyle: Platform.select({
           ios: {
             height: 100,
             paddingBottom: 25,
             paddingTop: 15,
+            backgroundColor: theme.background,
           },
           android: {
-            height: 80,
-            paddingBottom: 15,
+            height: 105,
+            paddingBottom: 10,
             paddingTop: 10,
+            backgroundColor: theme.background,
           },
           web: {
             height: 85,
             paddingBottom: 20,
             paddingTop: 12,
-          }
+            backgroundColor: theme.background,
+          },
         }),
       }}
     >
@@ -39,70 +41,66 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ focused, color }) => (
-            <View
-              style={{
-                borderRadius: 20,
-                padding: 0,
-                borderColor: focused ? (isDark ? '#fff' : '#000') : 'transparent',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <IconSymbol
-                size={32}
-                name="house.fill"
-                color={focused ? (isDark ? '#000' : '#fff') : color}
-              />
-            </View>
+          tabBarIcon: ({ color }) => (
+            <IconSymbol
+              size={32}
+              name="house.fill"
+              color={color}
+            />
           ),
-          tabBarLabel: ({ focused, color }) => (
-            <View
-              style={{
-                borderColor: focused ? (isDark ? '#000' : '#fff') : 'transparent',
-              }}
-            >
-              <Text style={{ color: focused ? 'black' : 'gray', fontSize: 12 }}>
-                Home
-              </Text>
-            </View>
+          tabBarLabel: ({ color }) => (
+            <Text style={{ color: color, fontSize: 12 }}>
+              Home
+            </Text>
           ),
         }}
       />
+
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ focused, color }) => (
-            <View
-              style={{
-                borderRadius: 20,
-                padding: 0,
-                borderColor: focused ? (isDark ? '#fff' : '#000') : 'transparent',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <MaterialCommunityIcons
-                size={32}
-                name="hospital-box"
-                color={focused ? (isDark ? '#000' : '#fff') : color}
-              />
-            </View>
+          title: 'Equipment',
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons
+              size={32}
+              name="hospital-box"
+              color={color}
+            />
           ),
-          tabBarLabel: ({ focused, color }) => (
-            <View
-              style={{
-                borderColor: focused ? (isDark ? '#000' : '#fff') : 'transparent',
-              }}
-            >
-              <Text style={{ color: focused ? 'black' : 'gray', fontSize: 12 }}>
-                Equipment
-              </Text>
-            </View>
+          tabBarLabel: ({ color }) => (
+            <Text style={{ color: color, fontSize: 12 }}>
+              Equipment
+            </Text>
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons
+              size={32}
+              name="cog"
+              color={color}
+            />
+          ),
+          tabBarLabel: ({ color }) => (
+            <Text style={{ color: color, fontSize: 12 }}>
+              Settings
+            </Text>
           ),
         }}
       />
     </Tabs>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AccessibilityProvider>
+      <TabLayout />
+    </AccessibilityProvider>
   );
 }

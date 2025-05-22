@@ -9,13 +9,13 @@ export default function Splash() {
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 1500,
+      duration: 500,
       useNativeDriver: true,
     }).start();
 
     const timer = setTimeout(() => {
       router.replace('/(tabs)');
-    }, 3000);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, []);
@@ -40,5 +40,6 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontWeight: 'bold',
     color: '#fff',
+    fontFamily: 'RedHatDisplay_700Bold'
   },
 });

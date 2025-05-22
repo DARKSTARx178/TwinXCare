@@ -1,15 +1,26 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useAccessibility } from '@/contexts/AccessibilityContext';
+import { getThemeColors } from '@/utils/theme';
 
 export default function Home() {
+  const { scheme } = useAccessibility();
+  const theme = getThemeColors(scheme);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>home page</Text>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Text style={[styles.text, { color: theme.text }]}>
+        welcome to home!
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  text: { fontSize: 24, fontWeight: '600' },
+  text: {
+    fontSize: 24,
+    fontWeight: '600',
+    fontFamily: 'RedHatDisplay_700Bold',
+  },
 });

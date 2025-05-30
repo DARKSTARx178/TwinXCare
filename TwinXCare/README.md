@@ -1,14 +1,6 @@
-# CareLink
+# TwinXCare
 
-CareLink is a student-built mobile and web application created for **Yong-En Care Centre**. It aims to **simplify and centralize the rental of medical equipment**, connecting caregivers with suppliers in a smooth, accessible way.
-
-## Built With
-
-- **React Native** (via [Expo](https://expo.dev))
-- **TypeScript**
-- **Expo Router**
-- **Context API** for accessibility theming
-- **Custom accessibility modes** (light, dark, high contrast, etc.)
+TwinXCare is a student-built mobile and web application created for **Yong-En Care Centre**. It aims to **simplify and centralize the rental of medical equipment**, connecting caregivers with suppliers in a smooth, accessible way.
 
 ## Features
 

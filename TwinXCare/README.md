@@ -1,50 +1,31 @@
-# Welcome to your Expo app 👋
+# CareLink
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+CareLink is a student-built mobile and web application created for **Yong-En Care Centre**. It aims to **simplify and centralize the rental of medical equipment**, connecting caregivers with suppliers in a smooth, accessible way.
 
-## Get started
+## Built With
 
-1. Install dependencies
+- **React Native** (via [Expo](https://expo.dev))
+- **TypeScript**
+- **Expo Router**
+- **Context API** for accessibility theming
+- **Custom accessibility modes** (light, dark, high contrast, etc.)
 
-   ```bash
-   npm install
-   ```
+## Features
 
-2. Start the app
+- Explore medical equipment available for rent
+- Easy-to-use tab navigation (`Home`, `Explore`, `Settings`)
+-  Accessibility settings with switchable themes:
+  - Light Mode
+  - Dark Mode
+- Designed for elderly and caregivers
+- Clean, pastel-themed UI with custom fonts
 
-   ```bash
-   npx expo start
-   ```
+## How It Works
 
-In the output, you'll find options to open the app in a
+1. Users can browse and request rental equipment
+2. Suppliers can list their equipment
+3. Accessibility options make the app friendly for all vision types
+4. Future support for payment processing between users and suppliers
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Built by:
+MASSIVE Productions

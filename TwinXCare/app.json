@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "CareLink",
-    "slug": "CareLink",
+    "name": "TwinXCare",
+    "slug": "TwinXCare",
+    "owner": "darkstarx178",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -34,7 +35,8 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

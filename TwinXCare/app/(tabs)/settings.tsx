@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { getThemeColors } from '@/utils/theme';
-import { getFontSizeValue } from '@/utils/fontSizes';  // <-- import helper
+import { getFontSizeValue } from '@/utils/fontSizes'; 
 
 export default function SettingsScreen() {
   const { scheme, setScheme, fontSize, setFontSize } = useAccessibility();
@@ -23,8 +23,6 @@ export default function SettingsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Text>{'\n'}</Text>
-
       <Text style={[styles.title, { color: theme.text, fontSize: textSize + 8 }]}>
         Accessibility Options
       </Text>

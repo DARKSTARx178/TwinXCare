@@ -1,0 +1,19 @@
+const itemOverview = [
+    { name: 'Wheelchair', brand: 'BrandA', stock: 0, price: 120, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Red_Cross.svg/400px-Red_Cross.svg.png', description: 'A sturdy and comfortable wheelchair suitable for daily use.' },
+    { name: 'Wheelchair', brand: 'BrandB', stock: 2, price: 150, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Red_Cross.svg/400px-Red_Cross.svg.png', description: 'Lightweight wheelchair with ergonomic design and easy maneuverability.' },
+    { name: 'Wheelchair', brand: 'BrandC', stock: 7, price: 110, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Red_Cross.svg/400px-Red_Cross.svg.png', description: 'Affordable wheelchair with basic features and solid build.' },
+    { name: 'Walker', brand: 'BrandA', stock: 8, price: 60, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Red_Cross.svg/400px-Red_Cross.svg.png', description: 'Adjustable walker for stability and support during walking.' },
+    { name: 'Walker', brand: 'BrandB', stock: 3, price: 70, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Red_Cross.svg/400px-Red_Cross.svg.png', description: 'Foldable walker with padded grips and lightweight frame.' },
+    { name: 'Hospital Bed', brand: 'BrandA', stock: 2, price: 500, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Red_Cross.svg/400px-Red_Cross.svg.png', description: 'Electric hospital bed with adjustable height and backrest.' },
+    { name: 'Hospital Bed', brand: 'BrandB', stock: 1, price: 650, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Red_Cross.svg/400px-Red_Cross.svg.png', description: 'Premium hospital bed with advanced comfort and safety features.' },
+    { name: 'Oxygen Tank', brand: 'BrandA', stock: 4, price: 80, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Red_Cross.svg/400px-Red_Cross.svg.png', description: 'Portable oxygen tank for home and travel use.' },
+    { name: 'Oxygen Tank', brand: 'BrandB', stock: 6, price: 90, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Red_Cross.svg/400px-Red_Cross.svg.png', description: 'High-capacity oxygen tank with easy-to-read gauge.' },
+    { name: 'Crutches', brand: 'BrandA', stock: 10, price: 30, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Red_Cross.svg/400px-Red_Cross.svg.png', description: 'Durable aluminum crutches with comfortable hand grips.' },
+    { name: 'Crutches', brand: 'BrandB', stock: 5, price: 35, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Red_Cross.svg/400px-Red_Cross.svg.png', description: 'Adjustable crutches for adults and teens.' },
+    { name: 'Walking Stick', brand: 'BrandA', stock: 7, price: 20, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Red_Cross.svg/400px-Red_Cross.svg.png', description: 'Classic wooden walking stick with rubber tip.' },
+    { name: 'Walking Stick', brand: 'BrandB', stock: 2, price: 25, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Red_Cross.svg/400px-Red_Cross.svg.png', description: 'Lightweight metal walking stick with ergonomic handle.' },
+    { name: 'Suction Machine', brand: 'BrandA', stock: 3, price: 200, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Red_Cross.svg/400px-Red_Cross.svg.png', description: 'Portable suction machine for medical use.' },
+    { name: 'Suction Machine', brand: 'BrandB', stock: 1, price: 220, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Red_Cross.svg/400px-Red_Cross.svg.png', description: 'High-powered suction machine with easy operation.' },
+];
+
+export default itemOverview;

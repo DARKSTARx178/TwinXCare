@@ -166,7 +166,7 @@ export default function Explore() {
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() => router.push({
-                pathname: '/order',
+                pathname: '/rental/order',
                 params: {
                   name: item.name,
                   brand: item.brand,

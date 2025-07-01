@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Dimensions, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
+import { getOrderHistory, OrderHistoryItem } from '@/utils/userHistory';
+import * as SecureStore from 'expo-secure-store';
 
 export default function DeliveryPage() {
   const router = useRouter();
@@ -21,38 +23,47 @@ export default function DeliveryPage() {
 
   // Progress bar step logic
   const [step] = useState(3); // 1: Product, 2: Payment, 3: Delivery
-  // Mock order history
-  const orderHistory = [
-    { id: '1', name: 'Oxygen Concentrator', date: '2025-06-21', status: 'Delivered', amount: 120 },
-    { id: '2', name: 'Wheelchair', date: '2025-06-18', status: 'Delivered', amount: 60 },
-    { id: '3', name: 'Hospital Bed', date: '2025-06-15', status: 'Returned', amount: 200 },
-  ];
+  const [orderHistory, setOrderHistory] = useState<OrderHistoryItem[]>([]);
+  const [user, setUser] = useState<string | null>(null);
 
-  function StepBar() {
-    // Responsive step bar: reduce padding and line width for small screens
+  useEffect(() => {
+    (async () => {
+      const username = await SecureStore.getItemAsync('user');
+      setUser(username);
+      if (username) {
+        const history = await getOrderHistory(username);
+        setOrderHistory(history);
+      } else {
+        setOrderHistory([]);
+      }
+    })();
+  }, []);
+
+  // --- PAGE PROGRESS BAR ---
+  function PageProgressBar({ step }: { step: 'order' | 'payment' | 'delivery' }) {
     const isSmallScreen = screenWidth < 400;
     return (
-      <View style={[styles.stepBar, { backgroundColor: theme.background, paddingTop: isSmallScreen ? 12 : 24, paddingBottom: isSmallScreen ? 4 : 12 }]}> 
-        <View style={[styles.step, styles.stepActive, { backgroundColor: step === 1 ? theme.primary : theme.background, paddingHorizontal: isSmallScreen ? 4 : 12 }]}> 
-          <View style={[styles.stepCircle, { borderColor: theme.primary, width: isSmallScreen ? 18 : 32, height: isSmallScreen ? 18 : 32, borderRadius: isSmallScreen ? 9 : 16, marginRight: isSmallScreen ? 4 : 8 }]}> 
-            <Text style={[styles.stepCircleText, { color: step === 1 ? theme.background : theme.primary, fontSize: isSmallScreen ? 11 : 18 }]}>1</Text>
-          </View>
-          <Text style={[step === 1 ? styles.stepTextActive : styles.stepText, { color: theme.text, fontSize: isSmallScreen ? textSize - 2 : textSize }]}>Product</Text>
-        </View>
-        <View style={[styles.stepLine, { backgroundColor: theme.unselected, width: isSmallScreen ? 12 : 32 }]} />
-        <View style={[styles.step, { backgroundColor: step === 2 ? theme.primary : theme.background, paddingHorizontal: isSmallScreen ? 4 : 12 }]}> 
-          <View style={[styles.stepCircle, { borderColor: theme.primary, width: isSmallScreen ? 18 : 32, height: isSmallScreen ? 18 : 32, borderRadius: isSmallScreen ? 9 : 16, marginRight: isSmallScreen ? 4 : 8 }]}> 
-            <Text style={[styles.stepCircleText, { color: step === 2 ? theme.background : theme.primary, fontSize: isSmallScreen ? 11 : 18 }]}>2</Text>
-          </View>
-          <Text style={[step === 2 ? styles.stepTextActive : styles.stepText, { color: theme.text, fontSize: isSmallScreen ? textSize - 2 : textSize }]}>Payment</Text>
-        </View>
-        <View style={[styles.stepLine, { backgroundColor: theme.unselected, width: isSmallScreen ? 12 : 32 }]} />
-        <View style={[styles.step, styles.stepActive, { backgroundColor: step === 3 ? theme.primary : theme.background, paddingHorizontal: isSmallScreen ? 4 : 12 }]}> 
-          <View style={[styles.stepCircle, { borderColor: theme.primary, width: isSmallScreen ? 18 : 32, height: isSmallScreen ? 18 : 32, borderRadius: isSmallScreen ? 9 : 16, marginRight: isSmallScreen ? 4 : 8 }]}> 
-            <Text style={[styles.stepCircleText, { color: step === 3 ? theme.background : theme.primary, fontSize: isSmallScreen ? 11 : 18 }]}>3</Text>
-          </View>
-          <Text style={[step === 3 ? styles.stepTextActive : styles.stepText, { color: theme.text, fontSize: isSmallScreen ? textSize - 2 : textSize }]}>Delivery</Text>
-        </View>
+      <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', marginTop: isSmallScreen ? 8 : 16, marginBottom: isSmallScreen ? 8 : 16, width: '90%', maxWidth: 350, minWidth: 220 }}>
+        <MaterialCommunityIcons
+          name="clipboard-list-outline"
+          size={isSmallScreen ? 32 : 40}
+          color={step === 'order' ? theme.primary : theme.unselected}
+          style={{ opacity: step === 'order' ? 1 : 0.5, flex: 1, textAlign: 'center' }}
+        />
+        <View style={{ flex: 1, height: 3, backgroundColor: theme.unselected, marginHorizontal: 4, opacity: 0.5, borderRadius: 2, alignSelf: 'center' }} />
+        <MaterialCommunityIcons
+          name="credit-card-outline"
+          size={isSmallScreen ? 32 : 40}
+          color={step === 'payment' ? theme.primary : theme.unselected}
+          style={{ opacity: step === 'payment' ? 1 : 0.5, flex: 1, textAlign: 'center' }}
+        />
+        <View style={{ flex: 1, height: 3, backgroundColor: theme.unselected, marginHorizontal: 4, opacity: 0.5, borderRadius: 2, alignSelf: 'center' }} />
+        <MaterialCommunityIcons
+          name="truck"
+          size={isSmallScreen ? 32 : 40}
+          color={step === 'delivery' ? theme.primary : theme.unselected}
+          style={{ opacity: step === 'delivery' ? 1 : 0.5, flex: 1, textAlign: 'center' }}
+        />
       </View>
     );
   }
@@ -102,9 +113,9 @@ export default function DeliveryPage() {
   const isRenew = params.mode === 'renew';
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ alignItems: 'center', justifyContent: 'flex-start', padding: 24 }}>
-      <StepBar />
-      <View style={[styles.card, { backgroundColor: theme.background, borderColor: theme.unselected }]}> 
+    <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ paddingBottom: 40 }}>
+      <PageProgressBar step="delivery" />
+      <View style={[styles.card, { backgroundColor: theme.background, borderColor: theme.unselected, width: '90%', maxWidth: 400, alignSelf: 'center' }]}> 
         <Ionicons name="car" size={48} color={theme.primary} style={{ marginBottom: 12 }} />
         <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>Delivery Scheduled</Text>
         <Text style={[styles.label, { color: theme.unselected, fontSize: responsiveText(textSize - 2) }]}>Order Time</Text>
@@ -129,6 +140,9 @@ export default function DeliveryPage() {
           alignItems: 'center',
           flexDirection: 'row',
           gap: 12,
+          width: '90%',
+          maxWidth: 400,
+          alignSelf: 'center',
         }}
         onPress={() => router.replace('/explore')}
         accessibilityLabel="Back to explore"
@@ -138,7 +152,7 @@ export default function DeliveryPage() {
       </TouchableOpacity>
 
       {/* Delivery Calendar below the back button */}
-      <View style={{ marginTop: 32, width: '100%', maxWidth: 400, backgroundColor: theme.unselected, borderRadius: 18, padding: 20, alignItems: 'center' }}>
+      <View style={{ marginTop: 32, width: '90%', maxWidth: 400, alignSelf: 'center', backgroundColor: theme.unselected, borderRadius: 18, padding: 20, alignItems: 'center' }}>
         <Ionicons name="calendar" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
         <Text style={{ color: theme.text, fontSize: responsiveText(textSize + 2), fontWeight: 'bold', marginBottom: 8 }}>Delivery Calendar</Text>
         <Calendar
@@ -167,6 +181,41 @@ export default function DeliveryPage() {
           <Text style={{ color: theme.primary, fontSize: responsiveText(textSize + 4), fontWeight: 'bold', marginTop: 8 }}>
             {deliveryEta}
           </Text>
+        )}
+      </View>
+
+      {/* Order History Section */}
+      <View style={{ width: '100%', marginTop: 32 }}>
+        <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: textSize + 4, marginBottom: 12 }}>Order History</Text>
+        {!user ? (
+          <Text style={{ color: theme.unselected, fontSize: textSize }}>Sign in to see order history.</Text>
+        ) : orderHistory.length === 0 ? (
+          <Text style={{ color: theme.unselected, fontSize: textSize }}>No orders yet.</Text>
+        ) : (
+          orderHistory.map(order => (
+            <View key={order.id} style={[styles.historyCard, { backgroundColor: theme.unselected }]}> 
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                {order.image ? (
+                  <Image source={{ uri: order.image }} style={{ width: 48, height: 48, borderRadius: 8, marginRight: 12 }} />
+                ) : (
+                  <Ionicons name="cube" size={36} color={theme.primary} style={{ marginRight: 12 }} />
+                )}
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: textSize + 2 }}>{order.name}</Text>
+                  <Text style={{ color: theme.text, fontSize: textSize - 2 }}>{order.brand}</Text>
+                  <Text style={{ color: theme.unselected, fontSize: textSize - 2 }}>{order.date}</Text>
+                  <Text style={{ color: theme.primary, fontSize: textSize - 2 }}>{order.status}</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: textSize }}>${order.amount.toFixed(2)}</Text>
+                  <Text style={{ color: theme.text, fontSize: textSize - 2 }}>Qty: {order.quantity}</Text>
+                  {order.mode === 'rent' && (
+                    <Text style={{ color: theme.text, fontSize: textSize - 2 }}>Rental: {order.rentalStart} - {order.rentalEnd}</Text>
+                  )}
+                </View>
+              </View>
+            </View>
+          ))
         )}
       </View>
     </ScrollView>

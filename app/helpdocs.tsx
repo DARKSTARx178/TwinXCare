@@ -7,8 +7,7 @@ import { getThemeColors } from '@/utils/theme';
 
 export default function HelpDocs() {
   const router = useRouter();
-  const { scheme } = useAccessibility();
-  const theme = getThemeColors(scheme);
+  const theme = getThemeColors();
   const screenWidth = Dimensions.get('window').width;
   const responsiveText = (base: number) => Math.max(base * (screenWidth / 400), base * 0.85);
 

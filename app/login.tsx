@@ -21,8 +21,8 @@ function hashValue(value: string) {
 
 const Login: React.FC = () => {
   const router = useRouter();
-  const { scheme, fontSize } = useAccessibility();
-  const theme = getThemeColors(scheme);
+  const { fontSize } = useAccessibility();
+  const theme = getThemeColors();
   const textSize = getFontSizeValue(fontSize);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -31,7 +31,6 @@ const Login: React.FC = () => {
   const handleLogin = async () => {
     setError('');
     const cleanedUsername = (username || '').trim();
-    const key = safeKey(cleanedUsername);
     if (!cleanedUsername || !password) {
       setError('Please fill all fields.');
       return;
@@ -40,32 +39,22 @@ const Login: React.FC = () => {
       setError('Username can only contain letters, numbers, dot, dash, and underscore.');
       return;
     }
-    if (!key) {
-      setError('Invalid username.');
-      return;
-    }
-    // Extra debug logging for troubleshooting
-    console.log('Login attempt:', { username: cleanedUsername, key });
     try {
-      if (!key) {
-        setError('Invalid key generated.');
-        return;
+      const response = await fetch('http://172.22.129.255:8080/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: cleanedUsername, password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        await SecureStore.setItemAsync('user', cleanedUsername);
+        router.replace('/profile');
+      } else {
+        setError(data.error || 'Login failed.');
       }
-      const storedHash = await SecureStore.getItemAsync(key);
-      if (!storedHash) {
-        setError('User not found. Please register.');
-        return;
-      }
-      const inputHash = hashValue(password);
-      if (storedHash !== inputHash) {
-        setError('Incorrect password.');
-        return;
-      }
-      await SecureStore.setItemAsync('user', cleanedUsername);
-      router.replace('/profile');
     } catch (e) {
       setError('Login failed. Please try again.');
-      console.error('Login error:', e, { username: cleanedUsername, key });
+      console.error('Login error:', e, { username: cleanedUsername });
     }
   };
 

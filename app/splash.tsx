@@ -1,30 +1,21 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 
 export default function Splash() {
   const router = useRouter();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
-
     const timer = setTimeout(() => {
       router.replace('/(tabs)');
-    }, 1500);
-
+    }, 1200);
     return () => clearTimeout(timer);
-  }, []);
+  }, [router]);
 
   return (
     <View style={styles.container}>
-      <Animated.Text style={[styles.text, { opacity: fadeAnim }]}>
-        TwinXCare
-      </Animated.Text>
+      <Text style={styles.text}>TwinXCare</Text>
     </View>
   );
 }

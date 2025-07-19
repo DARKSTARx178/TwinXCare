@@ -9,8 +9,8 @@ import * as SecureStore from 'expo-secure-store';
 
 export default function Profile() {
   const router = useRouter();
-  const { scheme, fontSize } = useAccessibility();
-  const theme = getThemeColors(scheme);
+  const { fontSize } = useAccessibility();
+  const theme = getThemeColors();
   const textSize = getFontSizeValue(fontSize);
   const [user, setUser] = useState<string | null>(null);
 
@@ -41,21 +41,21 @@ export default function Profile() {
 
   const menuItems = [
     { icon: 'settings-outline', label: 'Settings', onPress: () => router.push('/settings') },
-    { icon: 'key-outline', label: 'Change Password', onPress: () => {}},
-    { icon: 'help-circle-outline', label: 'Help', onPress: () => {} },
+    { icon: 'key-outline', label: 'Change Password', onPress: () => router.push('/change-password') },
+    { icon: 'help-circle-outline', label: 'Help', onPress: () => router.push('/helpdocs') },
     user && { icon: 'log-out-outline', label: 'Logout', onPress: handleLogout, isLogout: true },
   ].filter(Boolean) as { icon: string; label: string; onPress: () => void | Promise<void>; isLogout?: boolean }[];
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}> 
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <TouchableOpacity style={styles.backButton} onPress={() => router.push('/(tabs)')}>
         <Ionicons name="arrow-back" size={28} color={theme.text} />
       </TouchableOpacity>
 
       {user ? (
         <>
-          <View style={[styles.avatar, {backgroundColor: theme.primary, justifyContent: 'center', alignItems: 'center'}]}>
-            <Text style={{color: theme.background, fontWeight: 'bold', fontSize: 48}}>
+          <View style={[styles.avatar, { backgroundColor: theme.primary, justifyContent: 'center', alignItems: 'center' }]}>
+            <Text style={{ color: theme.background, fontWeight: 'bold', fontSize: 48 }}>
               {user.charAt(0).toUpperCase()}
             </Text>
           </View>

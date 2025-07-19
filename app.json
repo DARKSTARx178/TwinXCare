@@ -43,6 +43,12 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {}
+      
+    },
+    "runtimeVersion": "1.0.0"
+    
   }
 }

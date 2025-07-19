@@ -1,28 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
-import md5 from 'md5';
-
-function safeKey(username: string) {
-  // Only allow letters, numbers, dot, dash, underscore, and ensure not empty
-  const cleaned = (username || '').trim();
-  if (!cleaned || !/^[a-zA-Z0-9._-]+$/.test(cleaned)) return '';
-  return 'user_' + cleaned;
-}
-
-function hashValue(value: string) {
-  return md5(value);
-}
 
 export default function Register() {
   const router = useRouter();
-  const { scheme, fontSize } = useAccessibility();
-  const theme = getThemeColors(scheme);
+  const { fontSize } = useAccessibility();
+  const theme = getThemeColors();
   const textSize = getFontSizeValue(fontSize);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -31,7 +18,6 @@ export default function Register() {
   const handleRegister = async () => {
     setError('');
     const cleanedUsername = (username || '').trim();
-    const key = safeKey(cleanedUsername);
     if (!cleanedUsername || !password) {
       setError('Please fill all fields.');
       return;
@@ -40,29 +26,23 @@ export default function Register() {
       setError('Username can only contain letters, numbers, dot, dash, and underscore.');
       return;
     }
-    if (!key) {
-      setError('Invalid username.');
-      return;
-    }
-    // Extra debug logging for troubleshooting
-    console.log('Register attempt:', { username: cleanedUsername, key });
+    // Debug log
+    console.log('Register attempt:', { username: cleanedUsername });
     try {
-      if (!key) {
-        setError('Invalid key generated.');
-        return;
+      const response = await fetch('http://172.22.129.255:8080/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: cleanedUsername, password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        router.replace('/login');
+      } else {
+        setError(data.error || 'Registration failed.');
       }
-      const userData = await SecureStore.getItemAsync(key);
-      if (userData) {
-        setError('User already exists. Please sign in.');
-        return;
-      }
-      // Store hashed password only
-      await SecureStore.setItemAsync(key, hashValue(password));
-      await SecureStore.deleteItemAsync('user');
-      router.replace('/login');
     } catch (e) {
       setError('Registration failed. Please try again.');
-      console.error('Registration error:', e, { username: cleanedUsername, key });
+      console.error('Registration error:', e, { username: cleanedUsername });
     }
   };
 
@@ -130,4 +110,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
-});
+});9

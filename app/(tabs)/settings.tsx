@@ -1,113 +1,157 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useAccessibility } from '@/contexts/AccessibilityContext';
-import { getThemeColors } from '@/utils/theme';
-import { getFontSizeValue } from '@/utils/fontSizes'; 
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import { getFontSizeValue } from '@/utils/fontSizes';
 
-export default function SettingsScreen() {
-  const { scheme, setScheme, fontSize, setFontSize } = useAccessibility();
-  const theme = getThemeColors(scheme);
+const themeColors = {
+  light: {
+    background: '#fff',
+    text: '#222',
+    subtext: '#888',
+    option: '#eee',
+    selected: '#4a90e2',
+    signOut: '#d00',
+  },
+};
 
-  const colorOptions = [
-    { label: 'Light Mode', value: 'lightMode' },
-    { label: 'Dark Mode', value: 'darkMode' },
-  ];
+const fontSizeOptions = [
+  { label: 'Small', value: 'small' },
+  { label: 'Normal', value: 'medium' },
+  { label: 'Large', value: 'large' },
+];
 
-  const fontSizeOptions = [
-    { label: 'Small', value: 'small' },
-    { label: 'Medium', value: 'medium' },
-    { label: 'Large', value: 'large' },
-  ];
+import { useLanguage } from '@/contexts/LanguageContext';
+const SettingsScreen = () => {
+  const [theme] = React.useState<'light'>('light');
+  const [fontSize, setFontSize] = React.useState<'small' | 'medium' | 'large'>('medium');
+  const { lang, setLang } = useLanguage();
+  const colors = themeColors['light'];
+  const fontSizeValue = getFontSizeValue(fontSize);
 
-  const textSize = getFontSizeValue(fontSize);
+  // Language-based labels
+  const labels = {
+    header: lang === 'zh' ? '设置' : 'Settings',
+    appearance: lang === 'zh' ? '外观' : 'Appearance',
+    light: lang === 'zh' ? '浅色' : 'Light',
+    language: lang === 'zh' ? '语言' : 'Language',
+    textSize: lang === 'zh' ? '文字大小' : 'Text Size',
+    small: lang === 'zh' ? '小' : 'Small',
+    medium: lang === 'zh' ? '中' : 'Normal',
+    large: lang === 'zh' ? '大' : 'Large',
+    appearanceNote: lang === 'zh' ? '仅支持浅色模式。' : 'Only light mode is supported.',
+    contact: lang === 'zh' ? '联系团队' : 'Contact Team',
+    signOut: lang === 'zh' ? '退出登录' : 'Sign Out',
+  };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Text style={[styles.title, { color: theme.text, fontSize: textSize + 8 }]}>
-        Accessibility Options
-      </Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}> 
+      <Text style={[styles.header, { color: colors.text, fontSize: fontSizeValue + 12 }]}>{labels.header}</Text>
 
-      <Text style={[styles.sectionTitle, { color: theme.text, fontSize: textSize + 2 }]}>
-        Color Scheme
-      </Text>
-      {colorOptions.map((opt) => {
-        const isSelected = scheme === opt.value;
-        return (
+      {/* Appearance (only light mode) */}
+      <Text style={[styles.sectionTitle, { color: colors.subtext, fontSize: fontSizeValue }]}>{labels.appearance}</Text>
+      <View style={styles.row}>
+        <TouchableOpacity
+          style={[styles.optionButton, { backgroundColor: colors.selected }]}
+          activeOpacity={1}
+        >
+          <Text style={[styles.optionText, { color: colors.text, fontSize: fontSizeValue }]}> 
+            {labels.light}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Language Picker */}
+      <Text style={[styles.sectionTitle, { color: colors.subtext, fontSize: fontSizeValue }]}>{labels.language}</Text>
+      <View style={styles.pickerRow}>
+        <Picker
+          selectedValue={lang}
+          style={{ flex: 1, color: colors.text, backgroundColor: colors.option }}
+          onValueChange={(itemValue) => setLang(itemValue)}
+          mode="dropdown"
+        >
+          <Picker.Item label="English" value="en" />
+          <Picker.Item label="中文" value="zh" />
+        </Picker>
+      </View>
+
+      {/* Text Size */}
+      <Text style={[styles.sectionTitle, { color: colors.subtext, fontSize: fontSizeValue }]}>{labels.textSize}</Text>
+      <View style={styles.row}>
+        {fontSizeOptions.map((opt) => (
           <TouchableOpacity
             key={opt.value}
             style={[
-              styles.option,
-              {
-                backgroundColor: isSelected ? theme.primary : theme.unselected,
-                borderWidth: 1,
-                borderColor: theme.primary,
-              },
+              styles.optionButton,
+              { backgroundColor: fontSize === opt.value ? colors.selected : colors.option },
             ]}
-            onPress={() => setScheme(opt.value as any)}
+            onPress={() => setFontSize(opt.value as 'small' | 'medium' | 'large')}
           >
-            <Text
-              style={{
-                color: isSelected ? '#fff' : theme.text,
-                fontWeight: '600',
-                fontSize: textSize,
-              }}
-            >
-              {opt.label}
-            </Text>
+            <Text style={[styles.optionText, { color: colors.text, fontSize: fontSizeValue }]}>{
+              opt.value === 'small' ? labels.small :
+              opt.value === 'medium' ? labels.medium :
+              opt.value === 'large' ? labels.large : ''
+            }</Text>
           </TouchableOpacity>
-        );
-      })}
+        ))}
+      </View>
 
-      <Text style={[styles.sectionTitle, { color: theme.text, marginTop: 30, fontSize: textSize + 2 }]}>
-        Font Size
-      </Text>
-      {fontSizeOptions.map((opt) => {
-        const isSelected = fontSize === opt.value;
-        return (
-          <TouchableOpacity
-            key={opt.value}
-            style={[
-              styles.option,
-              {
-                backgroundColor: isSelected ? theme.primary : theme.unselected,
-                borderWidth: 1,
-                borderColor: theme.primary,
-              },
-            ]}
-            onPress={() => setFontSize(opt.value as any)}
-          >
-            <Text
-              style={{
-                color: isSelected ? '#fff' : theme.text,
-                fontWeight: '600',
-                fontSize: textSize,
-              }}
-            >
-              {opt.label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+      <Text style={[styles.subtext, { color: colors.subtext, fontSize: fontSizeValue }]}>{labels.appearanceNote}</Text>
 
-      <Text>{'\n'}</Text> {/* padding */}
-      <Text>{'\n'}</Text> {/* padding */}
+      {/* Footer */}
+      <TouchableOpacity>
+        <Text style={[styles.link, { color: colors.selected, fontSize: fontSizeValue }]}>{labels.contact}</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity>
+        <Text style={[styles.signOut, { color: colors.signOut, fontSize: fontSizeValue }]}>{labels.signOut}</Text>
+      </TouchableOpacity>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  title: {
+  container: {
+    flex: 1,
+    padding: 24,
+  },
+  header: {
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   sectionTitle: {
-    fontWeight: '600',
-    marginBottom: 10,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    letterSpacing: 1.2,
   },
-  option: {
-    padding: 15,
-    marginVertical: 8,
-    borderRadius: 10,
+  row: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  optionButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  optionText: {
+    fontWeight: 'bold',
+  },
+  subtext: {
+    marginBottom: 32,
+  },
+  pickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  link: {
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  signOut: {
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
+
+export default SettingsScreen;

@@ -1,16 +1,15 @@
 import React, { useRef, useState, useCallback, useEffect, createContext, useContext } from 'react';
-import { Text, TextInput, Platform, TouchableOpacity, Image, View, Dimensions, StyleSheet, ScrollView } from 'react-native';
-import { Tabs, useRouter, Link } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Text, TextInput, Platform, TouchableOpacity, Image, View, Dimensions, StyleSheet, ScrollView, Animated, Easing, Keyboard, PanResponder } from 'react-native';
+import { Tabs, useRouter } from 'expo-router';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { AccessibilityProvider, useAccessibility } from '@/contexts/AccessibilityContext';
-import { getThemeColors } from '@/utils/theme';
-import { PanResponder, Animated, Easing, Keyboard } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { GoogleGenAI } from "@google/genai";
 import Voice from '@react-native-voice/voice';
 import * as SecureStore from 'expo-secure-store';
 import { useFocusEffect } from '@react-navigation/native';
+import { getThemeColors } from '@/utils/theme';
+import { aiExploreFilterControl } from './explore';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const ai = new GoogleGenAI({ apiKey: "AIzaSyAIjiRYwpgibikuLrEsqhlpHD97NA6aR5U" });
@@ -121,10 +120,20 @@ const AnimatedAIModeOverlay: React.FC<{
     }
   };
 
-  const [replyCollapsed, setReplyCollapsed] = useState(true);
+  const [replyCollapsed, setReplyCollapsed] = useState(false);
 
+  // On iOS, never cover the tab bar: use bottom: 100
+  // Remove zIndex entirely for overlay (let tab bar always be on top)
+  const overlayStyle = {
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: Platform.OS === 'ios' ? 100 : 0,
+    opacity: fadeAnim,
+  };
   return (
-    <Animated.View style={{ opacity: fadeAnim, ...StyleSheet.absoluteFillObject, zIndex: 9999, pointerEvents: 'box-none' }}>
+    <Animated.View style={overlayStyle} pointerEvents="box-none">
       {/* Thicker animated border overlay, full screen, not rounded */}
       <Animated.View
         pointerEvents="box-none"
@@ -133,7 +142,7 @@ const AnimatedAIModeOverlay: React.FC<{
           {
             borderWidth: 8, // Thicker border
             borderColor: borderColor,
-            zIndex: 9999,
+            // zIndex removed
           },
         ]}
       />
@@ -274,9 +283,6 @@ const AnimatedAIModeOverlay: React.FC<{
               color="#fff"
               style={{ marginRight: 8 }}
             />
-            <Text style={{ color: '#fff', fontSize: 16 }}>
-              View reply:
-            </Text>
           </TouchableOpacity>
           {!replyCollapsed && (
             <View style={{ maxHeight: 150, marginTop: 8 }}>
@@ -292,7 +298,8 @@ const AnimatedAIModeOverlay: React.FC<{
 };
 
 function TabLayout({ onHeaderSwipe }: { onHeaderSwipe: () => void }) {
-  const { scheme } = useAccessibility();
+  const { scheme } = useAccessibility()
+  //@ts-ignore
   const theme = getThemeColors(scheme);
   const router = useRouter();
   const [profileUser, setProfileUser] = useState<string | null>(null);
@@ -352,8 +359,8 @@ function TabLayout({ onHeaderSwipe }: { onHeaderSwipe: () => void }) {
                   backgroundColor: profileUser ? theme.primary : '#ccc',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  marginRight: 25,
-                  marginTop: 15,
+                  marginRight: 15,
+                  marginTop: 25,
                 }}
               >
                 {profileUser ? (
@@ -383,7 +390,7 @@ function TabLayout({ onHeaderSwipe }: { onHeaderSwipe: () => void }) {
             height: 100,
             paddingBottom: 25,
             paddingTop: 15,
-            backgroundColor: theme.background,
+            backgroundColor: 'red', // DEBUG: make tab bar visible
           },
           android: {
             height: 105,
@@ -403,7 +410,7 @@ function TabLayout({ onHeaderSwipe }: { onHeaderSwipe: () => void }) {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: "Home",
           tabBarIcon: ({ color }) => (
             <IconSymbol name="house.fill" size={32} color={color} />
           ),
@@ -415,7 +422,7 @@ function TabLayout({ onHeaderSwipe }: { onHeaderSwipe: () => void }) {
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Equipment',
+          title: "Equipment",
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons name="hospital-box" size={32} color={color} />
           ),
@@ -425,9 +432,21 @@ function TabLayout({ onHeaderSwipe }: { onHeaderSwipe: () => void }) {
         }}
       />
       <Tabs.Screen
+        name="services"
+        options={{
+          title: "Services",
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="account-heart" size={32} color={color} />
+          ),
+          tabBarLabel: ({ color }) => (
+            <Text style={{ color, fontSize: 12 }}>Services</Text>
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="delivery"
         options={{
-          title: 'Delivery',
+          title: "Delivery",
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons name="car" size={32} color={color} />
           ),
@@ -439,7 +458,7 @@ function TabLayout({ onHeaderSwipe }: { onHeaderSwipe: () => void }) {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
+          title: "Settings",
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons name="cog" size={32} color={color} />
           ),
@@ -501,7 +520,8 @@ export default function RootLayout() {
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   // Whitelist of allowed routes/actions for AI
-  const allowedRoutes = [
+// Import must be at the top level
+const allowedRoutes = [
     '/profile',
     '/helpdocs',
     '/settings',
@@ -511,11 +531,24 @@ export default function RootLayout() {
     // Add more allowed routes here
   ];
 
-  // Parse AI response and trigger allowed navigation/actions
-  const handleAICommand = useCallback((responseText: string) => {
-    const lower = responseText.toLowerCase();
 
-    // Map route keywords to routes
+  // Parse AI response and trigger allowed navigation/actions
+  // Accepts either a full AI response (for keyword/phrase matching) or a direct route string
+  const handleAICommand = useCallback((responseTextOrRoute: string) => {
+    // AI filter feature removed. Only support search bar population.
+    const searchActionMatch = responseTextOrRoute.match?.(/ACTION:search:(.*)/);
+    if (searchActionMatch && typeof aiExploreFilterControl.setSearch === 'function') {
+      aiExploreFilterControl.setSearch(searchActionMatch[1].trim());
+    }
+
+    // If the input is a direct route string, navigate immediately if allowed
+    if (typeof responseTextOrRoute === 'string' && responseTextOrRoute.startsWith('/') && allowedRoutes.includes(responseTextOrRoute)) {
+      router.push(responseTextOrRoute as any);
+      return;
+    }
+
+    // Otherwise, treat as a full AI response and do keyword/phrase matching
+    const lower = responseTextOrRoute.toLowerCase();
     const routeKeywords = [
       { keywords: ['profile', 'user profile'], route: '/profile' },
       { keywords: ['helpdocs', 'help docs'], route: '/helpdocs' },
@@ -524,14 +557,12 @@ export default function RootLayout() {
       { keywords: ['delivery'], route: '/delivery' },
       { keywords: ['home', 'index', 'main page'], route: '/index' },
     ];
-
     for (const { keywords, route } of routeKeywords) {
       for (const keyword of keywords) {
-        // Only match if the phrase is present as a word or phrase, not just a substring
         if (
           lower.includes(`go to ${keyword}`) ||
           lower.includes(`open ${keyword}`) ||
-          lower.match(new RegExp(`\\b${keyword}\\b`))
+          lower.includes(keyword)
         ) {
           router.push(route as any);
           return;
@@ -555,17 +586,28 @@ export default function RootLayout() {
     });
   };
 
-  // Ask Gemini
+  // Ask Gemini with virtual bot action simulation
   const handleAskGemini = async () => {
     setLoading(true);
     try {
+      const systemPrompt = `You are an assistant for a medical equipment rental app. When a user asks for equipment or says what they want (e.g. \"I want a wheelchair\", \"I need oxygen\", \"rent a hospital bed\"), reply ONLY with ACTION:search:{the phrase or keywords you would put in the search bar to help them find it}. Do not ask follow-up questions, do not ask for more details, and do not reply with anything else. If the user asks about something unrelated to equipment, reply with NONE.`;
+      const userMessage = `${systemPrompt}\n\nUser: ${aiInput}`;
       const res = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-        contents: [{ role: "user", parts: [{ text: aiInput }] }],
+        contents: [
+          { role: "user", parts: [{ text: userMessage }] }
+        ],
       });
       const text = res?.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response";
-      setAiResponse(text);
-      handleAICommand(text); // <-- Call command handler after every response
+      // Only show the AI reply if it's not an ACTION:search or NONE
+      if (/^ACTION:search:/i.test(text) || text.trim() === 'NONE') {
+        setAiResponse("");
+      } else {
+        setAiResponse(text);
+      }
+      // eslint-disable-next-line no-console
+      console.log('[Gemini AI]', text);
+      handleAICommand(text);
     } catch (e) {
       setAiResponse("Error: " + (e as Error).message);
     }
@@ -601,17 +643,17 @@ export default function RootLayout() {
             position: 'absolute',
             top: 0,
             left: 0,
-            width: SCREEN_WIDTH,
-            height: SCREEN_HEIGHT,
-            zIndex: 10001,
-            pointerEvents: 'box-none',
+            right: 0,
+            bottom: Platform.OS === 'ios' ? 100 : 0,
+            // zIndex removed
           }}
+          pointerEvents="box-none"
         >
           <Animated.View
             style={{
               position: 'absolute',
               transform: [{ translateX: pan.x }, { translateY: pan.y }],
-              zIndex: 10001,
+              // zIndex removed
             }}
             {...helpPanResponder.panHandlers}
           >

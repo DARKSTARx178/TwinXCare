@@ -2,17 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
+import { useLanguage } from '../../hooks/useLanguage';
 import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { TouchableOpacity } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Calendar, LocaleConfig } from 'react-native-calendars';
+import { Calendar } from 'react-native-calendars';
 import { getOrderHistory, OrderHistoryItem } from '@/utils/userHistory';
 import * as SecureStore from 'expo-secure-store';
 
 export default function DeliveryPage() {
+  const { lang } = useLanguage();
   const router = useRouter();
   const { scheme, fontSize } = useAccessibility();
+  //@ts-ignore
   const theme = getThemeColors(scheme);
   const textSize = getFontSizeValue(fontSize);
   const screenWidth = Dimensions.get('window').width;
@@ -117,19 +120,27 @@ export default function DeliveryPage() {
       <PageProgressBar step="delivery" />
       <View style={[styles.card, { backgroundColor: theme.background, borderColor: theme.unselected, width: '90%', maxWidth: 400, alignSelf: 'center' }]}> 
         <Ionicons name="car" size={48} color={theme.primary} style={{ marginBottom: 12 }} />
-        <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>Delivery Scheduled</Text>
-        <Text style={[styles.label, { color: theme.unselected, fontSize: responsiveText(textSize - 2) }]}>Order Time</Text>
+        <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>
+          {lang === 'zh' ? '已安排配送' : 'Delivery Scheduled'}
+        </Text>
+        <Text style={[styles.label, { color: theme.unselected, fontSize: responsiveText(textSize - 2) }]}>
+          {lang === 'zh' ? '下单时间' : 'Order Time'}
+        </Text>
         <Text style={[styles.value, { color: theme.text, fontSize: responsiveText(textSize) }]}>{orderTime}</Text>
-        <Text style={[styles.label, { color: theme.unselected, fontSize: responsiveText(textSize - 2) }]}>Transaction ID</Text>
+        <Text style={[styles.label, { color: theme.unselected, fontSize: responsiveText(textSize - 2) }]}>
+          {lang === 'zh' ? '交易编号' : 'Transaction ID'}
+        </Text>
         <Text style={[styles.value, { color: theme.text, fontSize: responsiveText(textSize) }]}>{transactionId}</Text>
         {!isRenew && (
           <>
-            <Text style={[styles.label, { color: theme.unselected, fontSize: responsiveText(textSize - 2) }]}>Estimated Delivery</Text>
+            <Text style={[styles.label, { color: theme.unselected, fontSize: responsiveText(textSize - 2) }]}>
+              {lang === 'zh' ? '预计送达' : 'Estimated Delivery'}
+            </Text>
             <Text style={[styles.value, { color: theme.primary, fontSize: responsiveText(textSize + 2), fontWeight: 'bold' }]}>{deliveryEta}</Text>
           </>
         )}
       </View>
-      
+
       <TouchableOpacity
         style={{
           marginTop: 32,
@@ -145,16 +156,20 @@ export default function DeliveryPage() {
           alignSelf: 'center',
         }}
         onPress={() => router.replace('/explore')}
-        accessibilityLabel="Back to explore"
+        accessibilityLabel={lang === 'zh' ? '返回设备' : 'Back to explore'}
       >
         <Ionicons name="arrow-back" size={28} color={theme.background} />
-        <Text style={{ color: theme.background, fontSize: responsiveText(textSize + 2), fontWeight: 'bold' }}>Back to Equipment</Text>
+        <Text style={{ color: theme.background, fontSize: responsiveText(textSize + 2), fontWeight: 'bold' }}>
+          {lang === 'zh' ? '返回设备' : 'Back to Explore'}
+        </Text>
       </TouchableOpacity>
 
       {/* Delivery Calendar below the back button */}
       <View style={{ marginTop: 32, width: '90%', maxWidth: 400, alignSelf: 'center', backgroundColor: theme.unselected, borderRadius: 18, padding: 20, alignItems: 'center' }}>
         <Ionicons name="calendar" size={32} color={theme.primary} style={{ marginBottom: 8 }} />
-        <Text style={{ color: theme.text, fontSize: responsiveText(textSize + 2), fontWeight: 'bold', marginBottom: 8 }}>Delivery Calendar</Text>
+        <Text style={{ color: theme.text, fontSize: responsiveText(textSize + 2), fontWeight: 'bold', marginBottom: 8 }}>
+          {lang === 'zh' ? '配送日历' : 'Delivery Calendar'}
+        </Text>
         <Calendar
           style={{ borderRadius: 12, width: '100%', minWidth: 280, maxWidth: 350 }}
           theme={{
@@ -175,7 +190,13 @@ export default function DeliveryPage() {
           markingType="custom"
         />
         <Text style={{ color: theme.text, fontSize: responsiveText(textSize), textAlign: 'center', marginTop: 12 }}>
-          {isRenew ? 'No delivery for renewal orders.' : 'Your delivery is scheduled for:'}
+          {isRenew
+            ? lang === 'zh'
+              ? '续租订单无需配送。'
+              : 'No delivery required for renewal orders.'
+            : lang === 'zh'
+              ? '您的配送安排在：'
+              : 'Your delivery is scheduled for:'}
         </Text>
         {!isRenew && (
           <Text style={{ color: theme.primary, fontSize: responsiveText(textSize + 4), fontWeight: 'bold', marginTop: 8 }}>
@@ -186,11 +207,17 @@ export default function DeliveryPage() {
 
       {/* Order History Section */}
       <View style={{ width: '100%', marginTop: 32 }}>
-        <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: textSize + 4, marginBottom: 12 }}>Order History</Text>
+        <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: textSize + 4, marginBottom: 12 }}>
+          {lang === 'zh' ? '订单历史' : 'Order History'}
+        </Text>
         {!user ? (
-          <Text style={{ color: theme.unselected, fontSize: textSize }}>Sign in to see order history.</Text>
+          <Text style={{ color: theme.unselected, fontSize: textSize }}>
+            {lang === 'zh' ? '请登录以查看订单历史。' : 'Please log in to view order history.'}
+          </Text>
         ) : orderHistory.length === 0 ? (
-          <Text style={{ color: theme.unselected, fontSize: textSize }}>No orders yet.</Text>
+          <Text style={{ color: theme.unselected, fontSize: textSize }}>
+            {lang === 'zh' ? '暂无订单。' : 'No orders yet.'}
+          </Text>
         ) : (
           orderHistory.map(order => (
             <View key={order.id} style={[styles.historyCard, { backgroundColor: theme.unselected }]}> 
@@ -208,9 +235,15 @@ export default function DeliveryPage() {
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
                   <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: textSize }}>${order.amount.toFixed(2)}</Text>
-                  <Text style={{ color: theme.text, fontSize: textSize - 2 }}>Qty: {order.quantity}</Text>
+                  <Text style={{ color: theme.text, fontSize: textSize - 2 }}>
+                    {lang === 'zh' ? `数量: ${order.quantity}` : `Qty: ${order.quantity}`}
+                  </Text>
                   {order.mode === 'rent' && (
-                    <Text style={{ color: theme.text, fontSize: textSize - 2 }}>Rental: {order.rentalStart} - {order.rentalEnd}</Text>
+                    <Text style={{ color: theme.text, fontSize: textSize - 2 }}>
+                      {lang === 'zh'
+                        ? `租期: ${order.rentalStart} - ${order.rentalEnd}`
+                        : `Rental: ${order.rentalStart} - ${order.rentalEnd}`}
+                    </Text>
                   )}
                 </View>
               </View>

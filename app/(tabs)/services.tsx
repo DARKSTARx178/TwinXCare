@@ -4,32 +4,31 @@ import { FlatList as RNFlatList } from 'react-native';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
-import { useItemOverview } from '@/assets/itemOverview';
+import { useServiceList } from '@/hooks/useServiceList';
 import { useRouter } from 'expo-router';
 
-interface EquipmentItem {
+
+
+export interface ServiceItem {
   name: string;
-  brand: string;
-  stock: number;
+  specialty: string;
+  experience: string;
   price: number;
   image: string;
-  description?: string; // Added optional description
+  description?: string;
 }
-// Must be declared as a `let` and exported, not as a type annotation
-export let aiExploreFilterControl = { setSearch: undefined as undefined | ((v: string) => void) };
 
-export default function Explore() {
+const Services: React.FC = () => {
+  // ...existing code...
   const [refreshing, setRefreshing] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
-  const itemAvailability = useItemOverview(reloadKey);
-  const allBrands = Array.from(new Set(itemAvailability.map((item: EquipmentItem) => item.brand))) as string[];
-  const allItems = Array.from(new Set(itemAvailability.map((item: EquipmentItem) => item.name))) as string[];
-
+  const serviceList = useServiceList(reloadKey);
+  const allSpecialties = Array.from(new Set(serviceList.map((item: ServiceItem) => item.specialty))) as string[];
   const { scheme, fontSize } = useAccessibility();
   //@ts-ignore
   const theme = getThemeColors(scheme);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'brand' | 'item' | 'price' | 'availability' | null>(null);
+  const [filter, setFilter] = useState<'specialty' | 'price' | null>(null);
   const [filterValue, setFilterValue] = useState<string>('');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [showValueDropdown, setShowValueDropdown] = useState(false);
@@ -37,69 +36,45 @@ export default function Explore() {
   const router = useRouter();
   const screenWidth = Dimensions.get('window').width;
   const responsiveText = (base: number) => Math.max(base * (screenWidth / 400), base * 0.85);
-  // Set 2 columns for all phones up to the largest standard phone (e.g., S24 Ultra ~ 950px), 3 for tablets/desktops
   const numColumns = screenWidth < 950 ? 2 : 3;
-  // Responsive font size for grid text
   const gridTextSize = (base: number) => Math.max(base * (screenWidth / 400), base * 0.8);
 
-  // Expose search setter for AI control
   useEffect(() => {
-    aiExploreFilterControl.setSearch = setSearch;
-    return () => {
-      aiExploreFilterControl.setSearch = undefined;
-    };
+    // No AI search setter for now
   }, []);
 
-  // Pull-to-refresh handler
   const onRefresh = () => {
     setRefreshing(true);
     setReloadKey((k) => k + 1);
-    setTimeout(() => setRefreshing(false), 600); // Give time for fetch
+    setTimeout(() => setRefreshing(false), 600);
   };
 
-  // Show loading while fetching items
-  if (itemAvailability.length === 0) {
+  if (serviceList.length === 0) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }}>
-        <Text style={{ color: theme.text, fontSize: 20 }}>Loading equipment...</Text>
+        <Text style={{ color: theme.text, fontSize: 20 }}>Loading services...</Text>
       </View>
     );
   }
 
-  // Always apply search first, then filter
-  let filteredItems = itemAvailability.filter((item) =>
-    (item.name + ' ' + item.brand).toLowerCase().includes(search.toLowerCase())
+  let filteredItems = serviceList.filter((item) =>
+    (item.name + ' ' + item.specialty).toLowerCase().includes(search.toLowerCase())
   );
 
   if (filter) {
-    if (filter === 'brand' && filterValue) {
-      // Accepts 'brand c', 'brandc', 'c', etc. (case-insensitive, ignore spaces)
+    if (filter === 'specialty' && filterValue) {
       const val = filterValue.toLowerCase().replace(/\s+/g, '');
       filteredItems = filteredItems.filter((i) => {
-        const brandNorm = i.brand.toLowerCase().replace(/\s+/g, '');
-        // Exact match, startsWith, or includes
+        const specNorm = i.specialty.toLowerCase().replace(/\s+/g, '');
         return (
-          brandNorm === val ||
-          brandNorm.startsWith(val) ||
-          brandNorm.includes(val) ||
-          val.startsWith(brandNorm)
-        );
-      });
-    }
-    if (filter === 'item' && filterValue) {
-      const val = filterValue.toLowerCase().replace(/\s+/g, '');
-      filteredItems = filteredItems.filter((i) => {
-        const nameNorm = i.name.toLowerCase().replace(/\s+/g, '');
-        return (
-          nameNorm === val ||
-          nameNorm.startsWith(val) ||
-          nameNorm.includes(val) ||
-          val.startsWith(nameNorm)
+          specNorm === val ||
+          specNorm.startsWith(val) ||
+          specNorm.includes(val) ||
+          val.startsWith(specNorm)
         );
       });
     }
     if (filter === 'price' && filterValue) filteredItems = filteredItems.filter((i) => i.price <= parseFloat(filterValue));
-    if (filter === 'availability') filteredItems = filteredItems.filter((i) => i.stock > 0);
   }
 
   return (
@@ -116,13 +91,13 @@ export default function Explore() {
       }
     >
       <View style={[styles.container, { backgroundColor: theme.background }]}> 
-        <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>Equipment</Text>
+        <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>Services</Text>
         <TextInput
           style={[
             styles.input,
             { backgroundColor: '#fff', color: '#000', fontSize: responsiveText(textSize) }
           ]}
-          placeholder="Search equipment..."
+          placeholder="Search services..."
           placeholderTextColor="#888"
           value={search}
           onChangeText={setSearch}
@@ -155,14 +130,14 @@ export default function Explore() {
         </View>
         {showFilterDropdown && (
           <View style={styles.dropdownMenu}>
-            {['brand', 'item', 'price', 'availability'].map((f) => (
+            {['specialty', 'price'].map((f) => (
               <TouchableOpacity
                 key={f}
                 style={styles.dropdownMenuItem}
                 onPress={() => {
                   setFilter(f as any);
                   setShowFilterDropdown(false);
-                  setShowValueDropdown(f === 'brand' || f === 'item');
+                  setShowValueDropdown(f === 'specialty');
                   setFilterValue('');
                 }}
               >
@@ -171,40 +146,20 @@ export default function Explore() {
             ))}
           </View>
         )}
-        {/* Value dropdown for brand/item */}
-        {showValueDropdown && filter === 'brand' && (
+        {showValueDropdown && filter === 'specialty' && (
           <View style={styles.dropdownMenu}>
             <RNFlatList
-              data={allBrands}
-              keyExtractor={(b) => String(b)}
-              renderItem={({ item: b }) => (
+              data={allSpecialties}
+              keyExtractor={(s) => String(s)}
+              renderItem={({ item: s }) => (
                 <TouchableOpacity
                   style={styles.dropdownMenuItem}
                   onPress={() => {
-                    setFilterValue(b);
+                    setFilterValue(s);
                     setShowValueDropdown(false);
                   }}
                 >
-                  <Text style={{ color: theme.text, fontSize: responsiveText(textSize-2) }}>{b}</Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        )}
-        {showValueDropdown && filter === 'item' && (
-          <View style={styles.dropdownMenu}>
-            <RNFlatList
-              data={allItems}
-              keyExtractor={(i) => String(i)}
-              renderItem={({ item: i }) => (
-                <TouchableOpacity
-                  style={styles.dropdownMenuItem}
-                  onPress={() => {
-                    setFilterValue(i);
-                    setShowValueDropdown(false);
-                  }}
-                >
-                  <Text style={{ color: theme.text, fontSize: responsiveText(textSize-2) }}>{i}</Text>
+                  <Text style={{ color: theme.text, fontSize: responsiveText(textSize-2) }}>{s}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -220,7 +175,7 @@ export default function Explore() {
             onChangeText={setFilterValue}
           />
         )}
-        {/* Equipment grid */}
+        {/* Service grid */}
         <FlatList
           data={filteredItems}
           keyExtractor={(_, index) => index.toString()}
@@ -229,12 +184,12 @@ export default function Explore() {
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() => router.push({
-                pathname: '/rental/order',
+                pathname: '/rental/booking',
                 params: {
                   name: item.name,
-                  brand: item.brand,
+                  specialty: item.specialty,
+                  experience: item.experience,
                   price: String(item.price),
-                  stock: String(item.stock),
                   image: item.image,
                   description: item.description || ''
                 }
@@ -242,23 +197,22 @@ export default function Explore() {
               activeOpacity={0.8}
               style={[styles.gridItem, { borderColor: theme.primary, maxWidth: `${100 / numColumns}%` }]}
             >
-              {/* Adjust image height to allow more space for text */}
               <Image source={{ uri: item.image }} style={[
                 styles.gridImage,
                 {
                   width: screenWidth / numColumns - 32,
-                  height: (screenWidth / numColumns - 32) * 0.7, // reduce height to 70% of width
+                  height: (screenWidth / numColumns - 32) * 0.7,
                   marginBottom: 8
                 }
               ]} />
               <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize), maxWidth: '95%' }]} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
-              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize-2), maxWidth: '95%' }]} numberOfLines={1} ellipsizeMode="tail">{item.brand}</Text>
-              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize-4), maxWidth: '95%' }]} numberOfLines={1} ellipsizeMode="tail">${Math.max(1, Math.round(item.price * 0.18))}/day | Stock: {item.stock}</Text>
+              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize-2), maxWidth: '95%' }]} numberOfLines={1} ellipsizeMode="tail">{item.specialty}</Text>
+              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize-4), maxWidth: '95%' }]} numberOfLines={1} ellipsizeMode="tail">{item.experience} | ${item.price}/hr</Text>
             </TouchableOpacity>
           )}
-          ListEmptyComponent={
+          ListEmptyComponent={() => (
             <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize) }]}>No results found.</Text>
-          }
+          )}
         />
       </View>
     </ScrollView>
@@ -322,37 +276,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
   },
-  filterBar: {
-    flexDirection: 'row',
-    marginBottom: 10,
-    justifyContent: 'space-between',
-  },
-  filterBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#eee',
-    marginHorizontal: 2,
-  },
-  filterBtnActive: {
-    backgroundColor: '#dbeafe',
-  },
-  filterValueRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 10,
-    justifyContent: 'center',
-  },
-  filterValueBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    backgroundColor: '#eee',
-    margin: 2,
-  },
-  filterValueBtnActive: {
-    backgroundColor: '#a5b4fc',
-  },
   gridItem: {
     flex: 1,
     aspectRatio: 0.85,
@@ -375,37 +298,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '500',
   },
-  modeBar: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-    marginTop: -8,
-    gap: 8,
-  },
-  modeBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#f3f4f6',
-    marginHorizontal: 4,
-    alignItems: 'center',
-  },
-  modeBtnActive: {
-    backgroundColor: '#dbeafe',
-    borderWidth: 1.5,
-    borderColor: '#4a90e2',
-  },
-  caregiverCard: {
-    marginTop: 24,
-    padding: 28,
-    borderRadius: 18,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-  },
 });
+
+export default Services;

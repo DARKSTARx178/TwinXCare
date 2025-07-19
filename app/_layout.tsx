@@ -1,11 +1,13 @@
-import React from 'react';
-import { Stack } from 'expo-router';
+import { Slot } from 'expo-router';
 import { AccessibilityProvider } from '@/contexts/AccessibilityContext';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 
 export default function RootLayout() {
   return (
     <AccessibilityProvider>
-      <Stack screenOptions={{ headerShown: false }} />
+      <LanguageProvider>
+        <Slot />
+      </LanguageProvider>
     </AccessibilityProvider>
   );
 }

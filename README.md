@@ -21,3 +21,5 @@ TwinXCare is a student-built mobile and web application created for **Yong-En Ca
 
 ## Built by:
 MASSIVE Productions
+Support: 
+massive.productions.co@gmail.com

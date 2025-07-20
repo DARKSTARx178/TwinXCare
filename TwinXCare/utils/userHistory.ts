@@ -14,6 +14,9 @@ export type OrderHistoryItem = {
   image?: string;
   transactionId?: string;
   deliveryEta?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
 };
 
 export async function getOrderHistory(username: string): Promise<OrderHistoryItem[]> {

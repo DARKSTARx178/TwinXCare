@@ -1,8 +1,8 @@
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Dimensions, Platform } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -10,9 +10,13 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { addOrderHistory } from '@/utils/userHistory';
 import * as SecureStore from 'expo-secure-store';
 
-// --- PAGE PROGRESS BAR ---
+// Import MapView and GooglePlacesAutocomplete
+import MapView, { Marker } from 'react-native-maps';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+
 function PageProgressBar({ step }: { step: 'order' | 'payment' | 'delivery' }) {
   const { scheme } = useAccessibility();
+  //@ts-ignore
   const theme = getThemeColors(scheme);
   const isSmallScreen = Dimensions.get('window').width < 400;
   return (
@@ -42,18 +46,51 @@ function PageProgressBar({ step }: { step: 'order' | 'payment' | 'delivery' }) {
 }
 
 export default function PaymentPage() {
-  const router = useRouter();
-  const params = useLocalSearchParams();
   const { scheme, fontSize } = useAccessibility();
+  //@ts-ignore
   const theme = getThemeColors(scheme);
   const textSize = getFontSizeValue(fontSize);
   const screenWidth = Dimensions.get('window').width;
   const responsiveText = (base: number) => Math.max(base * (screenWidth / 400), base * 0.85);
-  // This would be a real payment link in production
-  const paymentUrl = 'https://buy.stripe.com/test_7sI7uQ0wQ0wQ0wQ0w';
 
-  // Add tick button to complete payment
+  const router = useRouter();
+  let rawParams: any = {};
+  try {
+    rawParams = useLocalSearchParams() ?? {};
+    console.log('useLocalSearchParams result:', rawParams);
+  } catch (e) {
+    console.error('Error in useLocalSearchParams:', e);
+    rawParams = {}; // Ensure it's always an empty object if parsing fails
+  }
+
+  // Check if params is an object and safely extract values
+  const params = rawParams && typeof rawParams === 'object' && !Array.isArray(rawParams) ? rawParams : {};
+  console.log('params:', params);
+
+  // Safely extract required values from params
+  const { name, brand, price, quantity, mode, rentalStart, rentalEnd, image } = params;
+
+  const [address, setAddress] = useState('');
+  const [region, setRegion] = useState<any>({
+    latitude: 22.3964, // Default: Hong Kong
+    longitude: 114.1095,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  });
+  const [marker, setMarker] = useState<any>(null);
+
+  useEffect(() => {
+    console.log('address:', address);
+    console.log('region:', region);
+    console.log('marker:', marker);
+  }, [address, region, marker]);
+
   const handlePaymentComplete = async () => {
+    if (!address || !marker) {
+      alert('Please enter a delivery address and select it from suggestions.');
+      return;
+    }
+
     const now = new Date();
     const timestamp = now.toLocaleString();
     const deliveryEta = new Date(now.getTime() + 2 * 60 * 60 * 1000).toLocaleString(); // 2 hours from now
@@ -65,29 +102,35 @@ export default function PaymentPage() {
     try {
       await addOrderHistory(username, {
         id: Date.now().toString(),
-        name: params.name as string,
-        brand: params.brand as string,
+        name: name as string,
+        brand: brand as string,
         date: new Date().toISOString().split('T')[0],
         status: 'Ordered',
-        amount: params.mode === 'buy' ? Number(params.price) * Number(params.quantity) : Math.max(1, Math.round(Number(params.price) * 0.18)) * Number(params.quantity) * (params.rentalStart && params.rentalEnd ? Math.ceil((new Date(params.rentalEnd as string).getTime() - new Date(params.rentalStart as string).getTime()) / (24 * 60 * 60 * 1000)) : 1),
-        quantity: Number(params.quantity),
-        mode: params.mode === 'rent' ? 'rent' : 'buy',
-        rentalStart: params.mode === 'rent' ? new Date(params.rentalStart as string).toISOString().split('T')[0] : undefined,
-        rentalEnd: params.mode === 'rent' ? new Date(params.rentalEnd as string).toISOString().split('T')[0] : undefined,
-        image: params.image as string,
+        amount: mode === 'buy' ? Number(price) * Number(quantity) : Math.max(1, Math.round(Number(price) * 0.18)) * Number(quantity) * (rentalStart && rentalEnd ? Math.ceil((new Date(rentalEnd as string).getTime() - new Date(rentalStart as string).getTime()) / (24 * 60 * 60 * 1000)) : 1),
+        quantity: Number(quantity),
+        mode: mode === 'rent' ? 'rent' : 'buy',
+        rentalStart: mode === 'rent' ? new Date(rentalStart as string).toISOString().split('T')[0] : undefined,
+        rentalEnd: mode === 'rent' ? new Date(rentalEnd as string).toISOString().split('T')[0] : undefined,
+        image: image as string,
+        address: address,
+        latitude: marker?.latitude,
+        longitude: marker?.longitude,
       });
     } catch (e) { console.error('Order history save error', e); }
+
     router.push({
       pathname: '/(tabs)/delivery',
       params: {
         orderTime: timestamp,
         transactionId: Math.random().toString(36).slice(2, 10).toUpperCase(),
         deliveryEta,
+        address: address,
+        latitude: marker?.latitude,
+        longitude: marker?.longitude,
       },
     });
   };
 
-  // --- MAIN RETURN ---
   return (
     <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ paddingBottom: 40 }}>
       <PageProgressBar step="payment" />
@@ -95,10 +138,61 @@ export default function PaymentPage() {
         <Ionicons name="arrow-back" size={28} color={theme.text} />
       </TouchableOpacity>
       <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 10) }]}>Complete Your Payment</Text>
-      <Text style={[styles.text, { color: theme.text, fontSize: responsiveText(textSize) }]}>Tap the link below to pay securely:</Text>
-      <Text style={[styles.link, { color: theme.primary, fontSize: responsiveText(textSize) }]} onPress={() => router.push(paymentUrl)}>
-        {paymentUrl}
-      </Text>
+      <Text style={[styles.text, { color: theme.text, fontSize: responsiveText(textSize) }]}>Enter your delivery address:</Text>
+
+      {/* Google Places Autocomplete Input */}
+      <View style={{ width: '100%', maxWidth: 400, alignSelf: 'center', marginBottom: 12, zIndex: 1000 }}>
+        <GooglePlacesAutocomplete
+          placeholder="Search for address"
+          onPress={(data, details = null) => {
+            if (details) {
+              const { lat, lng } = details.geometry.location;
+              setAddress(data.description);
+              setRegion({
+                latitude: lat,
+                longitude: lng,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+              });
+              setMarker({ latitude: lat, longitude: lng });
+            }
+          }}
+          query={{
+            key: 'YOUR_GOOGLE_MAPS_API_KEY', // <<< Make sure your API key is valid and working
+            language: 'en',
+            components: 'country:hk', // Adjust as needed
+          }}
+          fetchDetails={true}
+          styles={{
+            container: { position: 'absolute', width: '100%', zIndex: 1000 },
+            textInputContainer: {
+              backgroundColor: theme.background,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: theme.unselected,
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+            },
+            textInput: { height: 44, color: theme.text, fontSize: responsiveText(textSize) },
+            listView: { backgroundColor: theme.background, borderColor: theme.unselected, borderWidth: 1, borderRadius: 8, marginTop: 50 },
+          }}
+          enablePoweredByContainer={false}
+          nearbyPlacesAPI="GooglePlacesSearch"
+          debounce={200}
+        />
+      </View>
+
+      {/* MapView */}
+      <View style={{ width: '100%', maxWidth: 400, height: 220, alignSelf: 'center', marginBottom: 16, marginTop: 100 }}>
+        <MapView
+          style={{ flex: 1, borderRadius: 12 }}
+          region={region}
+          onRegionChangeComplete={setRegion}
+        >
+          {marker && <Marker coordinate={marker} />}
+        </MapView>
+      </View>
+
       <TouchableOpacity
         style={{
           marginTop: 32,
@@ -124,39 +218,9 @@ export default function PaymentPage() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    padding: 24,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 24,
-    padding: 8,
-    borderRadius: 8,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#222',
-  },
-  text: {
-    fontSize: 18,
-    color: '#444',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  link: {
-    fontSize: 18,
-    color: '#007AFF',
-    textDecorationLine: 'underline',
-    marginBottom: 24,
-  },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', padding: 24 },
+  backButton: { alignSelf: 'flex-start', marginBottom: 24, padding: 8, borderRadius: 8 },
+  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 16, color: '#222' },
+  text: { fontSize: 18, color: '#444', marginBottom: 16, textAlign: 'center' },
+  link: { fontSize: 18, color: '#007AFF', textDecorationLine: 'underline', marginBottom: 24 },
 });

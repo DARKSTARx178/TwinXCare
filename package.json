@@ -4,6 +4,7 @@
     "@react-native-community/datetimepicker": "^8.4.2",
     "@types/react": "^19.1.8",
     "@types/react-native": "^0.72.8",
+    "bcrypt": "^6.0.0",
     "expo-router": "^5.1.1",
     "expo-secure-store": "^14.2.3",
     "react-native-calendars": "^1.1312.1"

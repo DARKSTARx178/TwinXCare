@@ -1,0 +1,8 @@
+{
+  "admin": {
+    "password": "$2b$12$Lw5/8gNAIkhOwOuZWxIjUe6Dyc0xqqfk08WD2FbEqXb.1XcjyJ/vu"
+  },
+  "dev1": {
+    "password": "$2b$12$PZe2SVUbGTkE9PxfOhbPCOcedZiduCqaETjZPP4.HivtADma4o1Nq"
+  }
+}

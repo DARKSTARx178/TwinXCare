@@ -19,6 +19,7 @@ const steps = [
 
 export default function StepBar({ currentStep, style }: StepBarProps) {
   const { scheme } = useAccessibility();
+  //@ts-ignore
   const theme = getThemeColors(scheme);
   const isSmallScreen = SCREEN_WIDTH < 400;
 

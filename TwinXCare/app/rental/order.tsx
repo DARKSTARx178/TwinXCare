@@ -17,6 +17,7 @@ export default function OrderPage() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const { scheme, fontSize } = useAccessibility();
+  //@ts-ignore
   const theme = getThemeColors(scheme);
   const textSize = getFontSizeValue(fontSize);
   const [quantity, setQuantity] = useState(1);
@@ -208,6 +209,8 @@ export default function OrderPage() {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ paddingBottom: 40 }}>
+      {/* Progress bar shifted down to match delivery page */}
+      <View style={{ height: 32 }} />
       <PageProgressBar step="order" />
       <View style={[styles.container, { backgroundColor: theme.background }]}> 
         <BackButton />

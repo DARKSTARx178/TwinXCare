@@ -14,6 +14,7 @@ export default function RenewPage() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const { scheme, fontSize } = useAccessibility();
+  //@ts-ignore
   const theme = getThemeColors(scheme);
   const textSize = getFontSizeValue(fontSize);
   // Lock quantity to the value passed in params (or 1 if not provided)

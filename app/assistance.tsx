@@ -22,7 +22,7 @@ export default function Assistance() {
     setMessage('');
     router.back();
     try {
-      const res = await fetch('http://172.22.129.255:8080/api/send-feedback', {
+      const res = await fetch('http://192.168.50.221:8080/api/send-feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, rating: 'Assistance', username }),

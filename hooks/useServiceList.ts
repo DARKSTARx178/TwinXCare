@@ -8,7 +8,7 @@ export function useServiceList(reloadKey: number): ServiceItem[] {
 
   useEffect(() => {
     setLoading(true);
-    fetch('https://your-vercel-app.vercel.app/api/services')
+    fetch('http://192.168.50.221:8080/api/services')
       .then(res => res.json())
       .then(data => setServices(data))
       .catch(() => setServices([]))

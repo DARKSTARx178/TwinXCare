@@ -1,7 +1,7 @@
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions, Platform } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
@@ -14,7 +14,6 @@ import * as SecureStore from 'expo-secure-store';
 import MapView, { Marker } from 'react-native-maps';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 
-// --- PAGE PROGRESS BAR ---
 function PageProgressBar({ step }: { step: 'order' | 'payment' | 'delivery' }) {
   const { scheme } = useAccessibility();
   //@ts-ignore
@@ -47,19 +46,12 @@ function PageProgressBar({ step }: { step: 'order' | 'payment' | 'delivery' }) {
 }
 
 export default function PaymentPage() {
-  console.log('PaymentPage mounted');
-  // TEMP: Comment out context and navigation for debug
-  const { scheme, fontSize } = useAccessibility(); // Uncommented for proper theme/font usage
+  const { scheme, fontSize } = useAccessibility();
   //@ts-ignore
-  const theme = getThemeColors(scheme); // Uncommented
-  const textSize = getFontSizeValue(fontSize); // Uncommented
+  const theme = getThemeColors(scheme);
+  const textSize = getFontSizeValue(fontSize);
   const screenWidth = Dimensions.get('window').width;
   const responsiveText = (base: number) => Math.max(base * (screenWidth / 400), base * 0.85);
-
-  // Use fallback theme for debug - REMOVED, using actual context now
-  // const theme = { background: '#fff', text: '#222', primary: '#007AFF', unselected: '#ccc' };
-  // const textSize = 18;
-  // const responsiveText = (base: number) => base;
 
   const router = useRouter();
   let rawParams: any = {};
@@ -68,11 +60,15 @@ export default function PaymentPage() {
     console.log('useLocalSearchParams result:', rawParams);
   } catch (e) {
     console.error('Error in useLocalSearchParams:', e);
-    rawParams = {};
+    rawParams = {}; // Ensure it's always an empty object if parsing fails
   }
-  const params = typeof rawParams === 'object' && rawParams !== null && !Array.isArray(rawParams) ? rawParams : {};
+
+  // Check if params is an object and safely extract values
+  const params = rawParams && typeof rawParams === 'object' && !Array.isArray(rawParams) ? rawParams : {};
   console.log('params:', params);
-  // const screenWidth = Dimensions.get('window').width; // Already defined above
+
+  // Safely extract required values from params
+  const { name, brand, price, quantity, mode, rentalStart, rentalEnd, image } = params;
 
   const [address, setAddress] = useState('');
   const [region, setRegion] = useState<any>({
@@ -83,14 +79,12 @@ export default function PaymentPage() {
   });
   const [marker, setMarker] = useState<any>(null);
 
-  // Debug logs for state
-  React.useEffect(() => {
+  useEffect(() => {
     console.log('address:', address);
     console.log('region:', region);
     console.log('marker:', marker);
   }, [address, region, marker]);
 
-  // Add tick button to complete payment
   const handlePaymentComplete = async () => {
     if (!address || !marker) {
       alert('Please enter a delivery address and select it from suggestions.');
@@ -108,21 +102,22 @@ export default function PaymentPage() {
     try {
       await addOrderHistory(username, {
         id: Date.now().toString(),
-        name: params.name as string,
-        brand: params.brand as string,
+        name: name as string,
+        brand: brand as string,
         date: new Date().toISOString().split('T')[0],
         status: 'Ordered',
-        amount: params.mode === 'buy' ? Number(params.price) * Number(params.quantity) : Math.max(1, Math.round(Number(params.price) * 0.18)) * Number(params.quantity) * (params.rentalStart && params.rentalEnd ? Math.ceil((new Date(params.rentalEnd as string).getTime() - new Date(params.rentalStart as string).getTime()) / (24 * 60 * 60 * 1000)) : 1),
-        quantity: Number(params.quantity),
-        mode: params.mode === 'rent' ? 'rent' : 'buy',
-        rentalStart: params.mode === 'rent' ? new Date(params.rentalStart as string).toISOString().split('T')[0] : undefined,
-        rentalEnd: params.mode === 'rent' ? new Date(params.rentalEnd as string).toISOString().split('T')[0] : undefined,
-        image: params.image as string,
+        amount: mode === 'buy' ? Number(price) * Number(quantity) : Math.max(1, Math.round(Number(price) * 0.18)) * Number(quantity) * (rentalStart && rentalEnd ? Math.ceil((new Date(rentalEnd as string).getTime() - new Date(rentalStart as string).getTime()) / (24 * 60 * 60 * 1000)) : 1),
+        quantity: Number(quantity),
+        mode: mode === 'rent' ? 'rent' : 'buy',
+        rentalStart: mode === 'rent' ? new Date(rentalStart as string).toISOString().split('T')[0] : undefined,
+        rentalEnd: mode === 'rent' ? new Date(rentalEnd as string).toISOString().split('T')[0] : undefined,
+        image: image as string,
         address: address,
         latitude: marker?.latitude,
         longitude: marker?.longitude,
       });
     } catch (e) { console.error('Order history save error', e); }
+
     router.push({
       pathname: '/(tabs)/delivery',
       params: {
@@ -136,7 +131,6 @@ export default function PaymentPage() {
     });
   };
 
-  // --- MAIN RETURN ---
   return (
     <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ paddingBottom: 40 }}>
       <PageProgressBar step="payment" />
@@ -151,7 +145,6 @@ export default function PaymentPage() {
         <GooglePlacesAutocomplete
           placeholder="Search for address"
           onPress={(data, details = null) => {
-            // 'details' is provided when fetchDetails is true
             if (details) {
               const { lat, lng } = details.geometry.location;
               setAddress(data.description);
@@ -165,20 +158,14 @@ export default function PaymentPage() {
             }
           }}
           query={{
-            key: 'AIzaSyAfvAGRlPuP3YQZ225gEqYYWzTafbVdsCw', // <<< IMPORTANT: Replace with your actual API Key
-            language: 'en', // default: 'en'
-            components: 'country:hk', // Restrict to Hong Kong, adjust as needed
+            key: 'YOUR_GOOGLE_MAPS_API_KEY', // <<< Make sure your API key is valid and working
+            language: 'en',
+            components: 'country:hk', // Adjust as needed
           }}
-          fetchDetails={true} // Fetch details about the place
+          fetchDetails={true}
           styles={{
-            container: {
-              flex: 0,
-              position: 'absolute',
-              width: '100%',
-              zIndex: 1000,
-            },
+            container: { position: 'absolute', width: '100%', zIndex: 1000 },
             textInputContainer: {
-              width: '100%',
               backgroundColor: theme.background,
               borderRadius: 8,
               borderWidth: 1,
@@ -186,34 +173,12 @@ export default function PaymentPage() {
               paddingHorizontal: 8,
               paddingVertical: 4,
             },
-            textInput: {
-              height: 44,
-              color: theme.text,
-              fontSize: responsiveText(textSize),
-            },
-            predefinedPlacesDescription: {
-              color: theme.primary,
-            },
-            listView: {
-              backgroundColor: theme.background,
-              borderColor: theme.unselected,
-              borderWidth: 1,
-              borderRadius: 8,
-              marginTop: 50, // Adjust to show below the input
-            },
-            row: {
-              padding: 13,
-              height: 44,
-              flexDirection: 'row',
-            },
-            description: {
-              color: theme.text,
-              fontSize: responsiveText(textSize - 2),
-            },
+            textInput: { height: 44, color: theme.text, fontSize: responsiveText(textSize) },
+            listView: { backgroundColor: theme.background, borderColor: theme.unselected, borderWidth: 1, borderRadius: 8, marginTop: 50 },
           }}
-          enablePoweredByContainer={false} // Hide "Powered by Google"
-          nearbyPlacesAPI="GooglePlacesSearch" // Use Google Places Search API
-          debounce={200} // Delay before making API calls
+          enablePoweredByContainer={false}
+          nearbyPlacesAPI="GooglePlacesSearch"
+          debounce={200}
         />
       </View>
 
@@ -222,7 +187,7 @@ export default function PaymentPage() {
         <MapView
           style={{ flex: 1, borderRadius: 12 }}
           region={region}
-          onRegionChangeComplete={setRegion} // Update region when user moves map
+          onRegionChangeComplete={setRegion}
         >
           {marker && <Marker coordinate={marker} />}
         </MapView>
@@ -253,39 +218,9 @@ export default function PaymentPage() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    padding: 24,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 24,
-    padding: 8,
-    borderRadius: 8,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#222',
-  },
-  text: {
-    fontSize: 18,
-    color: '#444',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  link: {
-    fontSize: 18,
-    color: '#007AFF',
-    textDecorationLine: 'underline',
-    marginBottom: 24,
-  },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', padding: 24 },
+  backButton: { alignSelf: 'flex-start', marginBottom: 24, padding: 8, borderRadius: 8 },
+  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 16, color: '#222' },
+  text: { fontSize: 18, color: '#444', marginBottom: 16, textAlign: 'center' },
+  link: { fontSize: 18, color: '#007AFF', textDecorationLine: 'underline', marginBottom: 24 },
 });

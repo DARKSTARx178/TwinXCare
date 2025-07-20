@@ -40,7 +40,7 @@ const Login: React.FC = () => {
       return;
     }
     try {
-      const response = await fetch('http://172.22.129.255:8080/api/login', {
+      const response = await fetch('http://192.168.50.221:8080/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: cleanedUsername, password }),

@@ -4,10 +4,9 @@ import { FlatList as RNFlatList } from 'react-native';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
-import { useServiceList } from '@/hooks/useServiceList';
 import { useRouter } from 'expo-router';
-
-
+// Import the useCaregiverList hook
+import { useCaregiverList } from '@/assets/servicesOverview'; // Adjust the path if necessary
 
 export interface ServiceItem {
   name: string;
@@ -19,14 +18,17 @@ export interface ServiceItem {
 }
 
 const Services: React.FC = () => {
-  // ...existing code...
   const [refreshing, setRefreshing] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
-  const serviceList = useServiceList(reloadKey);
+
+  // Use the hook to get the list of caregivers (services)
+  const serviceList = useCaregiverList(reloadKey);
+
   const allSpecialties = Array.from(new Set(serviceList.map((item: ServiceItem) => item.specialty))) as string[];
   const { scheme, fontSize } = useAccessibility();
   //@ts-ignore
   const theme = getThemeColors(scheme);
+
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'specialty' | 'price' | null>(null);
   const [filterValue, setFilterValue] = useState<string>('');
@@ -34,6 +36,7 @@ const Services: React.FC = () => {
   const [showValueDropdown, setShowValueDropdown] = useState(false);
   const textSize = getFontSizeValue(fontSize);
   const router = useRouter();
+
   const screenWidth = Dimensions.get('window').width;
   const responsiveText = (base: number) => Math.max(base * (screenWidth / 400), base * 0.85);
   const numColumns = screenWidth < 950 ? 2 : 3;
@@ -90,7 +93,7 @@ const Services: React.FC = () => {
         />
       }
     >
-      <View style={[styles.container, { backgroundColor: theme.background }]}> 
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
         <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>Services</Text>
         <TextInput
           style={[
@@ -111,7 +114,7 @@ const Services: React.FC = () => {
               setShowValueDropdown(false);
             }}
           >
-            <Text style={{ color: theme.text, fontSize: responsiveText(textSize-2) }}>
+            <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
               {filter ? filter.charAt(0).toUpperCase() + filter.slice(1) : 'Filter By'}
             </Text>
           </TouchableOpacity>
@@ -124,7 +127,7 @@ const Services: React.FC = () => {
                 setShowValueDropdown(false);
               }}
             >
-              <Text style={{ color: theme.primary, fontSize: responsiveText(textSize-2) }}>✕</Text>
+              <Text style={{ color: theme.primary, fontSize: responsiveText(textSize - 2) }}>✕</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -141,7 +144,7 @@ const Services: React.FC = () => {
                   setFilterValue('');
                 }}
               >
-                <Text style={{ color: theme.text, fontSize: responsiveText(textSize-2) }}>{f.charAt(0).toUpperCase() + f.slice(1)}</Text>
+                <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>{f.charAt(0).toUpperCase() + f.slice(1)}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -159,7 +162,7 @@ const Services: React.FC = () => {
                     setShowValueDropdown(false);
                   }}
                 >
-                  <Text style={{ color: theme.text, fontSize: responsiveText(textSize-2) }}>{s}</Text>
+                  <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>{s}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -167,7 +170,7 @@ const Services: React.FC = () => {
         )}
         {filter === 'price' && (
           <TextInput
-            style={[styles.input, { backgroundColor: '#fff', color: '#000', fontSize: responsiveText(textSize-2), marginBottom: 10 }]}
+            style={[styles.input, { backgroundColor: '#fff', color: '#000', fontSize: responsiveText(textSize - 2), marginBottom: 10 }]}
             placeholder="Max price..."
             placeholderTextColor="#888"
             keyboardType="numeric"
@@ -206,8 +209,8 @@ const Services: React.FC = () => {
                 }
               ]} />
               <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize), maxWidth: '95%' }]} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
-              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize-2), maxWidth: '95%' }]} numberOfLines={1} ellipsizeMode="tail">{item.specialty}</Text>
-              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize-4), maxWidth: '95%' }]} numberOfLines={1} ellipsizeMode="tail">{item.experience} | ${item.price}/hr</Text>
+              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize - 2), maxWidth: '95%' }]} numberOfLines={1} ellipsizeMode="tail">{item.specialty}</Text>
+              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize - 4), maxWidth: '95%' }]} numberOfLines={1} ellipsizeMode="tail">{item.experience} | ${item.price}/hr</Text>
             </TouchableOpacity>
           )}
           ListEmptyComponent={() => (

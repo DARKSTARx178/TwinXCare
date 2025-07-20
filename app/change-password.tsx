@@ -37,7 +37,7 @@ export default function ChangePassword() {
     }
     setLoading(true);
     try {
-      const res = await fetch('http://172.22.129.255:8080/api/change-password', {
+      const res = await fetch('http://192.168.50.221:8080/api/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: user, currentPassword: currentPw, newPassword: newPw }),

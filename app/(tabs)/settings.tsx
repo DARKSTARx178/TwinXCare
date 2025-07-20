@@ -44,7 +44,7 @@ const SettingsScreen = () => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}> 
+    <View style={[styles.container, { backgroundColor: "#f7f5ed" }]}> 
       <Text style={[styles.header, { color: colors.text, fontSize: fontSizeValue + 12 }]}>{labels.header}</Text>
 
       {/* Appearance (only light mode) */}

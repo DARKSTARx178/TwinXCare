@@ -24,7 +24,6 @@ export default function Explore() {
   const itemAvailability = useItemOverview(reloadKey);
   const allBrands = Array.from(new Set(itemAvailability.map((item: EquipmentItem) => item.brand))) as string[];
   const allItems = Array.from(new Set(itemAvailability.map((item: EquipmentItem) => item.name))) as string[];
-
   const { scheme, fontSize } = useAccessibility();
   //@ts-ignore
   const theme = getThemeColors(scheme);
@@ -66,7 +65,6 @@ export default function Explore() {
     );
   }
 
-  // Always apply search first, then filter
   let filteredItems = itemAvailability.filter((item) =>
     (item.name + ' ' + item.brand).toLowerCase().includes(search.toLowerCase())
   );

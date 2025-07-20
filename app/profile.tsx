@@ -39,6 +39,10 @@ export default function Profile() {
     Alert.alert('Signed Out', 'You have been signed out.');
   };
 
+  const handleAdminMode = () => {
+    router.push('/admin_auth');
+  };
+
   const menuItems = [
     { icon: 'settings-outline', label: 'Settings', onPress: () => router.push('/settings') },
     { icon: 'key-outline', label: 'Change Password', onPress: () => router.push('/change-password') },
@@ -61,6 +65,22 @@ export default function Profile() {
           </View>
           <Text style={{ color: theme.text, fontWeight: 'bold', marginBottom: 6, fontSize: textSize + 8 }}>{user}</Text>
           <Text style={{ color: theme.text, marginBottom: 20, fontSize: textSize }}>Signed in</Text>
+
+          {/* Admin Mode Button */}
+          {user === 'admin' && (
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#FF5733',
+                paddingVertical: 10,
+                paddingHorizontal: 30,
+                borderRadius: 8,
+                marginBottom: 10,
+              }}
+              onPress={handleAdminMode}
+            >
+              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: textSize }}>Enter Admin Mode</Text>
+            </TouchableOpacity>
+          )}
         </>
       ) : (
         <>

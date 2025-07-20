@@ -29,7 +29,7 @@ export default function Register() {
     // Debug log
     console.log('Register attempt:', { username: cleanedUsername });
     try {
-      const response = await fetch('http://172.22.129.255:8080/api/register', {
+      const response = await fetch('http://192.168.50.221:8080/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: cleanedUsername, password }),

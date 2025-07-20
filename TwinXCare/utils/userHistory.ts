@@ -30,7 +30,7 @@ export async function getOrderHistory(username: string): Promise<OrderHistoryIte
   }
 }
 
-export async function addOrderHistory(username: string, order: OrderHistoryItem): Promise<void> {
+export async function addOrderToHistory(username: string, order: OrderHistoryItem): Promise<void> {
   const key = `orders_${username}`;
   const history = await getOrderHistory(username);
   history.unshift(order); // newest first

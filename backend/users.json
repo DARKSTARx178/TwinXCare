@@ -4,5 +4,8 @@
   },
   "dev1": {
     "password": "$2b$12$PZe2SVUbGTkE9PxfOhbPCOcedZiduCqaETjZPP4.HivtADma4o1Nq"
+  },
+  "dev2": {
+    "password": "$2b$12$HOp6u8cQRKa4l.9uYmQVpOcp2n25bqr8z/.mhYHhPalxpprqCwD0q"
   }
 }

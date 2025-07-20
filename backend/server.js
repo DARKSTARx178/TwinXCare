@@ -39,6 +39,7 @@ const server = http.createServer(async (req, res) => {
             const parsedBody = body ? JSON.parse(body) : {};
             const users = await readUsers();
 
+            // Register
             if (req.url === '/api/register' && req.method === 'POST') {
                 const { username, password } = parsedBody;
                 if (!username || !password) {
@@ -49,10 +50,11 @@ const server = http.createServer(async (req, res) => {
                     res.writeHead(409).end(JSON.stringify({ error: 'User already exists' }));
                     return;
                 }
-                users[username] = { password: await hashPassword(password) };
+                users[username] = { password: await hashPassword(password), orders: [] };
                 await fs.writeFile(usersFilePath, JSON.stringify(users, null, 2));
                 res.writeHead(201).end(JSON.stringify({ message: 'User registered successfully' }));
 
+                // Login
             } else if (req.url === '/api/login' && req.method === 'POST') {
                 const { username, password } = parsedBody;
                 if (!username || !password) {
@@ -66,6 +68,7 @@ const server = http.createServer(async (req, res) => {
                 }
                 res.writeHead(200).end(JSON.stringify({ message: 'Login successful' }));
 
+                // Change Password
             } else if (req.url === '/api/change-password' && req.method === 'POST') {
                 const { username, oldPassword, newPassword } = parsedBody;
                 if (!username || !oldPassword || !newPassword) {
@@ -81,6 +84,7 @@ const server = http.createServer(async (req, res) => {
                 await fs.writeFile(usersFilePath, JSON.stringify(users, null, 2));
                 res.writeHead(200).end(JSON.stringify({ message: 'Password changed successfully' }));
 
+                // Send Feedback
             } else if (req.url === '/api/send-feedback' && req.method === 'POST') {
                 const { username, feedback } = parsedBody;
                 if (!feedback) {
@@ -92,6 +96,7 @@ const server = http.createServer(async (req, res) => {
                 await fs.appendFile(feedbackFilePath, entry);
                 res.writeHead(200).end(JSON.stringify({ message: 'Feedback received. Thank you!' }));
 
+                // Admin Get User List
             } else if (req.url === '/api/getPasswords' && req.method === 'POST') {
                 const { username, password } = parsedBody;
                 const user = users[username];
@@ -101,6 +106,7 @@ const server = http.createServer(async (req, res) => {
                 }
                 res.writeHead(200).end(JSON.stringify({ users: Object.keys(users) }));
 
+                // Admin Reset Password
             } else if (req.url === '/api/resetPassword' && req.method === 'POST') {
                 const { adminUsername, adminPassword, targetUsername, newPassword } = parsedBody;
                 if (!adminUsername || !adminPassword || !targetUsername || !newPassword) {
@@ -108,11 +114,7 @@ const server = http.createServer(async (req, res) => {
                     return;
                 }
                 const admin = users[adminUsername];
-                if (
-                    !admin ||
-                    adminUsername !== 'admin' ||
-                    !(await comparePassword(adminPassword, admin.password))
-                ) {
+                if (!admin || adminUsername !== 'admin' || !(await comparePassword(adminPassword, admin.password))) {
                     res.writeHead(403).end(JSON.stringify({ error: 'Admin authentication failed' }));
                     return;
                 }
@@ -124,6 +126,7 @@ const server = http.createServer(async (req, res) => {
                 await fs.writeFile(usersFilePath, JSON.stringify(users, null, 2));
                 res.writeHead(200).end(JSON.stringify({ message: 'Password reset successful' }));
 
+                // Admin Delete User
             } else if (req.url === '/api/deleteUser' && req.method === 'POST') {
                 const { adminUsername, adminPassword, targetUsername } = parsedBody;
                 if (!adminUsername || !adminPassword || !targetUsername) {
@@ -131,11 +134,7 @@ const server = http.createServer(async (req, res) => {
                     return;
                 }
                 const admin = users[adminUsername];
-                if (
-                    !admin ||
-                    adminUsername !== 'admin' ||
-                    !(await comparePassword(adminPassword, admin.password))
-                ) {
+                if (!admin || adminUsername !== 'admin' || !(await comparePassword(adminPassword, admin.password))) {
                     res.writeHead(403).end(JSON.stringify({ error: 'Admin authentication failed' }));
                     return;
                 }
@@ -146,6 +145,41 @@ const server = http.createServer(async (req, res) => {
                 delete users[targetUsername];
                 await fs.writeFile(usersFilePath, JSON.stringify(users, null, 2));
                 res.writeHead(200).end(JSON.stringify({ message: 'User deleted successfully' }));
+
+                // Add Order to User
+            } else if (req.url === '/api/add-order' && req.method === 'POST') {
+                const { username, order } = parsedBody;
+                if (!username || !order) {
+                    res.writeHead(400).end(JSON.stringify({ error: 'Username and order are required' }));
+                    return;
+                }
+                if (!users[username]) {
+                    res.writeHead(404).end(JSON.stringify({ error: 'User not found' }));
+                    return;
+                }
+                if (!users[username].orders) {
+                    users[username].orders = [];
+                }
+                order.id = `${Date.now()}`;
+                users[username].orders.push(order);
+                await fs.writeFile(usersFilePath, JSON.stringify(users, null, 2));
+                res.writeHead(201).end(JSON.stringify({ message: 'Order added successfully', order }));
+
+                // Get User Order History
+            } else if (req.url.startsWith('/api/order-history') && req.method === 'GET') {
+                const url = new URL(req.url, `http://${req.headers.host}`);
+                const username = url.searchParams.get('username');
+                if (!username) {
+                    res.writeHead(400).end(JSON.stringify({ error: 'Username is required' }));
+                    return;
+                }
+                const user = users[username];
+                if (!user) {
+                    res.writeHead(404).end(JSON.stringify({ error: 'User not found' }));
+                    return;
+                }
+                const history = user.orders || [];
+                res.writeHead(200).end(JSON.stringify(history));
 
             } else {
                 res.writeHead(404).end(JSON.stringify({ error: 'Route not found' }));

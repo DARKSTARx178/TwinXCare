@@ -99,6 +99,7 @@ export default function OrderPage() {
           rentalEnd: rentalEnd.toISOString(),
           image: params.image,
           description: params.description,
+          type: 'equipment',
         },
       });
     }, 400);
@@ -175,35 +176,6 @@ export default function OrderPage() {
     );
   }
 
-  // --- PAGE PROGRESS BAR ---
-  function PageProgressBar({ step }: { step: 'order' | 'payment' | 'delivery' }) {
-    const isSmallScreen = SCREEN_WIDTH < 400;
-    return (
-      <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', width: '100%', marginTop: isSmallScreen ? 8 : 16, marginBottom: isSmallScreen ? 8 : 16 }}>
-        <MaterialCommunityIcons
-          name="clipboard-list-outline"
-          size={isSmallScreen ? 32 : 40}
-          color={step === 'order' ? theme.primary : theme.unselected}
-          style={{ opacity: step === 'order' ? 1 : 0.5 }}
-        />
-        <View style={{ width: isSmallScreen ? 18 : 32, height: 3, backgroundColor: theme.unselected, marginHorizontal: 4, opacity: 0.5, borderRadius: 2 }} />
-        <MaterialCommunityIcons
-          name="credit-card-outline"
-          size={isSmallScreen ? 32 : 40}
-          color={step === 'payment' ? theme.primary : theme.unselected}
-          style={{ opacity: step === 'payment' ? 1 : 0.5 }}
-        />
-        <View style={{ width: isSmallScreen ? 18 : 32, height: 3, backgroundColor: theme.unselected, marginHorizontal: 4, opacity: 0.5, borderRadius: 2 }} />
-        <MaterialCommunityIcons
-          name="truck"
-          size={isSmallScreen ? 32 : 40}
-          color={step === 'delivery' ? theme.primary : theme.unselected}
-          style={{ opacity: step === 'delivery' ? 1 : 0.5 }}
-        />
-      </View>
-    );
-  }
-
   const screenWidth = Dimensions.get('window').width;
   const responsiveText = (base: number) => Math.max(base * (screenWidth / 400), base * 0.85);
 
@@ -211,7 +183,6 @@ export default function OrderPage() {
     <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ paddingBottom: 40 }}>
       {/* Progress bar shifted down to match delivery page */}
       <View style={{ height: 32 }} />
-      <PageProgressBar step="order" />
       <View style={[styles.container, { backgroundColor: theme.background }]}> 
         <BackButton />
         <Image source={{ uri: params.image as string }} style={styles.image} />

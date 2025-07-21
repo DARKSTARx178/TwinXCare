@@ -5,8 +5,7 @@ import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { useRouter } from 'expo-router';
-// Import the useCaregiverList hook
-import { useCaregiverList } from '@/assets/servicesOverview'; // Adjust the path if necessary
+import { useCaregiverList } from '@/assets/servicesOverview'; 
 
 export interface ServiceItem {
   name: string;
@@ -21,7 +20,6 @@ const Services: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
 
-  // Use the hook to get the list of caregivers (services)
   const serviceList = useCaregiverList(reloadKey);
 
   const allSpecialties = Array.from(new Set(serviceList.map((item: ServiceItem) => item.specialty))) as string[];
@@ -43,7 +41,6 @@ const Services: React.FC = () => {
   const gridTextSize = (base: number) => Math.max(base * (screenWidth / 400), base * 0.8);
 
   useEffect(() => {
-    // No AI search setter for now
   }, []);
 
   const onRefresh = () => {

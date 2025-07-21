@@ -32,35 +32,29 @@ export default function OrderPage() {
   const [swipeX] = useState(new Animated.Value(0));
   const [swiped, setSwiped] = useState(false);
 
-  // Helper to get number of days between rentalStart and rentalEnd
   const getRentalDays = () => {
     const msPerDay = 24 * 60 * 60 * 1000;
     const days = Math.ceil((rentalEnd.getTime() - rentalStart.getTime()) / msPerDay);
     return days > 0 ? days : 1;
   };
 
-  // Swipe to order logic
-  let startX = 0; // Track the initial X position for swipe
+  let startX = 0; 
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (_, gestureState) => {
-      // Only start if touch is within the swipe track area
       return Math.abs(gestureState.dx) > 10 && Math.abs(gestureState.dy) < 20;
     },
     onPanResponderGrant: (evt: any, gestureState: any) => {
-      swipeX.setValue(0); // Always reset thumb to left when starting
-      startX = gestureState.x0; // Save the initial touch X
+      swipeX.setValue(0); 
+      startX = gestureState.x0; 
     },
     onPanResponderMove: (evt: any, gestureState: any) => {
-      // Clamp the thumb so it doesn't go past the track
-      const dx = Math.max(0, Math.min(gestureState.moveX - startX, 260 - 64)); // track width - thumb width
+      const dx = Math.max(0, Math.min(gestureState.moveX - startX, 260 - 64)); 
       swipeX.setValue(dx);
-      // If thumb reaches the end, trigger navigation immediately
       if (dx >= 260 - 64 - 2 && stock > 0 && !swiped) {
         handleSwipe();
       }
     },
     onPanResponderRelease: async (_: any, gestureState: any) => {
-      // If not already triggered by move, check again on release
       if (!swiped) {
         const username = await SecureStore.getItemAsync('user');
         const swipeDistance = gestureState.moveX - startX;
@@ -78,7 +72,6 @@ export default function OrderPage() {
     },
   });
 
-  // Only navigates to payment, does NOT log order history
   async function handleSwipe() {
     setSwiped(true);
     const username = await SecureStore.getItemAsync('user');
@@ -92,7 +85,7 @@ export default function OrderPage() {
         params: {
           name: params.name,
           brand: params.brand,
-          price: rentPrice, // Always pass rental price
+          price: rentPrice, 
           quantity: quantity.toString(),
           mode: 'rent',
           rentalStart: rentalStart.toISOString(),
@@ -105,7 +98,6 @@ export default function OrderPage() {
     }, 400);
   }
 
-  // Step bar with icons for all steps (no circle, no duplicate)
   function StepBar() {
     const isSmallScreen = SCREEN_WIDTH < 400;
     return (
@@ -119,7 +111,6 @@ export default function OrderPage() {
     );
   }
 
-  // Simple back arrow, no background
   function BackButton() {
     return (
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
@@ -128,7 +119,6 @@ export default function OrderPage() {
     );
   }
 
-  // Rental calendar with start and end date
   function RentalCalendar() {
     const rentalDays = getRentalDays();
     return (
@@ -181,18 +171,15 @@ export default function OrderPage() {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ paddingBottom: 40 }}>
-      {/* Progress bar shifted down to match delivery page */}
       <View style={{ height: 32 }} />
       <View style={[styles.container, { backgroundColor: theme.background }]}> 
         <BackButton />
         <Image source={{ uri: params.image as string }} style={styles.image} />
         <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>{params.name}</Text>
         <Text style={[styles.brand, { color: theme.text, fontSize: responsiveText(textSize) }]}>{params.brand}</Text>
-        {/* Removed Buy/Rent selector, always rent */}
         <Text style={[styles.modeBtnText, { color: theme.primary, fontSize: responsiveText(textSize) }]}>Rent <Text style={[styles.modePrice, { color: theme.primary, fontSize: responsiveText(textSize - 2) }]}>${rentPrice}/day</Text></Text>
         <Text style={[styles.stock, { color: theme.text, fontSize: responsiveText(textSize) } ]}>Stock: {stock}</Text>
         <Text style={[styles.description, { color: theme.text, fontSize: responsiveText(textSize - 2) }]}>{params.description || 'No description available.'}</Text>
-        {/* Quantity selector */}
         <View style={styles.qtyRow}>
           <Text style={[styles.qtyLabel, { color: theme.text, fontSize: responsiveText(textSize) }]}>Quantity:</Text>
           <TouchableOpacity
@@ -211,13 +198,11 @@ export default function OrderPage() {
             <Text style={[styles.qtyBtnText, { color: theme.text, fontSize: responsiveText(textSize + 2) }]}>+</Text>
           </TouchableOpacity>
         </View>
-        {/* Always show rental calendar */}
         <RentalCalendar />
         {stock === 0 && (
           <Text style={[styles.outOfStock, { color: '#D32F2F', fontSize: responsiveText(textSize + 2) }]}>Out of stock</Text>
         )}
       </View>
-      {/* Total and swipe to order at the bottom, swipe centered */}
       <View style={[styles.bottomBar, { backgroundColor: theme.background, borderColor: theme.unselected }]}> 
         <View style={styles.totalPriceBox}>
           <Text style={[styles.totalPriceLabel, { color: theme.unselected, fontSize: responsiveText(textSize - 4) }]}>Total</Text>
@@ -409,7 +394,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'center',
-    paddingBottom: 40, // increased from 24 for more space below
+    paddingBottom: 40,
     paddingTop: 8,
     borderTopWidth: 1,
     paddingHorizontal: 24,

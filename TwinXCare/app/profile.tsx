@@ -66,7 +66,6 @@ export default function Profile() {
           <Text style={{ color: theme.text, fontWeight: 'bold', marginBottom: 6, fontSize: textSize + 8 }}>{user}</Text>
           <Text style={{ color: theme.text, marginBottom: 20, fontSize: textSize }}>Signed in</Text>
 
-          {/* Admin Mode Button */}
           {user === 'admin' && (
             <TouchableOpacity
               style={{

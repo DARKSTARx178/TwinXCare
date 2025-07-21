@@ -17,20 +17,13 @@ export default function RenewPage() {
   //@ts-ignore
   const theme = getThemeColors(scheme);
   const textSize = getFontSizeValue(fontSize);
-  // Lock quantity to the value passed in params (or 1 if not provided)
   const quantity = Number(params.quantity) || 1;
-  // Lock mode to 'rent' and use rental price
   const rentPrice = Math.max(1, Math.round((Number(params.price) || 0) * 0.18));
   const stock = Number(params.stock) || 0;
-  // Lock rentalStart to the original return date (passed in params.returnDate)
   const originalReturnDate = params.returnDate ? new Date(params.returnDate as string) : new Date();
   const [showEndDate, setShowEndDate] = useState(false);
-  // Remove days to renew, always renew for 1 day (or keep rentalEnd as next day)
-  // Remove renewDays and setRenewDays
-  // Allow user to select how many items to renew (up to original quantity)
   const maxQty = Number(params.quantity) || 1;
   const [renewQty, setRenewQty] = useState(1);
-  // For renewal, allow user to select end date (renewal period), but lock start date
   const [showCalendar, setShowCalendar] = useState(false);
   const [renewEnd, setRenewEnd] = useState(new Date(originalReturnDate.getTime() + 24 * 60 * 60 * 1000));
   const getRenewDays = () => {
@@ -42,7 +35,6 @@ export default function RenewPage() {
   const [swipeX] = useState(new Animated.Value(0));
   const [swiped, setSwiped] = useState(false);
 
-  // Swipe to order logic
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > 10 && Math.abs(gestureState.dy) < 20,
     onPanResponderMove: Animated.event([
@@ -53,7 +45,6 @@ export default function RenewPage() {
       if (gestureState.dx > SCREEN_WIDTH * 0.35 && stock > 0) {
         setSwiped(true);
         setTimeout(() => {
-          // Redirect to payment page, pass renew info
           router.replace({ pathname: '/rental/payment', params: {
             ...params,
             quantity: renewQty,
@@ -69,7 +60,6 @@ export default function RenewPage() {
     },
   });
 
-  // --- PAGE PROGRESS BAR ---
   function PageProgressBar({ step }: { step: 'order' | 'payment' | 'delivery' }) {
     const isSmallScreen = SCREEN_WIDTH < 400;
     return (
@@ -98,7 +88,6 @@ export default function RenewPage() {
     );
   }
 
-  // Simple back arrow, no background
   function BackButton() {
     return (
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
@@ -107,7 +96,6 @@ export default function RenewPage() {
     );
   }
 
-  // Rental calendar with locked start date and selectable end date or days
   function RentalCalendar() {
     const daysRented = getRenewDays();
     return (
@@ -136,7 +124,6 @@ export default function RenewPage() {
             minimumDate={new Date(originalReturnDate.getTime() + 24 * 60 * 60 * 1000)}
           />
         )}
-        {/* Quantity to renew */}
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
           <Text style={[styles.calendarLabel, { color: theme.text, fontSize: textSize - 2, marginRight: 8 }]}>Quantity to renew:</Text>
           <TouchableOpacity
@@ -171,7 +158,6 @@ export default function RenewPage() {
         <Image source={{ uri: params.image as string }} style={styles.image} />
         <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>{params.name}</Text>
         <Text style={[styles.brand, { color: theme.text, fontSize: responsiveText(textSize) }]}>{params.brand}</Text>
-        {/* Rental price locked */}
         <View style={styles.modeRow}>
           <View style={[styles.modeBtn, { backgroundColor: theme.primary }]}> 
             <Text style={[styles.modeBtnText, { color: theme.background, fontSize: responsiveText(textSize) }]}>Renewal
@@ -181,7 +167,6 @@ export default function RenewPage() {
         </View>
         <Text style={[styles.stock, { color: theme.text, fontSize: responsiveText(textSize) } ]}>Stock: {stock}</Text>
         <Text style={[styles.description, { color: theme.text, fontSize: responsiveText(textSize - 2) }]}>{params.description || 'No description available.'}</Text>
-        {/* Quantity locked */}
         <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 8 }}>
           <Text style={[styles.qtyLabel, { color: theme.text, fontSize: responsiveText(textSize) }]}>Quantity to renew:</Text>
           <View style={[styles.qtyBtn, { backgroundColor: theme.unselected }]}> 
@@ -193,7 +178,6 @@ export default function RenewPage() {
           <Text style={[styles.outOfStock, { color: '#D32F2F', fontSize: responsiveText(textSize + 2) }]}>Out of stock</Text>
         )}
       </View>
-      {/* Total and swipe to order at the bottom, swipe centered */}
       <View style={[styles.bottomBar, { backgroundColor: theme.background, borderColor: theme.unselected }]}> 
         <View style={styles.totalPriceBox}>
           <Text style={[styles.totalPriceLabel, { color: theme.unselected, fontSize: responsiveText(textSize - 4) }]}>Total</Text>

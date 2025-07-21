@@ -5,7 +5,7 @@ import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-import { getOrderHistory, addOrderToHistory, OrderHistoryItem } from '@/utils/userHistory'; // ✅ updated import
+import { getOrderHistory, addOrderToHistory, OrderHistoryItem } from '@/utils/userHistory';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { homeTranslations } from '@/utils/translations';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -36,9 +36,7 @@ export default function HomeScreen() {
       }
     })();
   }, []);
-
-  // Handler for renew: go to renew page with renewal params
-  // @ts-ignore
+//@ts-ignore
   const handleRenew = (order) => {
     router.push({ pathname: '/rental/renew', params: { ...order, stock: order.stock || 1 } });
   };

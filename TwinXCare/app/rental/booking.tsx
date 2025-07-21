@@ -25,6 +25,7 @@ export default function BookingScreen() {
   const router = useRouter();
 
   const { scheme, fontSize } = useAccessibility();
+  //@ts-ignore
   const theme = getThemeColors(scheme);
   const textSize = getFontSizeValue(fontSize);
   const responsiveText = (size: number) => Math.max(size * (SCREEN_WIDTH / 400), size * 0.85);

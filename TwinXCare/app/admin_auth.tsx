@@ -1,5 +1,3 @@
-// app/admin_auth.tsx
-
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -33,7 +31,6 @@ const AdminAuth: React.FC = () => {
 
             const data = await response.json();
             if (response.ok) {
-                // Redirect to admin dashboard
                 router.replace('/admin');
             } else {
                 setError(data.error || 'Invalid admin credentials.');

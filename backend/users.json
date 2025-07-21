@@ -7,5 +7,13 @@
   },
   "dev2": {
     "password": "$2b$12$HOp6u8cQRKa4l.9uYmQVpOcp2n25bqr8z/.mhYHhPalxpprqCwD0q"
+  },
+  "test": {
+    "password": "$2b$12$pZB2AKjmmVBXNavsqRBud.gl5NijEMpbgxkptkimaERvgW4dNVHuG",
+    "orders": []
+  },
+  "Hello": {
+    "password": "$2b$12$hfHnK/Z/rFn05m19xUO87ufKG.9tlQssAHpkytyvouytBoD.wiQEW",
+    "orders": []
   }
 }

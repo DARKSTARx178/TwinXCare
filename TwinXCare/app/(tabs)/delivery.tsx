@@ -15,6 +15,7 @@ export default function DeliveryPage() {
   const { lang } = useLanguage();
   const router = useRouter();
   const { scheme, fontSize } = useAccessibility();
+  //@ts-ignore
   const theme = getThemeColors(scheme);
   const textSize = getFontSizeValue(fontSize);
   const screenWidth = Dimensions.get('window').width;

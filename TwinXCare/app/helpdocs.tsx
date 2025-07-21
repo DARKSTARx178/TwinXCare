@@ -13,7 +13,6 @@ export default function HelpDocs() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}> 
-      {/* Header with back button */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={28} color={theme.text} />

@@ -13,9 +13,9 @@ interface EquipmentItem {
   stock: number;
   price: number;
   image: string;
-  description?: string; // Added optional description
+  description?: string; 
 }
-// Must be declared as a `let` and exported, not as a type annotation
+
 export let aiExploreFilterControl = { setSearch: undefined as undefined | ((v: string) => void) };
 
 export default function Explore() {
@@ -36,12 +36,9 @@ export default function Explore() {
   const router = useRouter();
   const screenWidth = Dimensions.get('window').width;
   const responsiveText = (base: number) => Math.max(base * (screenWidth / 400), base * 0.85);
-  // Set 2 columns for all phones up to the largest standard phone (e.g., S24 Ultra ~ 950px), 3 for tablets/desktops
   const numColumns = screenWidth < 950 ? 2 : 3;
-  // Responsive font size for grid text
   const gridTextSize = (base: number) => Math.max(base * (screenWidth / 400), base * 0.8);
 
-  // Expose search setter for AI control
   useEffect(() => {
     aiExploreFilterControl.setSearch = setSearch;
     return () => {
@@ -49,14 +46,12 @@ export default function Explore() {
     };
   }, []);
 
-  // Pull-to-refresh handler
   const onRefresh = () => {
     setRefreshing(true);
     setReloadKey((k) => k + 1);
-    setTimeout(() => setRefreshing(false), 600); // Give time for fetch
+    setTimeout(() => setRefreshing(false), 600); 
   };
 
-  // Show loading while fetching items
   if (itemAvailability.length === 0) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }}>
@@ -71,11 +66,9 @@ export default function Explore() {
 
   if (filter) {
     if (filter === 'brand' && filterValue) {
-      // Accepts 'brand c', 'brandc', 'c', etc. (case-insensitive, ignore spaces)
       const val = filterValue.toLowerCase().replace(/\s+/g, '');
       filteredItems = filteredItems.filter((i) => {
         const brandNorm = i.brand.toLowerCase().replace(/\s+/g, '');
-        // Exact match, startsWith, or includes
         return (
           brandNorm === val ||
           brandNorm.startsWith(val) ||
@@ -245,7 +238,7 @@ export default function Explore() {
                 styles.gridImage,
                 {
                   width: screenWidth / numColumns - 32,
-                  height: (screenWidth / numColumns - 32) * 0.7, // reduce height to 70% of width
+                  height: (screenWidth / numColumns - 32) * 0.7,
                   marginBottom: 8
                 }
               ]} />

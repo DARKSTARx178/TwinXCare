@@ -28,7 +28,7 @@ export default function Feedback() {
     setRating(0);
     router.back();
     try {
-      const res = await fetch('http://192.168.50.221:8080/api/send-feedback', {
+      const res = await fetch('http://172.22.129.135:8080/api/send-feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, rating, username }),

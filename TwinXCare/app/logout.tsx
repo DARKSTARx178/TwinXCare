@@ -1,13 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-// import { signOut } from 'firebase/auth';
-// import { auth } from '@/utils/firebase';
 import { useRouter } from 'expo-router';
 
 const Logout: React.FC = () => {
   const router = useRouter();
   const handleLogout = async () => {
-    // Stub: just show success and go home
     Alert.alert('Success', 'User logged out successfully!');
     router.replace('/');
   };

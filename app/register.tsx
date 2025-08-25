@@ -5,53 +5,64 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase/firebase';
+import * as SecureStore from 'expo-secure-store';
 
 export default function Register() {
   const router = useRouter();
   const { fontSize } = useAccessibility();
   const theme = getThemeColors();
   const textSize = getFontSizeValue(fontSize);
+
+  const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleRegister = async () => {
     setError('');
-    const cleanedUsername = (username || '').trim();
-    if (!cleanedUsername || !password) {
+
+    if (!email || !password || !username) {
       setError('Please fill all fields.');
       return;
     }
-    if (!/^[a-zA-Z0-9._-]+$/.test(cleanedUsername)) {
-      setError('Username can only contain letters, numbers, dot, dash, and underscore.');
-      return;
-    }
-    // Debug log
-    console.log('Register attempt:', { username: cleanedUsername });
+
     try {
-      const response = await fetch('http://192.168.50.221:8080/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: cleanedUsername, password }),
+      // ✅ Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // ✅ Add Firestore document with default role
+      await setDoc(doc(db, 'users', user.uid), {
+        username,
+        email,
+        role: 'user',      // default role
+        createdAt: new Date(),
       });
-      const data = await response.json();
-      if (response.ok) {
-        router.replace('/login');
-      } else {
-        setError(data.error || 'Registration failed.');
-      }
-    } catch (e) {
-      setError('Registration failed. Please try again.');
-      console.error('Registration error:', e, { username: cleanedUsername });
+
+      // ✅ Save locally for profile
+      await SecureStore.setItemAsync('uid', user.uid);
+      await SecureStore.setItemAsync('user', username);
+
+      router.replace('/profile');
+    } catch (e: any) {
+      console.error('Registration error:', e);
+      setError(e.message || 'Registration failed. Please try again.');
     }
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}> 
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={28} color={theme.text} />
       </TouchableOpacity>
-      <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: textSize + 8, marginBottom: 20 }}>Register</Text>
+
+      <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: textSize + 8, marginBottom: 20 }}>
+        Register
+      </Text>
+
       <TextInput
         style={[styles.input, { color: theme.text, borderColor: theme.primary }]}
         placeholder="Username"
@@ -60,6 +71,17 @@ export default function Register() {
         value={username}
         onChangeText={setUsername}
       />
+
+      <TextInput
+        style={[styles.input, { color: theme.text, borderColor: theme.primary }]}
+        placeholder="Email"
+        placeholderTextColor="#aaa"
+        autoCapitalize="none"
+        keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
+      />
+
       <TextInput
         style={[styles.input, { color: theme.text, borderColor: theme.primary }]}
         placeholder="Password"
@@ -68,10 +90,13 @@ export default function Register() {
         value={password}
         onChangeText={setPassword}
       />
+
       {error ? <Text style={{ color: 'red', marginBottom: 10 }}>{error}</Text> : null}
+
       <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary }]} onPress={handleRegister}>
         <Text style={{ color: theme.background, fontWeight: 'bold', fontSize: textSize }}>Register</Text>
       </TouchableOpacity>
+
       <TouchableOpacity onPress={() => router.replace('/login')}>
         <Text style={{ color: theme.primary, marginTop: 10 }}>Already have an account? Sign In</Text>
       </TouchableOpacity>
@@ -101,7 +126,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
     fontSize: 16,
-    backgroundColor: 'rgba(0,0,0,0.04)'
+    backgroundColor: 'rgba(0,0,0,0.04)',
   },
   button: {
     width: '100%',
@@ -110,4 +135,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
-});9
+});

@@ -28,7 +28,6 @@ const SettingsScreen = () => {
   const colors = themeColors['light'];
   const fontSizeValue = getFontSizeValue(fontSize);
 
-  // Language-based labels
   const labels = {
     header: lang === 'zh' ? '设置' : 'Settings',
     appearance: lang === 'zh' ? '外观' : 'Appearance',

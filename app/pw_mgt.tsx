@@ -28,7 +28,7 @@ const PwMgt: React.FC = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    const serverUrl = 'http://192.168.50.221:8080';
+    const serverUrl = 'http://172.22.129.135:8080';
 
     const handleGetUsers = async () => {
         setError('');

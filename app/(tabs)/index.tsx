@@ -5,7 +5,7 @@ import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-import { getOrderHistory, OrderHistoryItem } from '@/utils/userHistory';
+import { getOrderHistory, addOrderToHistory, OrderHistoryItem } from '@/utils/userHistory';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { homeTranslations } from '@/utils/translations';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -23,6 +23,7 @@ export default function HomeScreen() {
   const [orderHistory, setOrderHistory] = useState<OrderHistoryItem[]>([]);
   const { lang } = useLanguage();
   const t = homeTranslations[lang];
+
   useEffect(() => {
     (async () => {
       const username = await SecureStore.getItemAsync('user');
@@ -35,9 +36,7 @@ export default function HomeScreen() {
       }
     })();
   }, []);
-
-  // Handler for renew: go to renew page with renewal params
-  // @ts-ignore
+//@ts-ignore
   const handleRenew = (order) => {
     router.push({ pathname: '/rental/renew', params: { ...order, stock: order.stock || 1 } });
   };
@@ -46,25 +45,25 @@ export default function HomeScreen() {
     <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ alignItems: 'center', justifyContent: 'flex-start', paddingBottom: 40 }}>
       <Text style={[styles.logo, { fontSize: responsiveText(textSize + 10), color: theme.text }]}>{t.home}</Text>
       <View style={styles.row}>
-        <TouchableOpacity onPress={() => router.push('/explore')} style={[styles.card, { backgroundColor: theme.unselectedTab, width: screenWidth / 2 - 30 }]}> 
+        <TouchableOpacity onPress={() => router.push('/explore')} style={[styles.card, { backgroundColor: theme.unselectedTab, width: screenWidth / 2 - 30 }]}>
           <MaterialCommunityIcons name="hospital-box" size={32} color={theme.text} />
           <Text style={[styles.cardText, { fontSize: responsiveText(textSize), color: theme.text }]}>{t.bookEquipment}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push('/services')} style={[styles.card, { backgroundColor: theme.unselectedTab, width: screenWidth / 2 - 30 }]}> 
+        <TouchableOpacity onPress={() => router.push('/services')} style={[styles.card, { backgroundColor: theme.unselectedTab, width: screenWidth / 2 - 30 }]}>
           <MaterialCommunityIcons name="account-heart" size={32} color={theme.text} />
           <Text style={[styles.cardText, { fontSize: responsiveText(textSize), color: theme.text }]}>{t.services}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.row}>
-        <TouchableOpacity onPress={() => router.push('/assistance')} style={[styles.card, { backgroundColor: theme.unselectedTab, width: screenWidth - 40 }]}> 
+        <TouchableOpacity onPress={() => router.push('/assistance')} style={[styles.card, { backgroundColor: theme.unselectedTab, width: screenWidth - 40 }]}>
           <MaterialCommunityIcons name="hand-heart" size={32} color={theme.text} />
           <Text style={[styles.cardText, { fontSize: responsiveText(textSize), color: theme.text }]}>{t.requireAssistance}</Text>
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity onPress={() => router.push('/delivery' as any)} style={[styles.fullButton, { backgroundColor: theme.primary, width: screenWidth - 40 }]}> 
+      <TouchableOpacity onPress={() => router.push('/delivery' as any)} style={[styles.fullButton, { backgroundColor: theme.primary, width: screenWidth - 40 }]}>
         <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: '#fff' }]}>{t.myRentals}</Text>
       </TouchableOpacity>
 
@@ -72,21 +71,22 @@ export default function HomeScreen() {
         <>
           <Text style={[styles.welcome, { fontSize: responsiveText(textSize + 6), color: theme.text }]}>{t.welcome}</Text>
           <View style={styles.row}>
-            <TouchableOpacity onPress={() => router.push('/register' as any)} style={[styles.button, { backgroundColor: theme.primary, width: screenWidth / 2 - 20 }]}> {/* Responsive */}
+            <TouchableOpacity onPress={() => router.push('/register' as any)} style={[styles.button, { backgroundColor: theme.primary, width: screenWidth / 2 - 20 }]}>
               <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: '#fff' }]}>{t.createAccount}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/login' as any)} style={[styles.button, { backgroundColor: theme.primary, width: screenWidth / 2 - 20 }]}> {/* Responsive */}
+            <TouchableOpacity onPress={() => router.push('/login' as any)} style={[styles.button, { backgroundColor: theme.primary, width: screenWidth / 2 - 20 }]}>
               <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: '#fff' }]}>{t.login}</Text>
             </TouchableOpacity>
           </View>
         </>
       ) : (
         <View style={styles.row}>
-          <TouchableOpacity onPress={() => router.push('/feedback' as any)} style={[styles.button, { backgroundColor: theme.primary, width: screenWidth - 40 }]}> {/* Responsive */}
+          <TouchableOpacity onPress={() => router.push('/feedback' as any)} style={[styles.button, { backgroundColor: theme.primary, width: screenWidth - 40 }]}>
             <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: '#fff' }]}>{t.submitFeedback}</Text>
           </TouchableOpacity>
         </View>
       )}
+
       {/* Order History Section */}
       <Text style={{ color: theme.text, fontSize: responsiveText(textSize + 4), fontWeight: 'bold', marginTop: 32, marginBottom: 8 }}>{t.orderHistory}</Text>
       {!user ? (

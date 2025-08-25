@@ -6,71 +6,57 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
-import md5 from 'md5';
+import { auth } from '../firebase/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
-function safeKey(username: string) {
-  // Only allow letters, numbers, dot, dash, underscore, and ensure not empty
-  const cleaned = (username || '').trim();
-  if (!cleaned || !/^[a-zA-Z0-9._-]+$/.test(cleaned)) return '';
-  return 'user_' + cleaned;
-}
-
-function hashValue(value: string) {
-  return md5(value);
-}
 
 const Login: React.FC = () => {
   const router = useRouter();
   const { fontSize } = useAccessibility();
   const theme = getThemeColors();
   const textSize = getFontSizeValue(fontSize);
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState(''); // Firebase uses email instead of "username"
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleLogin = async () => {
     setError('');
-    const cleanedUsername = (username || '').trim();
-    if (!cleanedUsername || !password) {
+    if (!email || !password) {
       setError('Please fill all fields.');
       return;
     }
-    if (!/^[a-zA-Z0-9._-]+$/.test(cleanedUsername)) {
-      setError('Username can only contain letters, numbers, dot, dash, and underscore.');
-      return;
-    }
+
     try {
-      const response = await fetch('http://192.168.50.221:8080/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: cleanedUsername, password }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        await SecureStore.setItemAsync('user', cleanedUsername);
-        router.replace('/profile');
-      } else {
-        setError(data.error || 'Login failed.');
-      }
-    } catch (e) {
-      setError('Login failed. Please try again.');
-      console.error('Login error:', e, { username: cleanedUsername });
+      // ✅ Firebase Auth login
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // ✅ Store user securely
+      await SecureStore.setItemAsync('user', JSON.stringify({ uid: user.uid, email: user.email }));
+
+      // ✅ Redirect
+      router.replace('/profile');
+    } catch (e: any) {
+      console.error('Login error:', e);
+      setError(e.message || 'Login failed. Please try again.');
     }
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}> 
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={28} color={theme.text} />
       </TouchableOpacity>
       <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: textSize + 8, marginBottom: 20 }}>Login</Text>
+
       <TextInput
         style={[styles.input, { color: theme.text, borderColor: theme.primary }]}
-        placeholder="Username"
+        placeholder="Email"
         placeholderTextColor="#aaa"
         autoCapitalize="none"
-        value={username}
-        onChangeText={setUsername}
+        keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
       />
       <TextInput
         style={[styles.input, { color: theme.text, borderColor: theme.primary }]}
@@ -80,10 +66,13 @@ const Login: React.FC = () => {
         value={password}
         onChangeText={setPassword}
       />
+
       {error ? <Text style={{ color: 'red', marginBottom: 10 }}>{error}</Text> : null}
+
       <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary }]} onPress={handleLogin}>
         <Text style={{ color: theme.background, fontWeight: 'bold', fontSize: textSize }}>Login</Text>
       </TouchableOpacity>
+
       <TouchableOpacity onPress={() => router.replace('/register')}>
         <Text style={{ color: theme.primary, marginTop: 10 }}>Don't have an account? Register</Text>
       </TouchableOpacity>

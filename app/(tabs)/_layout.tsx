@@ -14,11 +14,9 @@ import { aiExploreFilterControl } from './explore';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const ai = new GoogleGenAI({ apiKey: "AIzaSyAIjiRYwpgibikuLrEsqhlpHD97NA6aR5U" });
 
-// AI Mode Context
 const AIModeContext = createContext({ enabled: false, toggle: () => { } });
 export const useAIMode = () => useContext(AIModeContext);
 
-// Animated overlay for AI mode
 const AnimatedAIModeOverlay: React.FC<{
   visible: boolean;
   onAIClick: () => void;
@@ -33,7 +31,6 @@ const AnimatedAIModeOverlay: React.FC<{
   slideAnim: Animated.Value;
   handleAskGemini: () => void;
 }> = ({ visible, onAIClick, aiInput, setAiInput, aiResponse, setAiResponse, showAiInput, setShowAiInput, loading, setLoading, slideAnim, handleAskGemini }) => {
-  // Use SCREEN_WIDTH and SCREEN_HEIGHT for sizing
   const borderAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.loop(
@@ -46,35 +43,32 @@ const AnimatedAIModeOverlay: React.FC<{
     ).start();
   }, [borderAnim]);
 
-  // Interpolate border color
   const borderColor = borderAnim.interpolate({
     inputRange: [0, 0.33, 0.66, 1],
     outputRange: [
-      'rgba(123,97,255,0.8)', // purple
-      'rgba(0,180,255,0.8)',  // blue
-      'rgba(255,60,80,0.8)',  // red
-      'rgba(123,97,255,0.8)', // purple
+      'rgba(123,97,255,0.8)', 
+      'rgba(0,180,255,0.8)',  
+      'rgba(255,60,80,0.8)', 
+      'rgba(123,97,255,0.8)', 
     ],
   });
 
-  // Floating island animation
   const islandAnim = borderAnim.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: [0, 10, 0],
   });
 
-  // Animated glint color for the island
   const glintColor = borderAnim.interpolate({
     inputRange: [0, 0.33, 0.66, 1],
     outputRange: [
-      'rgba(123,97,255,0.7)', // purple
-      'rgba(0,180,255,0.7)',  // blue
-      'rgba(255,60,80,0.7)',  // red
-      'rgba(123,97,255,0.7)', // purple
+      'rgba(123,97,255,0.7)', 
+      'rgba(0,180,255,0.7)',  
+      'rgba(255,60,80,0.7)',  
+      'rgba(123,97,255,0.7)', 
     ],
   });
 
-  // Fade animation for overlay
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -84,7 +78,7 @@ const AnimatedAIModeOverlay: React.FC<{
     }).start();
   }, [visible, fadeAnim]);
 
-  // Voice-to-text state and handlers (moved from RootLayout)
+
   const [listening, setListening] = useState(false);
   const aiInputRef = useRef(aiInput);
   useEffect(() => { aiInputRef.current = aiInput; }, [aiInput]);
@@ -101,9 +95,8 @@ const AnimatedAIModeOverlay: React.FC<{
     return () => {
       Voice.destroy().then(Voice.removeAllListeners);
     };
-  }, [setAiInput]); // Only set handlers once
+  }, [setAiInput]); 
 
-  // Voice-to-text handler
   const handleVoiceToText = async () => {
     if (listening) {
       await Voice.stop();
@@ -115,15 +108,14 @@ const AnimatedAIModeOverlay: React.FC<{
       await Voice.start('en-US');
     } catch (e) {
       setListening(false);
-      // Optionally log error
+ 
       console.error('Voice start error', e);
     }
   };
 
   const [replyCollapsed, setReplyCollapsed] = useState(false);
 
-  // On iOS, never cover the tab bar: use bottom: 100
-  // Remove zIndex entirely for overlay (let tab bar always be on top)
+
   const overlayStyle = {
     position: 'absolute' as const,
     top: 0,
@@ -134,19 +126,17 @@ const AnimatedAIModeOverlay: React.FC<{
   };
   return (
     <Animated.View style={overlayStyle} pointerEvents="box-none">
-      {/* Thicker animated border overlay, full screen, not rounded */}
       <Animated.View
         pointerEvents="box-none"
         style={[
           StyleSheet.absoluteFillObject,
           {
-            borderWidth: 8, // Thicker border
+            borderWidth: 8,
             borderColor: borderColor,
-            // zIndex removed
+
           },
         ]}
       />
-      {/* Floating island: top left, with keyboard icon button */}
       <Animated.View
         pointerEvents="auto"
         style={{
@@ -160,14 +150,13 @@ const AnimatedAIModeOverlay: React.FC<{
           zIndex: 10000,
           justifyContent: 'center',
           alignItems: 'center',
-          // Only apply shadow here
+
           shadowColor: '#000',
           shadowOpacity: 0.2,
           shadowRadius: 8,
           elevation: 8,
         }}
       >
-        {/* Animated glint using LinearGradient and animated color */}
         <Animated.View
           style={{
             ...StyleSheet.absoluteFillObject,
@@ -176,15 +165,12 @@ const AnimatedAIModeOverlay: React.FC<{
             opacity: 0.7,
           }}
         />
-        {/* Keyboard icon button */}
         <TouchableOpacity onPress={onAIClick} style={{ position: 'absolute', left: 69, top: 14, width: 36, height: 25, zIndex: 2 }}>
           <MaterialCommunityIcons name="keyboard" size={28} color="#fff" />
         </TouchableOpacity>
-        {/* Voice-to-text button beside keyboard button */}
         <TouchableOpacity onPress={handleVoiceToText} style={{ position: 'absolute', left: 20, top: 14, width: 36, height: 25, justifyContent: 'flex-start', zIndex: 2 }}>
           <Ionicons name={listening ? 'mic' : 'mic-outline'} size={28} color={listening ? '#0ff' : '#fff'} />
         </TouchableOpacity>
-        {/* Sliding AI Input from island to right, with glinting background */}
         <Animated.View
           style={{
             position: 'absolute',
@@ -201,14 +187,13 @@ const AnimatedAIModeOverlay: React.FC<{
             paddingRight: 12,
             overflow: 'hidden',
             zIndex: 1,
-            // Remove any shadow from the text field
+
             shadowColor: undefined,
             shadowOpacity: undefined,
             shadowRadius: undefined,
             elevation: undefined,
           }}
         >
-          {/* Glinting overlay */}
           <Animated.View
             style={{
               ...StyleSheet.absoluteFillObject,
@@ -245,7 +230,6 @@ const AnimatedAIModeOverlay: React.FC<{
           )}
         </Animated.View>
       </Animated.View>
-      {/* AI response below the island/input */}
       {aiResponse ? (
         <Animated.View
           style={{
@@ -262,7 +246,6 @@ const AnimatedAIModeOverlay: React.FC<{
             overflow: 'hidden',
           }}
         >
-          {/* Glinting overlay for reply */}
           <Animated.View
             style={{
               ...StyleSheet.absoluteFillObject,
@@ -303,7 +286,7 @@ function TabLayout({ onHeaderSwipe }: { onHeaderSwipe: () => void }) {
   const theme = getThemeColors(scheme);
   const router = useRouter();
   const [profileUser, setProfileUser] = useState<string | null>(null);
-  // Update profileUser on tab focus
+
   useFocusEffect(
     React.useCallback(() => {
       let isActive = true;
@@ -316,12 +299,12 @@ function TabLayout({ onHeaderSwipe }: { onHeaderSwipe: () => void }) {
     }, [])
   );
 
-  // PanResponder for header swipe (independent from help button)
+
   const panX = useRef(new Animated.Value(0)).current;
   const headerPanResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Only respond to horizontal swipes with enough distance
+
         return Math.abs(gestureState.dx) > 30 && Math.abs(gestureState.dy) < 20;
       },
       onPanResponderRelease: (_, gestureState) => {
@@ -390,7 +373,7 @@ function TabLayout({ onHeaderSwipe }: { onHeaderSwipe: () => void }) {
             height: 100,
             paddingBottom: 25,
             paddingTop: 15,
-            backgroundColor: 'red', // DEBUG: make tab bar visible
+            backgroundColor: 'red', 
           },
           android: {
             height: 105,
@@ -477,7 +460,7 @@ export default function RootLayout() {
   const [showHelp, setShowHelp] = useState(false);
   const router = useRouter();
 
-  // Keep panValue in sync with Animated.ValueXY
+
   useEffect(() => {
     const id = pan.addListener((value) => {
       panValue.current = value;
@@ -485,7 +468,7 @@ export default function RootLayout() {
     return () => pan.removeListener(id);
   }, [pan]);
 
-  // Floating help button panResponder (free drag, clamped to screen)
+
   const helpPanResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -499,7 +482,7 @@ export default function RootLayout() {
       ], { useNativeDriver: false }),
       onPanResponderRelease: () => {
         pan.flattenOffset();
-        // Clamp after release
+
         let { x, y } = panValue.current;
         if (x < 8) x = 8;
         if (x > SCREEN_WIDTH - 64) x = SCREEN_WIDTH - 64;
@@ -510,17 +493,16 @@ export default function RootLayout() {
     })
   ).current;
 
-  // AI mode state
+
   const [aiMode, setAIMode] = useState(false);
-  // AI input state
+
   const [aiInput, setAiInput] = useState("");
   const [aiResponse, setAiResponse] = useState("");
   const [showAiInput, setShowAiInput] = useState(false);
   const [loading, setLoading] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
 
-  // Whitelist of allowed routes/actions for AI
-// Import must be at the top level
+
 const allowedRoutes = [
     '/profile',
     '/helpdocs',
@@ -528,26 +510,25 @@ const allowedRoutes = [
     '/explore',
     '/delivery',
     '/index',
-    // Add more allowed routes here
+
   ];
 
 
-  // Parse AI response and trigger allowed navigation/actions
-  // Accepts either a full AI response (for keyword/phrase matching) or a direct route string
+
   const handleAICommand = useCallback((responseTextOrRoute: string) => {
-    // AI filter feature removed. Only support search bar population.
+
     const searchActionMatch = responseTextOrRoute.match?.(/ACTION:search:(.*)/);
     if (searchActionMatch && typeof aiExploreFilterControl.setSearch === 'function') {
       aiExploreFilterControl.setSearch(searchActionMatch[1].trim());
     }
 
-    // If the input is a direct route string, navigate immediately if allowed
+
     if (typeof responseTextOrRoute === 'string' && responseTextOrRoute.startsWith('/') && allowedRoutes.includes(responseTextOrRoute)) {
       router.push(responseTextOrRoute as any);
       return;
     }
 
-    // Otherwise, treat as a full AI response and do keyword/phrase matching
+
     const lower = responseTextOrRoute.toLowerCase();
     const routeKeywords = [
       { keywords: ['profile', 'user profile'], route: '/profile' },
@@ -571,7 +552,7 @@ const allowedRoutes = [
     }
   }, [router]);
 
-  // Show/hide AI input field
+
   const handleAIFloatingIslandClick = () => {
     setShowAiInput((prev) => {
       const next = !prev;
@@ -586,7 +567,7 @@ const allowedRoutes = [
     });
   };
 
-  // Ask Gemini with virtual bot action simulation
+
   const handleAskGemini = async () => {
     setLoading(true);
     try {
@@ -599,13 +580,13 @@ const allowedRoutes = [
         ],
       });
       const text = res?.candidates?.[0]?.content?.parts?.[0]?.text ?? "No response";
-      // Only show the AI reply if it's not an ACTION:search or NONE
+
       if (/^ACTION:search:/i.test(text) || text.trim() === 'NONE') {
         setAiResponse("");
       } else {
         setAiResponse(text);
       }
-      // eslint-disable-next-line no-console
+
       console.log('[Gemini AI]', text);
       handleAICommand(text);
     } catch (e) {
@@ -620,7 +601,6 @@ const allowedRoutes = [
     <AIModeContext.Provider value={{ enabled: aiMode, toggle: toggleAIMode }}>
       <AccessibilityProvider>
         <TabLayout onHeaderSwipe={toggleAIMode} />
-        {/* Show floating AI island only in AI mode */}
         {aiMode && (
           <AnimatedAIModeOverlay
             visible={aiMode}
@@ -637,7 +617,6 @@ const allowedRoutes = [
             handleAskGemini={handleAskGemini}
           />
         )}
-        {/* Draggable floating help button, free movement */}
         <Animated.View
           style={{
             position: 'absolute',
@@ -645,7 +624,6 @@ const allowedRoutes = [
             left: 0,
             right: 0,
             bottom: Platform.OS === 'ios' ? 100 : 0,
-            // zIndex removed
           }}
           pointerEvents="box-none"
         >
@@ -653,7 +631,7 @@ const allowedRoutes = [
             style={{
               position: 'absolute',
               transform: [{ translateX: pan.x }, { translateY: pan.y }],
-              // zIndex removed
+            
             }}
             {...helpPanResponder.panHandlers}
           >

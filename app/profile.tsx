@@ -6,42 +6,49 @@ import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import * as SecureStore from 'expo-secure-store';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
 
 export default function Profile() {
   const router = useRouter();
   const { fontSize } = useAccessibility();
   const theme = getThemeColors();
   const textSize = getFontSizeValue(fontSize);
+
   const [user, setUser] = useState<string | null>(null);
+  const [role, setRole] = useState<string>('user');
 
   useEffect(() => {
     (async () => {
-      const currentUser = await SecureStore.getItemAsync('user');
-      if (currentUser) {
-        setUser(currentUser);
+      const currentUsername = await SecureStore.getItemAsync('user');
+      const uid = await SecureStore.getItemAsync('uid');
+      if (currentUsername && uid) {
+        setUser(currentUsername);
+
+        // ✅ Fetch role from Firestore
+        const userDoc = await getDoc(doc(db, 'users', uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          setRole(data.role || 'user');
+        }
       } else {
         setUser(null);
       }
     })();
   }, []);
 
-  const handleLogin = () => {
-    router.push('/login');
-  };
-
-  const handleRegister = () => {
-    router.push('/register');
-  };
+  const handleLogin = () => router.push('/login');
+  const handleRegister = () => router.push('/register');
 
   const handleLogout = async () => {
     await SecureStore.deleteItemAsync('user');
+    await SecureStore.deleteItemAsync('uid');
     setUser(null);
+    setRole('user');
     Alert.alert('Signed Out', 'You have been signed out.');
   };
 
-  const handleAdminMode = () => {
-    router.push('/admin_auth');
-  };
+  const handleAdminMode = () => router.push('/admin/admin');
 
   const menuItems = [
     { icon: 'settings-outline', label: 'Settings', onPress: () => router.push('/settings') },
@@ -58,16 +65,18 @@ export default function Profile() {
 
       {user ? (
         <>
-          <View style={[styles.avatar, { backgroundColor: theme.primary, justifyContent: 'center', alignItems: 'center' }]}>
+          <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
             <Text style={{ color: theme.background, fontWeight: 'bold', fontSize: 48 }}>
               {user.charAt(0).toUpperCase()}
             </Text>
           </View>
-          <Text style={{ color: theme.text, fontWeight: 'bold', marginBottom: 6, fontSize: textSize + 8 }}>{user}</Text>
+          <Text style={{ color: theme.text, fontWeight: 'bold', marginBottom: 6, fontSize: textSize + 8 }}>
+            {user}
+          </Text>
           <Text style={{ color: theme.text, marginBottom: 20, fontSize: textSize }}>Signed in</Text>
 
-          {/* Admin Mode Button */}
-          {user === 'admin' && (
+          {/* ✅ Show Admin button if role is admin */}
+          {role === 'admin' && (
             <TouchableOpacity
               style={{
                 backgroundColor: '#FF5733',
@@ -84,32 +93,17 @@ export default function Profile() {
         </>
       ) : (
         <>
-          <Image
-            source={require('@/assets/images/noprofile.jpg')}
-            style={styles.avatar}
-          />
+          <Image source={require('@/assets/images/noprofile.jpg')} style={styles.avatar} />
           <Text style={{ color: theme.text, fontWeight: 'bold', marginBottom: 6, fontSize: textSize + 8 }}>Guest</Text>
           <Text style={{ color: theme.text, marginBottom: 20, fontSize: textSize }}>Not logged in!</Text>
           <TouchableOpacity
-            style={{
-              backgroundColor: theme.primary,
-              paddingVertical: 10,
-              paddingHorizontal: 30,
-              borderRadius: 8,
-              marginBottom: 10,
-            }}
+            style={{ backgroundColor: theme.primary, paddingVertical: 10, paddingHorizontal: 30, borderRadius: 8, marginBottom: 10 }}
             onPress={handleLogin}
           >
             <Text style={{ color: theme.background, fontWeight: 'bold', fontSize: textSize }}>Sign In</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={{
-              backgroundColor: theme.primary,
-              paddingVertical: 10,
-              paddingHorizontal: 30,
-              borderRadius: 8,
-              marginBottom: 10,
-            }}
+            style={{ backgroundColor: theme.primary, paddingVertical: 10, paddingHorizontal: 30, borderRadius: 8, marginBottom: 10 }}
             onPress={handleRegister}
           >
             <Text style={{ color: theme.background, fontWeight: 'bold', fontSize: textSize }}>Register</Text>
@@ -126,12 +120,7 @@ export default function Profile() {
               color={item.isLogout ? '#d00' : theme.text}
               style={{ marginRight: 10 }}
             />
-            <Text
-              style={{
-                color: item.isLogout ? '#d00' : theme.text,
-                fontSize: textSize,
-              }}
-            >
+            <Text style={{ color: item.isLogout ? '#d00' : theme.text, fontSize: textSize }}>
               {item.label}
             </Text>
           </TouchableOpacity>
@@ -142,38 +131,9 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    paddingTop: 80,
-  },
-  backButton: {
-    position: 'absolute',
-    top: 35,
-    left: 20,
-    zIndex: 1,
-    backgroundColor: 'transparent',
-    padding: 6,
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 20,
-    backgroundColor: '#eee',
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  optionsContainer: {
-    marginTop: 30,
-    width: '85%',
-  },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
+  container: { flex: 1, alignItems: 'center', paddingTop: 80 },
+  backButton: { position: 'absolute', top: 35, left: 20, zIndex: 1, backgroundColor: 'transparent', padding: 6 },
+  avatar: { width: 100, height: 100, borderRadius: 50, marginBottom: 20, backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+  optionsContainer: { marginTop: 30, width: '85%' },
+  option: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#ccc' },
 });

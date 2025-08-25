@@ -4,7 +4,7 @@ export const getThemeColors = () => ({
     background: '#f7f5ed',
     text: '#0D1321',
     primary: '#748CAB',
-    unselected: '#3E5C76',
-    unselectedTab: '#BBBBBB',
+    unselected: '#cbcbcbff',
+    unselectedTab: '#cbcbcbff',
     fontSize: 18,
 });

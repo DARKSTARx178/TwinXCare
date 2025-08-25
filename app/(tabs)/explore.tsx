@@ -4,8 +4,9 @@ import { FlatList as RNFlatList } from 'react-native';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
-import { useItemOverview } from '@/assets/itemOverview';
 import { useRouter } from 'expo-router';
+import { collection, getDocs, getFirestore } from 'firebase/firestore';
+import app from '@/firebase/firebase'; // adjust path if needed
 
 interface EquipmentItem {
   name: string;
@@ -13,17 +14,15 @@ interface EquipmentItem {
   stock: number;
   price: number;
   image: string;
-  description?: string; // Added optional description
+  description?: string;
 }
-// Must be declared as a `let` and exported, not as a type annotation
+
 export let aiExploreFilterControl = { setSearch: undefined as undefined | ((v: string) => void) };
 
 export default function Explore() {
   const [refreshing, setRefreshing] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
-  const itemAvailability = useItemOverview(reloadKey);
-  const allBrands = Array.from(new Set(itemAvailability.map((item: EquipmentItem) => item.brand))) as string[];
-  const allItems = Array.from(new Set(itemAvailability.map((item: EquipmentItem) => item.name))) as string[];
+  const [itemAvailability, setItemAvailability] = useState<EquipmentItem[]>([]);
   const { scheme, fontSize } = useAccessibility();
   //@ts-ignore
   const theme = getThemeColors(scheme);
@@ -36,27 +35,57 @@ export default function Explore() {
   const router = useRouter();
   const screenWidth = Dimensions.get('window').width;
   const responsiveText = (base: number) => Math.max(base * (screenWidth / 400), base * 0.85);
-  // Set 2 columns for all phones up to the largest standard phone (e.g., S24 Ultra ~ 950px), 3 for tablets/desktops
   const numColumns = screenWidth < 950 ? 2 : 3;
-  // Responsive font size for grid text
   const gridTextSize = (base: number) => Math.max(base * (screenWidth / 400), base * 0.8);
 
-  // Expose search setter for AI control
+  const db = getFirestore(app);
+
   useEffect(() => {
     aiExploreFilterControl.setSearch = setSearch;
+    fetchEquipment();
     return () => {
       aiExploreFilterControl.setSearch = undefined;
     };
-  }, []);
+  }, [reloadKey]);
 
-  // Pull-to-refresh handler
+  const fetchEquipment = async () => {
+    try {
+      const colRef = collection(db, 'equipment');
+      const snapshot = await getDocs(colRef);
+      const items: EquipmentItem[] = [];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        items.push({
+          name: data.name || 'Unnamed',
+          brand: data.brand || 'Unknown',
+          price: typeof data.price === 'number' ? data.price : 0,
+          stock: typeof data.stock === 'number' ? data.stock : 0,
+          description: data.description || '',
+          image: convertGoogleDriveLink(data.image),
+        });
+      });
+      setItemAvailability(items);
+    } catch (err) {
+      console.error('Error fetching equipment:', err);
+    }
+  };
+
+  const convertGoogleDriveLink = (link: string) => {
+    if (!link) return '';
+    const match = link.match(/\/d\/(.*?)\//);
+    if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    return link; // fallback if not a Google Drive link
+  };
+
+  const allBrands = Array.from(new Set(itemAvailability.map((item) => item.brand))) as string[];
+  const allItems = Array.from(new Set(itemAvailability.map((item) => item.name))) as string[];
+
   const onRefresh = () => {
     setRefreshing(true);
     setReloadKey((k) => k + 1);
-    setTimeout(() => setRefreshing(false), 600); // Give time for fetch
+    setTimeout(() => setRefreshing(false), 600);
   };
 
-  // Show loading while fetching items
   if (itemAvailability.length === 0) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }}>
@@ -71,11 +100,9 @@ export default function Explore() {
 
   if (filter) {
     if (filter === 'brand' && filterValue) {
-      // Accepts 'brand c', 'brandc', 'c', etc. (case-insensitive, ignore spaces)
       const val = filterValue.toLowerCase().replace(/\s+/g, '');
       filteredItems = filteredItems.filter((i) => {
         const brandNorm = i.brand.toLowerCase().replace(/\s+/g, '');
-        // Exact match, startsWith, or includes
         return (
           brandNorm === val ||
           brandNorm.startsWith(val) ||
@@ -113,7 +140,7 @@ export default function Explore() {
         />
       }
     >
-      <View style={[styles.container, { backgroundColor: theme.background }]}> 
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
         <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>Equipment</Text>
         <TextInput
           style={[
@@ -134,7 +161,7 @@ export default function Explore() {
               setShowValueDropdown(false);
             }}
           >
-            <Text style={{ color: theme.text, fontSize: responsiveText(textSize-2) }}>
+            <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
               {filter ? filter.charAt(0).toUpperCase() + filter.slice(1) : 'Filter By'}
             </Text>
           </TouchableOpacity>
@@ -147,7 +174,7 @@ export default function Explore() {
                 setShowValueDropdown(false);
               }}
             >
-              <Text style={{ color: theme.primary, fontSize: responsiveText(textSize-2) }}>✕</Text>
+              <Text style={{ color: theme.primary, fontSize: responsiveText(textSize - 2) }}>✕</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -164,7 +191,7 @@ export default function Explore() {
                   setFilterValue('');
                 }}
               >
-                <Text style={{ color: theme.text, fontSize: responsiveText(textSize-2) }}>{f.charAt(0).toUpperCase() + f.slice(1)}</Text>
+                <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>{f.charAt(0).toUpperCase() + f.slice(1)}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -183,7 +210,7 @@ export default function Explore() {
                     setShowValueDropdown(false);
                   }}
                 >
-                  <Text style={{ color: theme.text, fontSize: responsiveText(textSize-2) }}>{b}</Text>
+                  <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>{b}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -202,7 +229,7 @@ export default function Explore() {
                     setShowValueDropdown(false);
                   }}
                 >
-                  <Text style={{ color: theme.text, fontSize: responsiveText(textSize-2) }}>{i}</Text>
+                  <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>{i}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -210,7 +237,7 @@ export default function Explore() {
         )}
         {filter === 'price' && (
           <TextInput
-            style={[styles.input, { backgroundColor: '#fff', color: '#000', fontSize: responsiveText(textSize-2), marginBottom: 10 }]}
+            style={[styles.input, { backgroundColor: '#fff', color: '#000', fontSize: responsiveText(textSize - 2), marginBottom: 10 }]}
             placeholder="Max price..."
             placeholderTextColor="#888"
             keyboardType="numeric"
@@ -240,18 +267,17 @@ export default function Explore() {
               activeOpacity={0.8}
               style={[styles.gridItem, { borderColor: theme.primary, maxWidth: `${100 / numColumns}%` }]}
             >
-              {/* Adjust image height to allow more space for text */}
               <Image source={{ uri: item.image }} style={[
                 styles.gridImage,
                 {
                   width: screenWidth / numColumns - 32,
-                  height: (screenWidth / numColumns - 32) * 0.7, // reduce height to 70% of width
+                  height: (screenWidth / numColumns - 32) * 0.7,
                   marginBottom: 8
                 }
               ]} />
               <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize), maxWidth: '95%' }]} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
-              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize-2), maxWidth: '95%' }]} numberOfLines={1} ellipsizeMode="tail">{item.brand}</Text>
-              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize-4), maxWidth: '95%' }]} numberOfLines={1} ellipsizeMode="tail">${Math.max(1, Math.round(item.price * 0.18))}/day | Stock: {item.stock}</Text>
+              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize - 2), maxWidth: '95%' }]} numberOfLines={1} ellipsizeMode="tail">{item.brand}</Text>
+              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize - 4), maxWidth: '95%' }]} numberOfLines={1} ellipsizeMode="tail">${item.price}/day | Stock: {item.stock}</Text>
             </TouchableOpacity>
           )}
           ListEmptyComponent={
@@ -320,37 +346,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
   },
-  filterBar: {
-    flexDirection: 'row',
-    marginBottom: 10,
-    justifyContent: 'space-between',
-  },
-  filterBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#eee',
-    marginHorizontal: 2,
-  },
-  filterBtnActive: {
-    backgroundColor: '#dbeafe',
-  },
-  filterValueRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 10,
-    justifyContent: 'center',
-  },
-  filterValueBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    backgroundColor: '#eee',
-    margin: 2,
-  },
-  filterValueBtnActive: {
-    backgroundColor: '#a5b4fc',
-  },
   gridItem: {
     flex: 1,
     aspectRatio: 0.85,
@@ -372,38 +367,5 @@ const styles = StyleSheet.create({
   gridText: {
     textAlign: 'center',
     fontWeight: '500',
-  },
-  modeBar: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-    marginTop: -8,
-    gap: 8,
-  },
-  modeBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#f3f4f6',
-    marginHorizontal: 4,
-    alignItems: 'center',
-  },
-  modeBtnActive: {
-    backgroundColor: '#dbeafe',
-    borderWidth: 1.5,
-    borderColor: '#4a90e2',
-  },
-  caregiverCard: {
-    marginTop: 24,
-    padding: 28,
-    borderRadius: 18,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
   },
 });

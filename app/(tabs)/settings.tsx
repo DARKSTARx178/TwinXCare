@@ -38,8 +38,6 @@ const SettingsScreen = () => {
     medium: lang === 'zh' ? '中' : 'Normal',
     large: lang === 'zh' ? '大' : 'Large',
     appearanceNote: lang === 'zh' ? '仅支持浅色模式。' : 'Only light mode is supported.',
-    contact: lang === 'zh' ? '联系团队' : 'Contact Team',
-    signOut: lang === 'zh' ? '退出登录' : 'Sign Out',
   };
 
   return (
@@ -93,17 +91,7 @@ const SettingsScreen = () => {
           </TouchableOpacity>
         ))}
       </View>
-
       <Text style={[styles.subtext, { color: colors.subtext, fontSize: fontSizeValue }]}>{labels.appearanceNote}</Text>
-
-      {/* Footer */}
-      <TouchableOpacity>
-        <Text style={[styles.link, { color: colors.selected, fontSize: fontSizeValue }]}>{labels.contact}</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity>
-        <Text style={[styles.signOut, { color: colors.signOut, fontSize: fontSizeValue }]}>{labels.signOut}</Text>
-      </TouchableOpacity>
     </View>
   );
 };

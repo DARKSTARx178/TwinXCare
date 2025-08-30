@@ -9,6 +9,7 @@ import { collection, getDocs, getFirestore } from 'firebase/firestore';
 import app from '@/firebase/firebase'; // adjust path if needed
 
 interface EquipmentItem {
+  docId: string;       // add this
   name: string;
   brand: string;
   stock: number;
@@ -16,6 +17,7 @@ interface EquipmentItem {
   image: string;
   description?: string;
 }
+
 
 export let aiExploreFilterControl = { setSearch: undefined as undefined | ((v: string) => void) };
 
@@ -56,13 +58,15 @@ export default function Explore() {
       snapshot.forEach(doc => {
         const data = doc.data();
         items.push({
+          docId: doc.id, // ✅ matches interface
           name: data.name || 'Unnamed',
           brand: data.brand || 'Unknown',
-          price: typeof data.price === 'number' ? data.price : 0,
-          stock: typeof data.stock === 'number' ? data.stock : 0,
+          price: data.price || 0,
+          stock: data.stock || 0,
           description: data.description || '',
           image: convertGoogleDriveLink(data.image),
         });
+
       });
       setItemAvailability(items);
     } catch (err) {
@@ -256,6 +260,7 @@ export default function Explore() {
               onPress={() => router.push({
                 pathname: '/rental/order',
                 params: {
+                  docId: item.docId,  // pass this
                   name: item.name,
                   brand: item.brand,
                   price: String(item.price),

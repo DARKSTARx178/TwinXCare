@@ -1,18 +1,8 @@
 import sgMail from "@sendgrid/mail";
-import admin from "firebase-admin";
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// Initialize Firebase Admin
-if (!admin.apps.length) {
-    admin.initializeApp({
-        credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),
-    });
-}
-
-const db = admin.firestore();
-
-// Temporary in-memory logs
+// Temporary in-memory logs for display/debugging
 let logs = [];
 
 export default async function handler(req, res) {
@@ -24,17 +14,10 @@ export default async function handler(req, res) {
                 return res.status(400).json({ success: false, error: "Missing message or username" });
             }
 
-            // Add log entry
+            // Add to in-memory logs
             const logEntry = `${new Date().toLocaleTimeString()} - ${username}: ${message}`;
             logs.push(logEntry);
-            logs = logs.slice(-20);
-
-            // Save to Firebase
-            await db.collection("requests").add({
-                message,
-                username,
-                timestamp: admin.firestore.FieldValue.serverTimestamp(),
-            });
+            logs = logs.slice(-20); // keep last 20 logs
 
             // Send email via SendGrid
             await sgMail.send({
@@ -47,18 +30,14 @@ export default async function handler(req, res) {
 
             return res.status(200).json({
                 success: true,
-                message: `Email sent and request stored for ${username}`,
+                message: `Email sent successfully for ${username}`,
                 logs,
             });
         }
 
-        // GET request: heartbeat + logs
+        // GET request: simple server check + logs
         if (req.method === "GET") {
-            return res.status(200).json({
-                success: true,
-                message: "Server running ✅",
-                logs,
-            });
+            return res.status(200).json({ success: true, message: "Server running ✅", logs });
         }
 
         return res.status(405).json({ success: false, error: "Method not allowed" });

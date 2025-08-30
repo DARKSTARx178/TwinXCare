@@ -14,6 +14,7 @@ export default function Assistance() {
   type ResponseData = {
     success: boolean;
     error?: string;
+    logs?: string[];
   };
 
   const handleSend = async () => {
@@ -27,7 +28,7 @@ export default function Assistance() {
     try {
       setSubmitting(true);
 
-      // 1️⃣ Send to Vercel API
+      // 1️⃣ Send request to Vercel API (email + logs)
       const response = await fetch('https://my-app.vercel.app/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

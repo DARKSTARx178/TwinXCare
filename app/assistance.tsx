@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
-import { db } from '@/firebase/firebase';
+import { db } from '../firebase/firebase';
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 export default function Assistance() {
@@ -29,10 +29,10 @@ export default function Assistance() {
       setSubmitting(true);
 
       // 1️⃣ Send request to Vercel API (email + logs)
-      const response = await fetch('https://my-app.vercel.app/api/send-email', {
+      const response = await fetch('https://twin-x-care.vercel.app/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, username }),
+        body: JSON.stringify({ message, username, type: "assistance" }),
       });
 
       let data: ResponseData = { success: false };
@@ -45,11 +45,11 @@ export default function Assistance() {
       }
 
       if (data.success) {
-        // 2️⃣ Save to Firebase Firestore
+        // 2️⃣ Save to Firebase Firestore (requests collection)
         await addDoc(collection(db, "requests"), {
           username,
           message,
-          timestamp: serverTimestamp(),
+          createdAt: serverTimestamp(), // match feedback page style
         });
 
         Alert.alert('Thank you!', 'Your request has been submitted.');

@@ -2,13 +2,14 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { getFontSizeValue } from '@/utils/fontSizes';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const themeColors = {
   light: {
-    background: '#fff',
+    background: '#ffffff',
     text: '#222',
     subtext: '#888',
-    option: '#eee',
+    option: '#fffefeff',
     selected: '#4a90e2',
     signOut: '#d00',
   },
@@ -20,7 +21,6 @@ const fontSizeOptions = [
   { label: 'Large', value: 'large' },
 ];
 
-import { useLanguage } from '@/contexts/LanguageContext';
 const SettingsScreen = () => {
   const [theme] = React.useState<'light'>('light');
   const [fontSize, setFontSize] = React.useState<'small' | 'medium' | 'large'>('medium');
@@ -43,7 +43,7 @@ const SettingsScreen = () => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: "#f7f5ed" }]}> 
+    <View style={[styles.container, { backgroundColor: "#ffffffff" }]}> 
       <Text style={[styles.header, { color: colors.text, fontSize: fontSizeValue + 12 }]}>{labels.header}</Text>
 
       {/* Appearance (only light mode) */}

@@ -3,6 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
+import { db } from '@/firebase/firebase';
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 export default function Assistance() {
   const [message, setMessage] = useState('');
@@ -25,7 +27,8 @@ export default function Assistance() {
     try {
       setSubmitting(true);
 
-      const response = await fetch('https://my-app.vercel.app/api/send-request', {
+      // 1️⃣ Send to Vercel API
+      const response = await fetch('https://my-app.vercel.app/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, username }),
@@ -41,6 +44,13 @@ export default function Assistance() {
       }
 
       if (data.success) {
+        // 2️⃣ Save to Firebase Firestore
+        await addDoc(collection(db, "requests"), {
+          username,
+          message,
+          timestamp: serverTimestamp(),
+        });
+
         Alert.alert('Thank you!', 'Your request has been submitted.');
         setMessage('');
         router.back();
@@ -71,6 +81,7 @@ export default function Assistance() {
         multiline
         numberOfLines={5}
       />
+
       <TouchableOpacity
         style={[styles.submitButton, submitting && { opacity: 0.6 }]}
         onPress={handleSend}

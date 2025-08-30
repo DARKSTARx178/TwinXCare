@@ -4,42 +4,54 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 
-// Replace with your service email
-const SERVICE_EMAIL = 'northstarx178@gmail.com';
-
 export default function Assistance() {
   const [message, setMessage] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
+
+  type ResponseData = {
+    success: boolean;
+    error?: string;
+  };
 
   const handleSend = async () => {
     if (!message.trim()) {
       Alert.alert('Please enter your request.');
       return;
     }
-    const username = await SecureStore.getItemAsync('user');
-    setSubmitted(true);
-    setMessage('');
-    router.back();
+
+    const username = (await SecureStore.getItemAsync('user')) || 'Anonymous';
+
     try {
-      const res = await fetch('http://172.22.129.135:8080/api/send-feedback', {
+      setSubmitting(true);
+
+      const response = await fetch('https://my-app.vercel.app/api/send-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, rating: 'Assistance', username }),
+        body: JSON.stringify({ message, username }),
       });
-      if (res.ok) {
-        setTimeout(() => {
-          setSubmitted(false);
-          setMessage('');
-          router.back();
-        }, 3000);
-      } else {
-        Alert.alert('Failed to send request.');
-        setSubmitted(false);
+
+      let data: ResponseData = { success: false };
+      try {
+        const text = await response.text();
+        data = text ? JSON.parse(text) : { success: false, error: "Empty server response" };
+      } catch (e) {
+        console.warn("Failed to parse JSON response:", e);
+        data = { success: false, error: "Invalid server response" };
       }
-    } catch (e) {
-      Alert.alert('Network error.');
-      setSubmitted(false);
+
+      if (data.success) {
+        Alert.alert('Thank you!', 'Your request has been submitted.');
+        setMessage('');
+        router.back();
+      } else {
+        Alert.alert('Error', data.error || 'Failed to submit request.');
+      }
+    } catch (error) {
+      console.error('Error sending request:', error);
+      Alert.alert('Error', 'Failed to submit request.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -48,69 +60,35 @@ export default function Assistance() {
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={28} color="#222" />
       </TouchableOpacity>
-      <Text style={styles.title}>Request Assistance</Text>
+
+      <Text style={styles.title}>Submit Assistance Request</Text>
+
       <TextInput
         style={styles.input}
-        placeholder="Describe your issue or request..."
+        placeholder="Your request..."
         value={message}
         onChangeText={setMessage}
         multiline
         numberOfLines={5}
       />
-      <TouchableOpacity style={styles.submitButton} onPress={handleSend} disabled={submitted}>
-        <Text style={styles.submitText}>Submit</Text>
+      <TouchableOpacity
+        style={[styles.submitButton, submitting && { opacity: 0.6 }]}
+        onPress={handleSend}
+        disabled={submitting}
+      >
+        <Text style={styles.submitText}>
+          {submitting ? 'Submitting...' : 'Submit'}
+        </Text>
       </TouchableOpacity>
-      {submitted && (
-        <Text style={styles.info}>We are attending to your request, please hold on!</Text>
-      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    backgroundColor: '#f9fafb',
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 16,
-    backgroundColor: 'transparent',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 18,
-    color: '#222',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 16,
-    marginBottom: 18,
-    backgroundColor: '#fff',
-    minHeight: 100,
-    textAlignVertical: 'top',
-  },
-  submitButton: {
-    backgroundColor: '#4a90e2',
-    padding: 16,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 18,
-  },
-  submitText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
-  info: {
-    color: '#4a90e2',
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 12,
-  },
+  container: { flex: 1, padding: 24, backgroundColor: '#f9fafb' },
+  backButton: { alignSelf: 'flex-start', marginBottom: 16, backgroundColor: 'transparent' },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 18, color: '#222' },
+  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 10, padding: 14, fontSize: 16, marginBottom: 18, backgroundColor: '#fff', minHeight: 100, textAlignVertical: 'top' },
+  submitButton: { backgroundColor: '#4a90e2', padding: 16, borderRadius: 10, alignItems: 'center', marginBottom: 18 },
+  submitText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
 });

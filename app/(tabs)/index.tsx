@@ -46,20 +46,20 @@ export default function HomeScreen() {
       <Text style={[styles.logo, { fontSize: responsiveText(textSize + 10), color: theme.text }]}>{t.home}</Text>
       <View style={styles.row}>
         <TouchableOpacity onPress={() => router.push('/explore')} style={[styles.card, { backgroundColor: theme.unselectedTab, width: screenWidth / 2 - 30 }]}>
-          <MaterialCommunityIcons name="hospital-box" size={32} color={theme.text} />
+          <MaterialCommunityIcons name="hospital-box" size={32} color={theme.icon} />
           <Text style={[styles.cardText, { fontSize: responsiveText(textSize), color: theme.text }]}>{t.bookEquipment}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push('/services')} style={[styles.card, { backgroundColor: theme.unselectedTab, width: screenWidth / 2 - 30 }]}>
-          <MaterialCommunityIcons name="account-heart" size={32} color={theme.text} />
+          <MaterialCommunityIcons name="account-heart" size={32} color={theme.icon} />
           <Text style={[styles.cardText, { fontSize: responsiveText(textSize), color: theme.text }]}>{t.services}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.row}>
         <TouchableOpacity onPress={() => router.push('/assistance')} style={[styles.card, { backgroundColor: theme.unselectedTab, width: screenWidth - 40 }]}>
-          <MaterialCommunityIcons name="hand-heart" size={32} color={theme.text} />
-          <Text style={[styles.cardText, { fontSize: responsiveText(textSize), color: theme.text }]}>{t.requireAssistance}</Text>
+          <MaterialCommunityIcons name="hand-heart" size={32} color={theme.icon} />
+          <Text style={[styles.cardText, { fontSize: responsiveText(textSize), color: theme.text }]}>Assistance</Text>
         </TouchableOpacity>
       </View>
 

@@ -367,7 +367,7 @@ function TabLayout({ onHeaderSwipe }: { onHeaderSwipe: () => void }) {
         },
         headerTintColor: theme.text,
         tabBarActiveTintColor: theme.primary,
-        tabBarInactiveTintColor: theme.unselectedTab,
+        tabBarInactiveTintColor: theme.unselected,
         tabBarStyle: Platform.select({
           ios: {
             height: 100,

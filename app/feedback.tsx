@@ -3,14 +3,13 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
-
-// Replace with your feedback email
-const FEEDBACK_EMAIL = 'northstarx178@gmail.com';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebase/firebase'; // ✅ use your firebase.js file
 
 export default function Feedback() {
   const [message, setMessage] = useState('');
   const [rating, setRating] = useState(0);
-  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
   const handleSend = async () => {
@@ -22,31 +21,29 @@ export default function Feedback() {
       Alert.alert('Please select a rating.');
       return;
     }
-    const username = await SecureStore.getItemAsync('user');
-    setSubmitted(true);
-    setMessage('');
-    setRating(0);
-    router.back();
+
+    const username = (await SecureStore.getItemAsync('user')) || 'Anonymous';
+
     try {
-      const res = await fetch('http://172.22.129.135:8080/api/send-feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, rating, username }),
+      setSubmitting(true);
+
+      await addDoc(collection(db, 'feedback'), {
+        message,
+        rating,
+        username,
+        createdAt: serverTimestamp(),
       });
-      if (res.ok) {
-        setTimeout(() => {
-          setSubmitted(false);
-          setMessage('');
-          setRating(0);
-          router.back();
-        }, 3000);
-      } else {
-        Alert.alert('Failed to send feedback.');
-        setSubmitted(false);
-      }
-    } catch (e) {
-      Alert.alert('Network error.');
-      setSubmitted(false);
+
+      setMessage('');
+      setRating(0);
+
+      Alert.alert('Thank you!', 'Your feedback has been submitted.');
+      router.back();
+    } catch (error) {
+      console.error('Error saving feedback:', error);
+      Alert.alert('Error', 'Failed to submit feedback.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -55,7 +52,9 @@ export default function Feedback() {
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={28} color="#222" />
       </TouchableOpacity>
+
       <Text style={styles.title}>Submit Feedback</Text>
+
       <TextInput
         style={styles.input}
         placeholder="Your feedback..."
@@ -64,6 +63,7 @@ export default function Feedback() {
         multiline
         numberOfLines={5}
       />
+
       <View style={styles.ratingRow}>
         {[1, 2, 3, 4, 5].map((star) => (
           <TouchableOpacity key={star} onPress={() => setRating(star)}>
@@ -76,12 +76,16 @@ export default function Feedback() {
           </TouchableOpacity>
         ))}
       </View>
-      <TouchableOpacity style={styles.submitButton} onPress={handleSend} disabled={submitted}>
-        <Text style={styles.submitText}>Submit</Text>
+
+      <TouchableOpacity
+        style={[styles.submitButton, submitting && { opacity: 0.6 }]}
+        onPress={handleSend}
+        disabled={submitting}
+      >
+        <Text style={styles.submitText}>
+          {submitting ? 'Submitting...' : 'Submit'}
+        </Text>
       </TouchableOpacity>
-      {submitted && (
-        <Text style={styles.info}>Thank you for your feedback!</Text>
-      )}
     </View>
   );
 }
@@ -130,11 +134,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 18,
-  },
-  info: {
-    color: '#4a90e2',
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 12,
   },
 });

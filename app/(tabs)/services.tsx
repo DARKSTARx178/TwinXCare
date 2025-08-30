@@ -195,7 +195,11 @@ export default function Services() {
           contentContainerStyle={{ paddingBottom: 30 }}
           renderItem={({ item }) => (
             <TouchableOpacity
-              onPress={() => router.push({ pathname: '/rental/booking', params: item })}
+              onPress={() => router.push({ pathname: '/rental/booking', params: { 
+                ...item, 
+                price: String(item.price), 
+                schedule: item.schedule ? JSON.stringify(item.schedule) : undefined 
+              } })}
               activeOpacity={0.8}
               style={[styles.gridItem, { borderColor: theme.primary, maxWidth: `${100 / numColumns}%` }]}
             >

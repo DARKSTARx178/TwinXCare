@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Animated, PanResponder, Dimensions, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Animated,
+  PanResponder,
+  Dimensions,
+  Platform,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,7 +25,6 @@ export default function OrderPage() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const { scheme, fontSize } = useAccessibility();
-  //@ts-ignore
   const theme = getThemeColors(scheme);
   const textSize = getFontSizeValue(fontSize);
 
@@ -35,31 +45,29 @@ export default function OrderPage() {
     return days > 0 ? days : 1;
   };
 
+  const responsiveText = (base: number) => Math.max(base * (SCREEN_WIDTH / 400), base * 0.85);
+
+  const boxBackground = theme.unselectedTab === '#fff' ? '#f0f0f0' : '#e0e0e0';
+
   let startX = 0;
   const panResponder = PanResponder.create({
-    onMoveShouldSetPanResponder: (_, gestureState) => {
-      return Math.abs(gestureState.dx) > 10 && Math.abs(gestureState.dy) < 20;
-    },
-    onPanResponderGrant: (evt: any, gestureState: any) => {
+    onMoveShouldSetPanResponder: (_, gestureState) =>
+      Math.abs(gestureState.dx) > 10 && Math.abs(gestureState.dy) < 20,
+    onPanResponderGrant: (_, gestureState) => {
       swipeX.setValue(0);
       startX = gestureState.x0;
     },
-    onPanResponderMove: (evt: any, gestureState: any) => {
+    onPanResponderMove: (_, gestureState) => {
       const dx = Math.max(0, Math.min(gestureState.moveX - startX, 260 - 64));
       swipeX.setValue(dx);
-      if (dx >= 260 - 64 - 2 && stock > 0 && !swiped) {
-        handleSwipe();
-      }
+      if (dx >= 260 - 64 - 2 && stock > 0 && !swiped) handleSwipe();
     },
-    onPanResponderRelease: (_: any, gestureState: any) => {
+    onPanResponderRelease: (_, gestureState) => {
       if (!swiped) {
         const swipeDistance = gestureState.moveX - startX;
         const threshold = 260 - 64 - 10;
-        if (swipeDistance >= threshold && stock > 0) {
-          handleSwipe();
-        } else {
-          Animated.spring(swipeX, { toValue: 0, useNativeDriver: false }).start();
-        }
+        if (swipeDistance >= threshold && stock > 0) handleSwipe();
+        else Animated.spring(swipeX, { toValue: 0, useNativeDriver: false }).start();
       }
     },
   });
@@ -94,45 +102,37 @@ export default function OrderPage() {
     );
   }
 
-  interface RentalCalendarProps {
-    rentalStart: Date;
-    rentalEnd: Date;
-    setRentalStart: (date: Date) => void;
-    setRentalEnd: (date: Date) => void;
-  }
-
-  function RentalCalendar({ rentalStart, rentalEnd, setRentalStart, setRentalEnd }: RentalCalendarProps) {
+  function RentalCalendar({ rentalStart, rentalEnd, setRentalStart, setRentalEnd }: any) {
     const [showStartDate, setShowStartDate] = useState(false);
     const [showEndDate, setShowEndDate] = useState(false);
-
-    const theme = getThemeColors();
-    const textSize = 16;
-
-    const rentalDays = Math.max(Math.ceil((rentalEnd.getTime() - rentalStart.getTime()) / (1000 * 60 * 60 * 24)) + 1, 1);
+    const rentalDays = Math.max(
+      Math.ceil((rentalEnd.getTime() - rentalStart.getTime()) / (1000 * 60 * 60 * 24)) + 1,
+      1
+    );
 
     return (
-      <View style={styles.calendarBox}>
-        <Text style={[styles.calendarLabel, { color: theme.text, fontSize: textSize, textAlign: 'center' }]}>
+      <View style={[styles.box, { paddingVertical: 16, backgroundColor: boxBackground }]}>
+        <Text style={[styles.calendarLabel, { color: theme.text, fontSize: 16, textAlign: 'center' }]}>
           Select rental period:
         </Text>
 
         <View style={{ flexDirection: 'column', alignItems: 'center', gap: 6, marginTop: 8 }}>
           <TouchableOpacity
-            style={[styles.calendarBtn, { backgroundColor: theme.unselected }]}
+            style={[styles.calendarBtn, { backgroundColor: theme.unselectedTab }]}
             onPress={() => setShowStartDate(true)}
           >
-            <Text style={[styles.calendarBtnText, { color: theme.primary, fontSize: textSize - 2 }]}>
+            <Text style={[styles.calendarBtnText, { color: theme.primary, fontSize: 14 }]}>
               From: {rentalStart.toDateString()}
             </Text>
           </TouchableOpacity>
-          <Text style={[styles.calendarLabel, { color: theme.text, fontSize: textSize - 2, textAlign: 'center' }]}>
+          <Text style={[styles.calendarLabel, { color: theme.text, fontSize: 14 }]}>
             ({rentalDays} day{rentalDays > 1 ? 's' : ''})
           </Text>
           <TouchableOpacity
-            style={[styles.calendarBtn, { backgroundColor: theme.unselected }]}
+            style={[styles.calendarBtn, { backgroundColor: theme.unselectedTab }]}
             onPress={() => setShowEndDate(true)}
           >
-            <Text style={[styles.calendarBtnText, { color: theme.primary, fontSize: textSize - 2 }]}>
+            <Text style={[styles.calendarBtnText, { color: theme.primary, fontSize: 14 }]}>
               To: {rentalEnd.toDateString()}
             </Text>
           </TouchableOpacity>
@@ -169,41 +169,81 @@ export default function OrderPage() {
     );
   }
 
-  const responsiveText = (base: number) => Math.max(base * (SCREEN_WIDTH / 400), base * 0.85);
-
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ paddingBottom: 40 }}>
-      <View style={{ height: 32 }} />
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <BackButton />
-        <Image source={{ uri: params.image as string }} style={styles.image} />
-        <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>{params.name}</Text>
-        <Text style={[styles.brand, { color: theme.text, fontSize: responsiveText(textSize) }]}>{params.brand}</Text>
-        <Text style={[styles.modeBtnText, { color: theme.primary, fontSize: responsiveText(textSize) }]}>
-          Rent <Text style={[styles.modePrice, { color: theme.primary, fontSize: responsiveText(textSize - 2) }]}>${rentPrice}/day</Text>
-        </Text>
-        <Text style={[styles.stock, { color: theme.text, fontSize: responsiveText(textSize) }]}>Stock: {stock}</Text>
-        <Text style={[styles.description, { color: theme.text, fontSize: responsiveText(textSize - 2) }]}>{params.description || 'No description available.'}</Text>
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 140 }}>
+        <View style={{ height: 32 }} />
 
-        <View style={styles.qtyRow}>
-          <Text style={[styles.qtyLabel, { color: theme.text, fontSize: responsiveText(textSize) }]}>Quantity:</Text>
-          <TouchableOpacity
-            style={[styles.qtyBtn, { backgroundColor: theme.unselected }, quantity === 1 || stock === 0 ? styles.qtyBtnDisabled : null]}
-            onPress={() => setQuantity((q: number) => Math.max(1, q - 1))}
-            disabled={quantity === 1 || stock === 0}
-          >
-            <Text style={[styles.qtyBtnText, { color: theme.text, fontSize: responsiveText(textSize + 2) }]}>-</Text>
-          </TouchableOpacity>
-          <Text style={[styles.qtyValue, { color: theme.text, fontSize: responsiveText(textSize + 2) }]}>{quantity}</Text>
-          <TouchableOpacity
-            style={[styles.qtyBtn, { backgroundColor: theme.unselected }, quantity === maxQty || stock === 0 ? styles.qtyBtnDisabled : null]}
-            onPress={() => setQuantity((q: number) => Math.min(maxQty, q + 1))}
-            disabled={quantity === maxQty || stock === 0}
-          >
-            <Text style={[styles.qtyBtnText, { color: theme.text, fontSize: responsiveText(textSize + 2) }]}>+</Text>
-          </TouchableOpacity>
+        {/* Product Info Box */}
+        <View style={[styles.box, { alignItems: 'center', padding: 24, backgroundColor: boxBackground }]}>
+          <BackButton />
+          <Image source={{ uri: params.image as string }} style={styles.image} />
+          <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>
+            {params.name}
+          </Text>
+          <Text style={[styles.brand, { color: theme.text, fontSize: responsiveText(textSize) }]}>{params.brand}</Text>
+          <Text style={[styles.modeBtnText, { color: theme.primary, fontSize: responsiveText(textSize) }]}>
+            Rent{' '}
+            <Text
+              style={[
+                styles.modePrice,
+                { color: theme.primary, fontSize: responsiveText(textSize - 2) },
+              ]}
+            >
+              ${rentPrice}/day
+            </Text>
+          </Text>
+          <Text style={[styles.stock, { color: theme.text, fontSize: responsiveText(textSize) }]}>
+            Stock: {stock}
+          </Text>
+          <Text style={[styles.description, { color: theme.text, fontSize: responsiveText(textSize - 2) }]}>
+            {params.description || 'No description available.'}
+          </Text>
         </View>
 
+        {/* Quantity Box */}
+        <View style={[styles.box, { backgroundColor: boxBackground }]}>
+          <View style={styles.qtyRow}>
+            <Text style={[styles.qtyLabel, { color: theme.text, fontSize: responsiveText(textSize) }]}>
+              Quantity:
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.qtyBtn,
+                { backgroundColor: theme.unselectedTab },
+                quantity === 1 || stock === 0 ? styles.qtyBtnDisabled : null,
+              ]}
+              onPress={() => setQuantity((q: number) => Math.max(1, q - 1))}
+              disabled={quantity === 1 || stock === 0}
+            >
+              <Text
+                style={[styles.qtyBtnText, { color: theme.text, fontSize: responsiveText(textSize + 2) }]}
+              >
+                -
+              </Text>
+            </TouchableOpacity>
+            <Text style={[styles.qtyValue, { color: theme.text, fontSize: responsiveText(textSize + 2) }]}>
+              {quantity}
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.qtyBtn,
+                { backgroundColor: theme.unselectedTab },
+                quantity === maxQty || stock === 0 ? styles.qtyBtnDisabled : null,
+              ]}
+              onPress={() => setQuantity((q: number) => Math.min(maxQty, q + 1))}
+              disabled={quantity === maxQty || stock === 0}
+            >
+              <Text
+                style={[styles.qtyBtnText, { color: theme.text, fontSize: responsiveText(textSize + 2) }]}
+              >
+                +
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Rental Calendar Box */}
         <RentalCalendar
           rentalStart={rentalStart}
           rentalEnd={rentalEnd}
@@ -211,39 +251,58 @@ export default function OrderPage() {
           setRentalEnd={setRentalEnd}
         />
 
+        {/* Out of Stock */}
         {stock === 0 && (
-          <Text style={[styles.outOfStock, { color: '#D32F2F', fontSize: responsiveText(textSize + 2) }]}>Out of stock</Text>
+          <Text
+            style={[
+              styles.outOfStock,
+              { color: '#D32F2F', fontSize: responsiveText(textSize + 2), textAlign: 'center' },
+            ]}
+          >
+            Out of stock
+          </Text>
         )}
-      </View>
+      </ScrollView>
 
+      {/* Bottom Bar */}
       <View style={[styles.bottomBar, { backgroundColor: theme.background, borderColor: theme.unselected }]}>
         <View style={styles.totalPriceBox}>
-          <Text style={[styles.totalPriceLabel, { color: theme.unselected, fontSize: responsiveText(textSize - 4) }]}>Total</Text>
+          <Text style={[styles.totalPriceLabel, { color: theme.unselected, fontSize: responsiveText(textSize - 4) }]}>
+            Total
+          </Text>
           <Text style={[styles.totalPrice, { color: theme.text, fontSize: responsiveText(textSize + 4) }]}>
             ${(rentPrice * quantity * getRentalDays()).toFixed(2)}
           </Text>
         </View>
         <View style={styles.swipeContainerCentered}>
-          <Text style={[styles.swipeLabel, { color: theme.unselected, fontSize: responsiveText(textSize - 2) }]}>Swipe to Order</Text>
-          <View style={[styles.swipeTrack, { backgroundColor: theme.unselected }]} {...(stock > 0 ? panResponder.panHandlers : {})}>
+          <Text style={[styles.swipeLabel, { color: theme.unselected, fontSize: responsiveText(textSize - 2) }]}>
+            Swipe to Order
+          </Text>
+          <View
+            style={[styles.swipeTrack, { backgroundColor: theme.unselectedTab }]}
+            {...(stock > 0 ? panResponder.panHandlers : {})}
+          >
             <RNAnimated.View
               style={[
                 styles.swipeThumb,
-                { backgroundColor: stock === 0 ? theme.unselected : theme.primary },
+                { backgroundColor: stock === 0 ? theme.unselectedTab : theme.primary },
                 { transform: [{ translateX: swipeX }] },
                 swiped && { backgroundColor: '#4CAF50' },
               ]}
             >
-              <Text style={[styles.swipeThumbText, { fontSize: responsiveText(textSize + 10) }]}>{swiped ? '✓' : '→'}</Text>
+              <Text style={[styles.swipeThumbText, { fontSize: responsiveText(textSize + 10) }]}>
+                {swiped ? '✓' : '→'}
+              </Text>
             </RNAnimated.View>
           </View>
         </View>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  box: { marginHorizontal: 16, marginVertical: 8, borderRadius: 12, padding: 16 },
   container: { alignItems: 'center', padding: 24, flexGrow: 1, paddingBottom: 120 },
   backButton: { alignSelf: 'flex-start', marginBottom: 16, padding: 0, borderRadius: 0, backgroundColor: 'transparent' },
   image: { width: 240, height: 240, borderRadius: 16, marginBottom: 20, backgroundColor: '#eee' },

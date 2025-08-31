@@ -4,8 +4,8 @@ import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
-import { getOrderHistory, addOrderToHistory, OrderHistoryItem } from '@/utils/userHistory';
+import { db, auth } from '@/firebase/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { homeTranslations } from '@/utils/translations';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -19,24 +19,40 @@ export default function HomeScreen() {
   const screenWidth = Dimensions.get('window').width;
   const responsiveText = (base: number) => Math.max(base * (screenWidth / 400), base * 0.85);
 
-  const [user, setUser] = useState<string | null>(null);
-  const [orderHistory, setOrderHistory] = useState<OrderHistoryItem[]>([]);
+  const [user, setUser] = useState<any>(null);
+  const [orderHistory, setOrderHistory] = useState<any[]>([]);
   const { lang } = useLanguage();
   const t = homeTranslations[lang];
 
   useEffect(() => {
-    (async () => {
-      const username = await SecureStore.getItemAsync('user');
-      setUser(username);
-      if (username) {
-        const history = await getOrderHistory(username);
-        setOrderHistory(history);
-      } else {
+    const fetchUserHistory = async () => {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        setUser(null);
+        setOrderHistory([]);
+        return;
+      }
+      setUser(currentUser);
+
+      try {
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+          setOrderHistory(data.history || []);
+        } else {
+          setOrderHistory([]);
+        }
+      } catch (err) {
+        console.error('Error fetching order history:', err);
         setOrderHistory([]);
       }
-    })();
+    };
+
+    fetchUserHistory();
   }, []);
-//@ts-ignore
+
+  //@ts-ignore
   const handleRenew = (order) => {
     router.push({ pathname: '/rental/renew', params: { ...order, stock: order.stock || 1 } });
   };
@@ -96,8 +112,8 @@ export default function HomeScreen() {
       ) : (
         <>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ width: '100%', paddingLeft: 10 }}>
-            {orderHistory.slice(0, 3).map(order => (
-              <View key={order.id} style={{
+            {orderHistory.slice(0, 3).map((order, idx) => (
+              <View key={idx} style={{
                 backgroundColor: theme.unselectedTab,
                 borderRadius: 12,
                 padding: 16,
@@ -113,11 +129,8 @@ export default function HomeScreen() {
                 position: 'relative',
               }}>
                 <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: responsiveText(textSize) }}>{order.name}</Text>
-                <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>{t.date}: {order.date}</Text>
-                <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>{t.status}: {order.status}</Text>
-                <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>{t.amount}: ${order.amount}</Text>
-                <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>{t.quantity}: {order.quantity}</Text>
-                {order.mode === 'rent' && (
+                <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>{t.amount}: ${order.totalPrice}</Text>
+                {order.rentalStart && order.rentalEnd && (
                   <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>{t.rental}: {order.rentalStart} - {order.rentalEnd}</Text>
                 )}
               </View>

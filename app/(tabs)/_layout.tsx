@@ -10,6 +10,8 @@ import * as SecureStore from 'expo-secure-store';
 import { useFocusEffect } from '@react-navigation/native';
 import { getThemeColors } from '@/utils/theme';
 import { aiExploreFilterControl } from './explore';
+import { arrayUnion, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '@/firebase/firebase';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const ai = new GoogleGenAI({ apiKey: "AIzaSyAIjiRYwpgibikuLrEsqhlpHD97NA6aR5U" });
@@ -287,14 +289,24 @@ function TabLayout({ onHeaderSwipe }: { onHeaderSwipe: () => void }) {
   const router = useRouter();
   const [profileUser, setProfileUser] = useState<string | null>(null);
 
+
   useFocusEffect(
     React.useCallback(() => {
       let isActive = true;
-      const updateUser = async () => {
-        const currentUser = await SecureStore.getItemAsync('user');
-        if (isActive) setProfileUser(currentUser);
+
+      const fetchUsername = async () => {
+        const user = auth.currentUser;
+        if (user) {
+          const userRef = doc(db, 'users', user.uid);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists() && isActive) {
+            const data = userSnap.data();
+            setProfileUser(data.username || user.email || null);
+          }
+        }
       };
-      updateUser();
+
+      fetchUsername();
       return () => { isActive = false; };
     }, [])
   );
@@ -331,9 +343,7 @@ function TabLayout({ onHeaderSwipe }: { onHeaderSwipe: () => void }) {
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', padding: 10, flex: 1 }}>
               <TouchableOpacity
-                onPress={() =>
-                  router.push('/profile')
-                }
+                onPress={() => router.push('/profile')}
                 style={{
                   borderRadius: 50,
                   overflow: 'hidden',
@@ -348,7 +358,14 @@ function TabLayout({ onHeaderSwipe }: { onHeaderSwipe: () => void }) {
               >
                 {profileUser ? (
                   <Text style={{ color: theme.background, fontWeight: 'bold', fontSize: 28 }}>
-                    {profileUser.charAt(0).toUpperCase()}
+                    {/* Show first letter of username if available */}
+                    {typeof profileUser === 'string' && profileUser.length > 0
+                      ? (
+                          profileUser.includes('@')
+                            ? profileUser.split('@')[0].charAt(0).toUpperCase()
+                            : profileUser.charAt(0).toUpperCase()
+                        )
+                      : '?'}
                   </Text>
                 ) : (
                   <Image

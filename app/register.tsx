@@ -40,6 +40,7 @@ export default function Register() {
         email,
         role: 'user',      // default role
         createdAt: new Date(),
+        history: []
       });
 
       // ✅ Save locally for profile

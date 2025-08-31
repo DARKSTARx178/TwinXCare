@@ -9,7 +9,7 @@ export const homeTranslations = {
     createAccount: 'Create an Account',
     login: 'Login',
     submitFeedback: 'Submit Feedback',
-    orderHistory: 'Order History',
+    orderHistory: 'History',
     signInToSeeHistory: 'Sign in to see order history.',
     noOrders: 'No orders yet.',
     seeFullHistory: 'See full history >',

@@ -30,6 +30,13 @@ export default function Admin() {
 
             <TouchableOpacity
                 style={[styles.button, { backgroundColor: theme.primary }]}
+                onPress={() => router.push('./admin_delivery')}
+            >
+                <Text style={{ color: theme.background, fontWeight: 'bold', fontSize: textSize }}>Manage Deliveries</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[styles.button, { backgroundColor: theme.primary }]}
                 onPress={() => router.push('./admin_userMgt')}
             >
                 <Text style={{ color: theme.background, fontWeight: 'bold', fontSize: textSize }}>Manage Users</Text>

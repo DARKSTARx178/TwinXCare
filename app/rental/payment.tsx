@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
-import { getThemeColors } from '@/utils/theme';
+import { db, auth } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
-import { db } from '@/firebase/firebase';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { getThemeColors } from '@/utils/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import React, { useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function PaymentPage() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { scheme, fontSize } = useAccessibility();
-  const theme = getThemeColors(scheme);
+  const theme = getThemeColors();
   const textSize = getFontSizeValue(fontSize);
 
   const [address, setAddress] = useState('');
@@ -28,6 +28,7 @@ export default function PaymentPage() {
     }
 
     try {
+      // Update equipment stock
       const productRef = doc(db, 'equipment', params.docId as string);
       const productSnap = await getDoc(productRef);
       if (!productSnap.exists()) {
@@ -43,20 +44,39 @@ export default function PaymentPage() {
 
       await updateDoc(productRef, { stock: currentStock - quantity });
 
-      router.replace({
-        pathname: '/delivery',
-        params: {
+      // Save order to user's history
+      const user = auth.currentUser;
+      if (user) {
+        const userRef = doc(db, 'users', user.uid);
+
+        // Generate orderTime and short transactionId with dash
+        const orderTime = new Date().toISOString();
+        const randomSuffix = Math.random().toString(36).substr(2, 3).toUpperCase();
+        const transactionId = `${(params.docId as string).substr(0, 3).toUpperCase()}-${randomSuffix}`;
+
+        const orderData = {
+          productId: params.docId,
           name: params.name,
-          quantity: quantity.toString(),
-          rentalDays: rentalDays.toString(),
-          totalPrice: totalPrice.toFixed(2),
+          quantity,
+          rentalDays,
           rentalStart: params.rentalStart,
           rentalEnd: params.rentalEnd,
+          totalPrice: totalPrice.toFixed(2),
           deliveryAddress: address,
-        },
-      });
+          orderTime,
+          transactionId,
+          status: 'Incomplete', // New field for order status
+          createdAt: new Date().toISOString(),
+        };
+
+        await updateDoc(userRef, { history: arrayUnion(orderData) });
+      }
+
+      // Navigate to delivery page
+      router.replace('/delivery');
+
     } catch (err) {
-      console.error('Error updating stock:', err);
+      console.error('Error confirming order:', err);
       Alert.alert('Error', 'Failed to confirm order.');
     }
   };

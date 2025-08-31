@@ -25,7 +25,7 @@ export default function OrderPage() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const { scheme, fontSize } = useAccessibility();
-  const theme = getThemeColors(scheme);
+  const theme = getThemeColors();
   const textSize = getFontSizeValue(fontSize);
 
   const [quantity, setQuantity] = useState(1);

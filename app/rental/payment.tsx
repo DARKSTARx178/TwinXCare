@@ -1,10 +1,10 @@
 import { useAccessibility } from '@/contexts/AccessibilityContext';
-import { db, auth } from '@/firebase/firebase';
+import { auth, db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { getThemeColors } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -16,68 +16,90 @@ export default function PaymentPage() {
   const textSize = getFontSizeValue(fontSize);
 
   const [address, setAddress] = useState('');
-  const pricePerDay = Number(params.pricePerDay) || 0;
-  const quantity = Number(params.quantity) || 1;
-  const rentalDays = Number(params.rentalDays) || 1;
+  const pricePerDay = Number(params.pricePerDay || params.price || 0);
+  const quantity = Number(params.quantity || 1);
+  const rentalDays = Number(params.rentalDays || 1);
   const totalPrice = pricePerDay * quantity * rentalDays;
 
   const handleConfirm = async () => {
-    if (!address.trim()) {
-      Alert.alert('Error', 'Please enter your delivery address.');
-      return;
-    }
-
     try {
-      // Update equipment stock
-      const productRef = doc(db, 'equipment', params.docId as string);
-      const productSnap = await getDoc(productRef);
-      if (!productSnap.exists()) {
-        Alert.alert('Error', 'Product not found.');
-        return;
+      if (params.type === 'equipment') {
+        // --- Equipment booking logic (unchanged) ---
+        if (!address.trim()) {
+          Alert.alert('Error', 'Please enter your delivery address.');
+          return;
+        }
+
+        const productRef = doc(db, 'equipment', params.docId as string);
+        const productSnap = await getDoc(productRef);
+        if (!productSnap.exists()) {
+          Alert.alert('Error', 'Product not found.');
+          return;
+        }
+
+        const currentStock = productSnap.data()?.stock || 0;
+        if (currentStock < quantity) {
+          Alert.alert('Error', 'Not enough stock available.');
+          return;
+        }
+
+        await updateDoc(productRef, { stock: currentStock - quantity });
+
+        const user = auth.currentUser;
+        if (user) {
+          const userRef = doc(db, 'users', user.uid);
+
+          const orderTime = new Date().toISOString();
+          const randomSuffix = Math.random().toString(36).substr(2, 3).toUpperCase();
+          const transactionId = `${(params.docId as string).substr(0, 3).toUpperCase()}-${randomSuffix}`;
+
+          const orderData = {
+            productId: params.docId,
+            name: params.name,
+            quantity,
+            rentalDays,
+            rentalStart: params.rentalStart,
+            rentalEnd: params.rentalEnd,
+            totalPrice: totalPrice.toFixed(2),
+            deliveryAddress: address,
+            orderTime,
+            transactionId,
+            status: 'Incomplete',
+            createdAt: new Date().toISOString(),
+          };
+
+          await updateDoc(userRef, { history: arrayUnion(orderData) });
+        }
+
+        router.replace('/delivery');
+      } else if (params.type === 'service') {
+        // --- Service booking logic ---
+        if (!params.phone || !params.bookingDate || !params.timeSlot || !params.docId) {
+          Alert.alert('Error', 'Missing service info.');
+          return;
+        }
+
+        // Deduct pax in the corresponding service
+        const serviceRef = doc(db, 'services', params.docId as string);
+        const snapshot = await getDoc(serviceRef);
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          const schedule = Array.isArray(data.schedule) ? data.schedule : [];
+          const updatedSchedule = schedule.map((slot: any) => {
+            if (slot.date === params.bookingDate && `${slot.from} - ${slot.to}` === params.timeSlot) {
+              return { ...slot, pax: Math.max((slot.pax || 1) - 1, 0) };
+            }
+            return slot;
+          });
+          await updateDoc(serviceRef, { schedule: updatedSchedule });
+        }
+
+        // Navigate to delivery page
+        router.replace('/delivery');
       }
-
-      const currentStock = productSnap.data()?.stock || 0;
-      if (currentStock < quantity) {
-        Alert.alert('Error', 'Not enough stock available.');
-        return;
-      }
-
-      await updateDoc(productRef, { stock: currentStock - quantity });
-
-      // Save order to user's history
-      const user = auth.currentUser;
-      if (user) {
-        const userRef = doc(db, 'users', user.uid);
-
-        // Generate orderTime and short transactionId with dash
-        const orderTime = new Date().toISOString();
-        const randomSuffix = Math.random().toString(36).substr(2, 3).toUpperCase();
-        const transactionId = `${(params.docId as string).substr(0, 3).toUpperCase()}-${randomSuffix}`;
-
-        const orderData = {
-          productId: params.docId,
-          name: params.name,
-          quantity,
-          rentalDays,
-          rentalStart: params.rentalStart,
-          rentalEnd: params.rentalEnd,
-          totalPrice: totalPrice.toFixed(2),
-          deliveryAddress: address,
-          orderTime,
-          transactionId,
-          status: 'Incomplete', // New field for order status
-          createdAt: new Date().toISOString(),
-        };
-
-        await updateDoc(userRef, { history: arrayUnion(orderData) });
-      }
-
-      // Navigate to delivery page
-      router.replace('/delivery');
-
     } catch (err) {
-      console.error('Error confirming order:', err);
-      Alert.alert('Error', 'Failed to confirm order.');
+      console.error('Error confirming payment:', err);
+      Alert.alert('Error', 'Failed to confirm payment.');
     }
   };
 
@@ -89,15 +111,19 @@ export default function PaymentPage() {
         Total: ${totalPrice.toFixed(2)} ({quantity} item{quantity > 1 ? 's' : ''} × {rentalDays} day{rentalDays > 1 ? 's' : ''})
       </Text>
 
-      <Text style={[styles.label, { color: theme.text, fontSize: textSize }]}>Delivery Address</Text>
-      <TextInput
-        placeholder="1234 Main St, City, Country"
-        placeholderTextColor={theme.unselected}
-        value={address}
-        onChangeText={setAddress}
-        style={[styles.input, { borderColor: theme.unselected, color: theme.text, fontSize: textSize }]}
-        multiline
-      />
+      {params.type === 'equipment' && (
+        <>
+          <Text style={[styles.label, { color: theme.text, fontSize: textSize }]}>Delivery Address</Text>
+          <TextInput
+            placeholder="1234 Main St, City, Country"
+            placeholderTextColor={theme.unselected}
+            value={address}
+            onChangeText={setAddress}
+            style={[styles.input, { borderColor: theme.unselected, color: theme.text, fontSize: textSize }]}
+            multiline
+          />
+        </>
+      )}
 
       <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary }]} onPress={handleConfirm}>
         <Ionicons name="checkmark-circle-outline" size={24} color={theme.background} />

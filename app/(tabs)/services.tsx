@@ -142,7 +142,7 @@ export default function Services() {
           )}
         </View>
 
-        {/* Filter dropdown */}
+        {/* Filter dropdown */}z
         {showFilterDropdown && (
           <View style={styles.dropdownMenu}>
             {['company', 'price'].map(f => (

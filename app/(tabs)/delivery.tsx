@@ -143,14 +143,12 @@ export default function DeliveryPage() {
       </TouchableOpacity>
 
       {/* History section */}
-      <Text style={{ color: theme.text, fontSize: responsiveText(textSize + 4), fontWeight: 'bold', marginTop: 32, marginBottom: 8 }}>
-        History
-      </Text>
+      <Text style={{ color: theme.text, fontSize: responsiveText(textSize + 4), fontWeight: 'bold', marginTop: 32, marginBottom: 8 }}>     History</Text>
 
       {!user ? (
-        <Text style={{ color: theme.unselected, fontSize: textSize }}>Sign in to see history.</Text>
+        <Text style={{ color: theme.unselected, fontSize: textSize }}>      Sign in to see history.</Text>
       ) : orderHistory.length === 0 ? (
-        <Text style={{ color: theme.unselected, fontSize: textSize }}>No records yet.</Text>
+        <Text style={{ color: theme.unselected, fontSize: textSize }}>      No records yet.</Text>
       ) : (
         orderHistory.map((entry, idx) => {
           const expanded = expandedOrders.has(idx);

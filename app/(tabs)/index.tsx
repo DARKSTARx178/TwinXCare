@@ -52,11 +52,6 @@ export default function HomeScreen() {
     fetchUserHistory();
   }, []);
 
-  //@ts-ignore
-  const handleRenew = (order) => {
-    router.push({ pathname: '/rental/renew', params: { ...order, stock: order.stock || 1 } });
-  };
-
   return (
     <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ alignItems: 'center', justifyContent: 'flex-start', paddingBottom: 40 }}>
       <Text style={[styles.logo, { fontSize: responsiveText(textSize + 10), color: theme.text }]}>{t.home}</Text>
@@ -79,7 +74,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity onPress={() => router.push('/delivery' as any)} style={[styles.fullButton, { backgroundColor: theme.primary, width: screenWidth - 40 }]}>
+      <TouchableOpacity onPress={() => router.push('../bookings' as any)} style={[styles.fullButton, { backgroundColor: theme.primary, width: screenWidth - 40 }]}>
         <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: '#fff' }]}>{t.myRentals}</Text>
       </TouchableOpacity>
 

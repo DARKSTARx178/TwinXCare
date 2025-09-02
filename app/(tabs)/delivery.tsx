@@ -46,7 +46,19 @@ export default function DeliveryPage() {
     const userSnap = await getDoc(userRef);
     if (userSnap.exists()) {
       const data = userSnap.data();
-      setOrderHistory([...data.history || []].reverse());
+      // Merge history and booking arrays into one timeline
+      const combined = [
+        ...(data.history || []).map((h: any) => ({ ...h, type: 'order' })),
+        ...(data.booking || []).map((b: any) => ({ ...b, type: 'booking' })),
+      ];
+      // Sort by createdAt (if exists), else leave as is
+      combined.sort((a, b) => {
+        if (a.createdAt && b.createdAt) {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+        return 0;
+      });
+      setOrderHistory(combined);
     }
   };
 
@@ -68,11 +80,7 @@ export default function DeliveryPage() {
     setExpandedOrders(newSet);
   };
 
-  const latestOrder = orderHistory.length > 0 ? orderHistory[0] : null;
-  const orderTime = latestOrder?.orderTime || 'N/A';
-  const transactionId = latestOrder?.transactionId || 'N/A';
-  const deliveryEta = latestOrder?.deliveryEta || 'N/A';
-  const isRenew = latestOrder?.isRenew || false;
+  const latest = orderHistory.length > 0 ? orderHistory[0] : null;
 
   return (
     <ScrollView
@@ -82,26 +90,49 @@ export default function DeliveryPage() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />
       }
     >
-      {/* Delivery Scheduled card */}
-      <View style={[cardStyle(theme), { width: '90%', alignSelf: 'center' }]}>
-        <Ionicons name="car" size={48} color={theme.primary} />
-        <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>
-          Delivery Scheduled
-        </Text>
+      {/* Top card (different for booking vs order) */}
+      {latest && latest.type === 'order' && (
+        <View style={[cardStyle(theme), { width: '90%', alignSelf: 'center' }]}>
+          <Ionicons name="car" size={48} color={theme.primary} />
+          <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>
+            Delivery Scheduled
+          </Text>
 
-        <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Order Time</Text>
-        <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{orderTime}</Text>
+          <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Order Time</Text>
+          <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{latest.orderTime || 'N/A'}</Text>
 
-        <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Transaction ID</Text>
-        <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{transactionId}</Text>
+          <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Transaction ID</Text>
+          <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{latest.transactionId || 'N/A'}</Text>
 
-        {!isRenew && (
-          <>
-            <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Estimated Delivery</Text>
-            <Text style={[etaStyle(theme), { fontSize: responsiveText(textSize + 2) }]}>{deliveryEta}</Text>
-          </>
-        )}
-      </View>
+          {!latest.isRenew && (
+            <>
+              <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Estimated Delivery</Text>
+              <Text style={[etaStyle(theme), { fontSize: responsiveText(textSize + 2) }]}>{latest.deliveryEta || 'N/A'}</Text>
+            </>
+          )}
+        </View>
+      )}
+
+      {latest && latest.type === 'booking' && (
+        <View style={[cardStyle(theme), { width: '90%', alignSelf: 'center' }]}>
+          <Ionicons name="calendar" size={48} color={theme.primary} />
+          <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>
+            Booking Success
+          </Text>
+
+          <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Service</Text>
+          <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{latest.title || 'N/A'}</Text>
+
+          <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Date</Text>
+          <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{latest.bookingDate || 'N/A'}</Text>
+
+          <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Time</Text>
+          <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{latest.timeSlot || 'N/A'}</Text>
+
+          <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Description</Text>
+          <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{latest.description || 'N/A'}</Text>
+        </View>
+      )}
 
       {/* Back button */}
       <TouchableOpacity style={[buttonStyle(theme)]} onPress={() => router.replace('/(tabs)')}>
@@ -111,15 +142,17 @@ export default function DeliveryPage() {
         </Text>
       </TouchableOpacity>
 
-      {/* Order History */}
-      <Text style={{ color: theme.text, fontSize: responsiveText(textSize + 4), fontWeight: 'bold', marginTop: 32, marginBottom: 8 }}>    History</Text>
+      {/* History section */}
+      <Text style={{ color: theme.text, fontSize: responsiveText(textSize + 4), fontWeight: 'bold', marginTop: 32, marginBottom: 8 }}>
+        History
+      </Text>
 
       {!user ? (
         <Text style={{ color: theme.unselected, fontSize: textSize }}>Sign in to see history.</Text>
       ) : orderHistory.length === 0 ? (
-        <Text style={{ color: theme.unselected, fontSize: textSize }}>No orders yet.</Text>
+        <Text style={{ color: theme.unselected, fontSize: textSize }}>No records yet.</Text>
       ) : (
-        orderHistory.map((order, idx) => {
+        orderHistory.map((entry, idx) => {
           const expanded = expandedOrders.has(idx);
           return (
             <TouchableOpacity
@@ -136,33 +169,51 @@ export default function DeliveryPage() {
               }}
             >
               <Text style={{ color: theme.text, fontSize: responsiveText(textSize), fontWeight: 'bold' }}>
-                {order.name} x{order.quantity}
+                {entry.type === 'order'
+                  ? `${entry.name} x${entry.quantity}`
+                  : `Booking: ${entry.title}`}
               </Text>
 
               {expanded && (
                 <View style={{ marginTop: 8 }}>
-                  {order.rentalStart && order.rentalEnd && (
-                    <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                      Rental: {order.rentalStart} - {order.rentalEnd}
-                    </Text>
+                  {entry.type === 'order' ? (
+                    <>
+                      {entry.rentalStart && entry.rentalEnd && (
+                        <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
+                          Rental: {entry.rentalStart} - {entry.rentalEnd}
+                        </Text>
+                      )}
+                      <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
+                        Amount: ${entry.totalPrice}
+                      </Text>
+                      <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
+                        Transaction ID: {entry.transactionId}
+                      </Text>
+                      <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
+                        Delivery Address: {entry.deliveryAddress}
+                      </Text>
+                      {entry.deliveryEta && (
+                        <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
+                          Delivery ETA: {entry.deliveryEta}
+                        </Text>
+                      )}
+                      <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
+                        Status: {entry.status}
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
+                        Date: {entry.bookingDate}
+                      </Text>
+                      <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
+                        Time: {entry.timeSlot}
+                      </Text>
+                      <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
+                        Description: {entry.description}
+                      </Text>
+                    </>
                   )}
-                  <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                    Amount: ${order.totalPrice}
-                  </Text>
-                  <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                    Transaction ID: {order.transactionId}
-                  </Text>
-                  <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                    Delivery Address: {order.deliveryAddress}
-                  </Text>
-                  {order.deliveryEta && (
-                    <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                      Delivery ETA: {order.deliveryEta}
-                    </Text>
-                  )}
-                  <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                    Status: {order.status}
-                  </Text>
                 </View>
               )}
             </TouchableOpacity>

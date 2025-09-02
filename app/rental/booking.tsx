@@ -192,6 +192,7 @@ export default function BookingScreen() {
             justifyContent: 'center',
             alignItems: 'center',
           }}
+          //@ts-ignore
           disabled={isBookingDisabled}
           onPress={() => {
             const slotObj = scheduleRef.current.find(

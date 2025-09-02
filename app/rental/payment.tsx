@@ -4,14 +4,14 @@ import { getFontSizeValue } from '@/utils/fontSizes';
 import { getThemeColors } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function PaymentPage() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { scheme, fontSize } = useAccessibility();
+  const { fontSize } = useAccessibility();
   const theme = getThemeColors();
   const textSize = getFontSizeValue(fontSize);
 
@@ -75,7 +75,16 @@ export default function PaymentPage() {
       } else if (params.type === 'service') {
         // --- Service booking logic ---
         if (!params.phone || !params.bookingDate || !params.timeSlot || !params.docId) {
-          Alert.alert('Error', 'Missing service info.');
+          const missingFields: string[] = [];
+          if (!params.phone) missingFields.push("phone");
+          if (!params.bookingDate) missingFields.push("bookingDate");
+          if (!params.timeSlot) missingFields.push("timeSlot");
+          if (!params.docId) missingFields.push("docId");
+
+          Alert.alert(
+            "Error",
+            `Missing service info: ${missingFields.join(", ")}`
+          );
           return;
         }
 
@@ -92,6 +101,24 @@ export default function PaymentPage() {
             return slot;
           });
           await updateDoc(serviceRef, { schedule: updatedSchedule });
+        }
+
+        // Save booking under user profile
+        const user = auth.currentUser;
+        if (user) {
+          const userRef = doc(db, 'users', user.uid);
+
+          const bookingData = {
+            serviceId: params.docId,
+            title: params.name || "Untitled Event",
+            description: params.description || "",
+            bookingDate: params.bookingDate,
+            timeSlot: params.timeSlot,
+            price: params.price,
+            createdAt: new Date().toISOString(),
+          };
+
+          await updateDoc(userRef, { booking: arrayUnion(bookingData) });
         }
 
         // Navigate to delivery page

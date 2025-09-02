@@ -15,6 +15,7 @@ export interface ScheduleItem {
 }
 
 export interface ServiceItem {
+  id: string; // ✅ added for Firestore docId
   name: string;
   duration: string;
   company: string;
@@ -51,6 +52,7 @@ export default function Services() {
       const items: ServiceItem[] = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
+          id: doc.id, // ✅ include Firestore docId
           name: data.name,
           brand: data.brand,
           duration: data.duration,
@@ -142,7 +144,7 @@ export default function Services() {
           )}
         </View>
 
-        {/* Filter dropdown */}z
+        {/* Filter dropdown */}
         {showFilterDropdown && (
           <View style={styles.dropdownMenu}>
             {['company', 'price'].map(f => (
@@ -195,11 +197,16 @@ export default function Services() {
           contentContainerStyle={{ paddingBottom: 30 }}
           renderItem={({ item }) => (
             <TouchableOpacity
-              onPress={() => router.push({ pathname: '/rental/booking', params: { 
-                ...item, 
-                price: String(item.price), 
-                schedule: item.schedule ? JSON.stringify(item.schedule) : undefined 
-              } })}
+              onPress={() => {
+                const params = {
+                  ...item,
+                  docId: item.id, // ✅ ensure booking screen gets Firestore docId
+                  price: String(item.price),
+                  schedule: item.schedule ? JSON.stringify(item.schedule) : undefined
+                };
+                console.log("Passing to booking:", params); // ✅ debug print
+                router.push({ pathname: '/rental/booking', params });
+              }}
               activeOpacity={0.8}
               style={[styles.gridItem, { borderColor: theme.primary, maxWidth: `${100 / numColumns}%` }]}
             >

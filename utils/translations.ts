@@ -4,7 +4,7 @@ export const homeTranslations = {
     bookEquipment: 'Book Equipment',
     services: 'Services',
     requireAssistance: 'Require Assistance',
-    myRentals: 'My Rentals',
+    myRentals: 'Bookings',
     welcome: 'Welcome',
     createAccount: 'Create an Account',
     login: 'Login',

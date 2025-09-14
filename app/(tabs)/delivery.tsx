@@ -4,18 +4,18 @@ import { getThemeColors } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Dimensions,
+  LayoutAnimation,
+  Platform,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-  LayoutAnimation,
   UIManager,
-  Platform,
-  RefreshControl,
+  View,
 } from 'react-native';
 
 if (Platform.OS === 'android') {

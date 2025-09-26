@@ -3,18 +3,10 @@ import { getFontSizeValue } from '@/utils/fontSizes';
 import { getThemeColors } from '@/utils/theme';
 import { collection, doc, getDocs, updateDoc } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import {
-    Alert,
-    Dimensions,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    UIManager,
-    View
-} from 'react-native';
+import { Alert, Dimensions, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 
 if (Platform.OS === 'android') {
     UIManager.setLayoutAnimationEnabledExperimental?.(true);
@@ -39,6 +31,8 @@ export default function AdminDeliveryPage() {
     const theme = getThemeColors();
     const textSize = getFontSizeValue('medium');
     const screenWidth = Dimensions.get('window').width;
+    const { fontSize } = useAccessibility();
+    const router = useRouter();
 
     const [allOrders, setAllOrders] = useState<Order[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -144,10 +138,14 @@ export default function AdminDeliveryPage() {
 
     return (
         <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ paddingBottom: 40 }}>
-            <Text> </Text>
-            <Text style={{ color: theme.text, fontSize: responsiveText(textSize + 4), marginLeft: 16, marginBottom: 8 }}>
-                Delivery Management
-            </Text>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Ionicons name="arrow-back" size={28} color={theme.text} left={-10} bottom={10} />
+            </TouchableOpacity>
+            <Text>  </Text>
+            <Text>  </Text>
+            <Text>  </Text>
+            <Text>  </Text>
+            <Text style={[styles.heading, { color: theme.text, fontSize: textSize + 6 }]}>    Manage Equipment</Text>
             <TextInput
                 placeholder="Search by Transaction ID"
                 placeholderTextColor={theme.unselected}
@@ -242,4 +240,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 8,
     },
+    backButton: { position: "absolute", top: 35, left: 20, zIndex: 1, backgroundColor: "transparent", padding: 6 },
+    heading: { fontWeight: 'bold', marginBottom: 12 },
 });

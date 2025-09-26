@@ -4,6 +4,8 @@ import { db } from '../../firebase/firebase';
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 export default function AdminEquipmentMgt() {
     const theme = getThemeColors();
@@ -28,6 +30,8 @@ export default function AdminEquipmentMgt() {
     useEffect(() => {
         fetchEquipment();
     }, []);
+
+    const router = useRouter();
 
     // Add new equipment
     const handleAddEquipment = async () => {
@@ -98,7 +102,12 @@ export default function AdminEquipmentMgt() {
 
     return (
         <ScrollView style={[styles.container, { backgroundColor: theme.background }]} contentContainerStyle={{ paddingBottom: 40 }}>
-            <Text> </Text> // spacing
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Ionicons name="arrow-back" size={28} color={theme.text} left={-30} bottom={25} />
+            </TouchableOpacity>
+            <Text>  </Text>
+            <Text>  </Text>
+            <Text>  </Text>
             <Text style={[styles.heading, { color: theme.text, fontSize: textSize + 6 }]}>Manage Equipment</Text>
 
             {/* Add New Equipment */}
@@ -176,4 +185,5 @@ const styles = StyleSheet.create({
     button: { padding: 14, borderRadius: 8, alignItems: 'center', marginTop: 8 },
     itemContainer: { borderWidth: 1, borderRadius: 8, padding: 12, marginBottom: 12 },
     smallButton: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 6, alignItems: 'center' },
+    backButton: { position: "absolute", top: 35, left: 20, zIndex: 1, backgroundColor: "transparent", padding: 6 },
 });

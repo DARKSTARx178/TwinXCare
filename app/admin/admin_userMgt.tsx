@@ -20,6 +20,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
+import { useRouter } from 'expo-router';
 
 export default function AdminUserMgt() {
     const theme = getThemeColors();
@@ -27,7 +28,8 @@ export default function AdminUserMgt() {
     const screenWidth = Dimensions.get('window').width;
 
     const [users, setUsers] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true); 
+    const router = useRouter();
 
     const fetchUsers = async () => {
         try {
@@ -109,6 +111,12 @@ export default function AdminUserMgt() {
             style={{ flex: 1, backgroundColor: theme.background }}
             contentContainerStyle={{ padding: 16 }}
         >
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={28} color={theme.text} left={-15} bottom={15} />
+        </TouchableOpacity>
+        <Text>  </Text>
+        <Text>  </Text>
+        <Text>  </Text>
             <Text
                 style={{
                     fontSize: textSize + 6,
@@ -208,4 +216,5 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         fontSize: 14,
     },
+    backButton: { position: "absolute", top: 35, left: 20, zIndex: 1, backgroundColor: "transparent", padding: 6 },
 });

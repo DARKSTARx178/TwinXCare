@@ -4,6 +4,8 @@ import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase
 import { db } from '../../firebase/firebase';
 import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 interface ScheduleItem {
     date: string;
@@ -42,6 +44,7 @@ export default function AdminServiceMgt() {
     const [newFrom, setNewFrom] = useState('');
     const [newTo, setNewTo] = useState('');
     const [newPax, setNewPax] = useState('');
+    const router = useRouter();
 
     // Fetch services from Firestore
     const fetchServices = async () => {
@@ -154,7 +157,12 @@ export default function AdminServiceMgt() {
 
     return (
         <ScrollView style={[styles.container, { backgroundColor: theme.background }]} contentContainerStyle={{ paddingBottom: 40 }}>
-            <Text> </Text> // spacing
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Ionicons name="arrow-back" size={28} color={theme.text} left={-30} bottom={25} />
+            </TouchableOpacity>
+            <Text>  </Text>
+            <Text>  </Text>
+            <Text>  </Text>
             <Text style={[styles.heading, { color: theme.text, fontSize: textSize + 6 }]}>Create New Service</Text>
 
             <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Name" value={name} onChangeText={setName} />
@@ -251,6 +259,7 @@ const styles = StyleSheet.create({
     serviceTitle: { fontWeight: 'bold' },
     scheduleItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 4, borderWidth: 1, borderRadius: 6, padding: 8 },
     deleteButton: { backgroundColor: '#d32f2f', paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6 },
+    backButton: { position: "absolute", top: 35, left: 20, zIndex: 1, backgroundColor: "transparent", padding: 6 },
     deleteServiceBtn: {
         backgroundColor: '#d32f2f',
         paddingVertical: 8,
@@ -258,5 +267,6 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         alignItems: 'center',
         marginTop: 12,
-    }
+    },
+    
 });

@@ -75,7 +75,7 @@ export default function Profile() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={28} color={theme.text} />
-      </TouchableOpacity>
+      </TouchableOpacity> 
 
       {user ? (
         <>

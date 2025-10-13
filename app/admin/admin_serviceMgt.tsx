@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, FlatList, StyleSheet, Alert } from 'react-native';
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '../../firebase/firebase';
-import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
+import { getThemeColors } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { addDoc, collection, deleteDoc, doc, getDocs, updateDoc } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { db } from '../../firebase/firebase';
 
 interface ScheduleItem {
     date: string;

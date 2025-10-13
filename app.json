@@ -45,10 +45,11 @@
       "typedRoutes": true
     },
     "extra": {
-      "router": {}
-      
+      "router": {},
+      "eas": {
+        "projectId": "eadca27e-841e-4ef7-b9ce-773fd06ed084"
+      }
     },
     "runtimeVersion": "1.0.0"
-    
   }
 }

@@ -1,4 +1,11 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+  <!-- Minimal Edge-to-Edge theme used by the app when expo.edgeToEdgeEnabled=true -->
+  <style name="Theme.EdgeToEdge" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <!-- Keep this minimal; individual libraries may augment as needed -->
+    <item name="android:statusBarColor">?android:statusBarColor</item>
+    <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+  </style>
+
   <style name="AppTheme" parent="Theme.EdgeToEdge">
     <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
     <item name="colorPrimary">@color/colorPrimary</item>

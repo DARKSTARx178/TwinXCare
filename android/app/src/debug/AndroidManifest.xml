@@ -1,7 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <!-- Debug-only permission(s) -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
-    <application android:usesCleartextTraffic="true" tools:targetApi="28" tools:ignore="GoogleAppIndexingWarning" tools:replace="android:usesCleartextTraffic" />
+    <!--
+      This debug manifest intentionally does NOT define an <application> element.
+      Defining a second <application> here caused manifest merge conflicts during release builds.
+
+      If you need to override application attributes for debug only (for example
+      android:usesCleartextTraffic="true"), prefer one of these approaches:
+        1) Add the attribute in the main AndroidManifest.xml and list it in tools:replace there,
+           e.g. tools:replace="android:appComponentFactory,android:usesCleartextTraffic"
+        2) Use a debug manifest with a single <application> and tools:node="replace" but
+           be careful — that completely replaces the main <application> block.
+    -->
+
 </manifest>

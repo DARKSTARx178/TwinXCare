@@ -63,6 +63,24 @@ react {
     autolinkLibrariesWithApp()
 }
 
+// Workaround: force AndroidX core libraries and avoid accidental inclusion of old com.android.support artifacts
+configurations.all {
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == 'com.android.support') {
+            // Redirect old support libs to androidx counterparts where possible
+            // Most conflicts are resolved by preferring androidx.core
+            if (details.requested.name.startsWith('support-compat') || details.requested.name.startsWith('versionedparcelable')) {
+                details.useTarget 'androidx.core:core:1.16.0'
+            }
+        }
+    }
+}
+
+// Also force specific AndroidX versions to reduce binary conflicts
+configurations.all {
+    resolutionStrategy.force 'androidx.core:core:1.16.0', 'androidx.versionedparcelable:versionedparcelable:1.1.1'
+}
+
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */

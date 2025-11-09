@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, FlatList, Image, TouchableOpacity, ScrollView, Dimensions, RefreshControl } from 'react-native';
-import { FlatList as RNFlatList } from 'react-native';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
-import { getThemeColors } from '@/utils/theme';
+import app from '@/firebase/firebase'; // adjust path if needed
 import { getFontSizeValue } from '@/utils/fontSizes';
+import { getThemeColors } from '@/utils/theme';
 import { useRouter } from 'expo-router';
 import { collection, getDocs, getFirestore } from 'firebase/firestore';
-import app from '@/firebase/firebase'; // adjust path if needed
+import React, { useEffect, useState } from 'react';
+import { Dimensions, FlatList, Image, RefreshControl, FlatList as RNFlatList, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface EquipmentItem {
   docId: string;       // add this

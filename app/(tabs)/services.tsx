@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, FlatList, Image, TouchableOpacity, ScrollView, Dimensions, RefreshControl } from 'react-native';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
-import { getThemeColors } from '@/utils/theme';
+import { db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
+import { getThemeColors } from '@/utils/theme';
 import { useRouter } from 'expo-router';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '@/firebase/firebase';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, FlatList, Image, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export interface ScheduleItem {
   date: string;
@@ -117,6 +117,15 @@ export default function Services() {
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>Services</Text>
 
+        {/* Medical Escort Request CTA */}
+        <TouchableOpacity
+          style={[styles.ctaButton, { backgroundColor: theme.primary }]}
+          activeOpacity={0.85}
+          onPress={() => router.push('/escorts/require-escort')}
+        >
+          <Text style={[styles.ctaButtonText, { color: '#fff', fontSize: responsiveText(textSize) }]}>Request Medical Escort</Text>
+        </TouchableOpacity>
+
         {/* Search Input */}
         <TextInput
           style={[styles.input, { backgroundColor: '#fff', color: '#000', fontSize: responsiveText(textSize) }]}
@@ -227,6 +236,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 60, paddingHorizontal: 20 },
   input: { height: 45, borderRadius: 12, paddingHorizontal: 15, marginBottom: 20, borderWidth: 1, borderColor: '#ccc' },
   title: { fontWeight: 'bold', marginBottom: 20, fontSize: 20 },
+  ctaButton: { paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, alignItems: 'center', marginBottom: 16, alignSelf: 'stretch' },
+  ctaButtonText: { fontWeight: '700' },
   dropdownRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   dropdownBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: '#eee', marginRight: 8 },
   dropdownBtnActive: { backgroundColor: '#dbeafe' },

@@ -6,6 +6,84 @@
     <title>TwinXCare - Healthcare Made Simple</title>
     <meta name="description" content="TwinXCare is a revolutionary healthcare app that connects you with medical professionals and healthcare services.">
     <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .showcase {
+            padding: 4rem 0;
+            background: var(--surface);
+            overflow: hidden;
+        }
+        
+        .showcase-container {
+            display: flex;
+            transition: transform 0.3s ease;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .showcase-slide {
+            flex: 0 0 100%;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .showcase-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .showcase-nav {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 1rem;
+        }
+        
+        .showcase-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .showcase-dot.active {
+            background: var(--primary);
+            transform: scale(1.2);
+        }
+        
+        .showcase-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 1;
+        }
+        
+        .showcase-prev { left: 1rem; }
+        .showcase-next { right: 1rem; }
+        
+        @media (max-width: 768px) {
+            .showcase-button {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -87,28 +165,33 @@
 
     <section class="showcase" id="app">
         <div class="container">
-            <div class="showcase-container">
-                <div class="showcase-slide">
-                    <img src="assets/images/home_page-web.jpeg" alt="App Home Screen" class="showcase-image">
+            <h2 class="showcase-title">App Screenshots</h2>
+            <div class="showcase-wrapper">
+                <div class="showcase-container">
+                    <div class="showcase-slide">
+                        <img src="assets/images/home_page-web.jpeg" alt="App Home Screen" class="showcase-image">
+                    </div>
+                    <div class="showcase-slide">
+                        <img src="assets/images/services_page-web.jpeg" alt="Services Screen" class="showcase-image">
+                    </div>
+                    <div class="showcase-slide">
+                        <img src="assets/images/equipment_page-web.jpeg" alt="Equipment Screen" class="showcase-image">
+                    </div>
                 </div>
-                <div class="showcase-slide">
-                    <img src="assets/images/services_page-web.jpeg" alt="Services Screen" class="showcase-image">
-                </div>
-                <div class="showcase-slide">
-                    <img src="assets/images/equipment_page-web.jpeg" alt="Equipment Screen" class="showcase-image">
+                <div class="showcase-controls">
+                    <button class="showcase-button showcase-prev" aria-label="Previous slide">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 18l-6-6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="showcase-nav"></div>
+                    <button class="showcase-button showcase-next" aria-label="Next slide">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
-            <button class="showcase-button showcase-prev" aria-label="Previous slide">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M15 18l-6-6 6-6"/>
-                </svg>
-            </button>
-            <button class="showcase-button showcase-next" aria-label="Next slide">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 18l6-6-6-6"/>
-                </svg>
-            </button>
-            <div class="showcase-nav"></div>
         </div>
     </section>
 
@@ -137,6 +220,76 @@
         </div>
     </footer>
 
-    <script src="/assets/js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const showcase = document.querySelector('.showcase-container');
+            const slides = document.querySelectorAll('.showcase-slide');
+            const dotsNav = document.querySelector('.showcase-nav');
+            const prevButton = document.querySelector('.showcase-prev');
+            const nextButton = document.querySelector('.showcase-next');
+            
+            let currentSlide = 0;
+            
+            // Create navigation dots
+            slides.forEach((_, index) => {
+                const dot = document.createElement('button');
+                dot.classList.add('showcase-dot');
+                if (index === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => goToSlide(index));
+                dotsNav.appendChild(dot);
+            });
+            
+            function goToSlide(index) {
+                showcase.style.transform = `translateX(-${index * 100}%)`;
+                currentSlide = index;
+                updateDots();
+            }
+            
+            function updateDots() {
+                document.querySelectorAll('.showcase-dot').forEach((dot, index) => {
+                    dot.classList.toggle('active', index === currentSlide);
+                });
+            }
+            
+            function nextSlide() {
+                currentSlide = (currentSlide + 1) % slides.length;
+                goToSlide(currentSlide);
+            }
+            
+            function prevSlide() {
+                currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+                goToSlide(currentSlide);
+            }
+            
+            if (prevButton) prevButton.addEventListener('click', prevSlide);
+            if (nextButton) nextButton.addEventListener('click', nextSlide);
+            
+            // Touch events
+            let touchStartX = 0;
+            let touchEndX = 0;
+            
+            showcase.addEventListener('touchstart', e => {
+                touchStartX = e.touches[0].clientX;
+            });
+            
+            showcase.addEventListener('touchmove', e => {
+                touchEndX = e.touches[0].clientX;
+            });
+            
+            showcase.addEventListener('touchend', () => {
+                const diff = touchStartX - touchEndX;
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) {
+                        nextSlide();
+                    } else {
+                        prevSlide();
+                    }
+                }
+            });
+            
+            // Auto-advance
+            setInterval(nextSlide, 5000);
+        });
+    </script>
 </body>
 </html>

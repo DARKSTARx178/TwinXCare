@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>TwinXCare — About</title>
+    <style>
+      :root{--bg:#f7f8fb;--card:#fff;--muted:#6b7280;--accent:#0f172a}
+      html,body{height:100%;margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial}
+      body{background:linear-gradient(180deg,var(--bg),#ffffff);display:flex;align-items:center;justify-content:center;padding:24px}
+      .card{max-width:880px;width:100%;background:var(--card);border-radius:12px;box-shadow:0 6px 24px rgba(15,23,42,0.08);padding:32px}
+      header{display:flex;align-items:center;gap:16px}
+      .logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+      h1{margin:.1rem 0;font-size:1.6rem;color:var(--accent)}
+      p{color:var(--muted);line-height:1.5}
+      .grid{display:flex;gap:16px;margin-top:20px;flex-wrap:wrap}
+      a.btn{display:inline-block;padding:10px 14px;border-radius:8px;text-decoration:none;background:#111827;color:#fff;font-weight:600}
+      a.link{color:#2563eb;text-decoration:none}
+      footer{margin-top:20px;color:var(--muted);font-size:.9rem}
+      @media (max-width:560px){.card{padding:20px}}
+    </style>
+  </head>
+  <body>
+    <main class="card" role="main">
+      <header>
+        <div class="logo">TX</div>
+        <div>
+          <h1>TwinXCare</h1>
+          <p class="muted">A simple site about the TwinXCare app. Use the links below to visit API endpoints or get help.</p>
+        </div>
+      </header>
+
+      <section style="margin-top:20px">
+        <p>This site is the public homepage for the TwinXCare project. Your serverless API functions remain available under <code>/api/*</code>.</p>
+
+        <div class="grid">
+          <a class="btn" href="/api/send-email">Call send-email API</a>
+          <a class="btn" href="/api/delete-account">Delete account info</a>
+        </div>
+      </section>
+
+      <section style="margin-top:20px">
+        <h3 style="margin:0 0 8px 0">About</h3>
+        <p>If you want this homepage to be richer (React/Next.js, SEO, analytics), convert this static file into a Next.js page or add a build step. For now, this static file will be served at <code>/</code> when deployed to Vercel.</p>
+      </section>
+
+      <footer>
+        <div>Links: <a class="link" href="/api/send-email">/api/send-email</a> • <a class="link" href="/api/delete-account">/api/delete-account</a></div>
+        <div style="margin-top:8px">Deployment: <span style="color:#111827;font-weight:600">https://twin-x-care.vercel.app/</span></div>
+      </footer>
+    </main>
+  </body>
+</html>

@@ -4,12 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>TwinXCare - Healthcare Made Simple</title>
-    <meta name="description" content="TwinXCare is a revolutionary healthcare app that connects you with medical professionals, equipment rentals, and healthcare services.">
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <meta name="description" content="TwinXCare is a revolutionary healthcare app that connects you with medical professionals and healthcare services.">
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
     <nav class="navbar">
-        <div class="nav-container">
+        <div class="container nav-container">
             <a href="#" class="logo">
                 <div class="logo-icon">TX</div>
                 <span>TwinXCare</span>
@@ -28,104 +28,112 @@
     </nav>
 
     <section class="hero">
-        <div class="hero-content">
-            <div class="hero-text">
-                <h1>Healthcare Made Simple</h1>
-                <p>Experience a new way of accessing healthcare services through our innovative app. Connect with professionals, access services, and manage your health journey with ease.</p>
-                <div class="app-buttons">
-                    <a href="#" class="app-store-button">
-                        <img src="assets/images/app-store.png" alt="Download on App Store">
-                    </a>
-                    <a href="#" class="play-store-button">
-                        <img src="assets/images/play-store.png" alt="Get it on Google Play">
-                    </a>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Healthcare Made Simple</h1>
+                    <p>Experience a new way of accessing healthcare services through our innovative app. Connect with professionals, access services, and manage your health journey with ease.</p>
+                    <div class="app-buttons">
+                        <a href="#" class="app-store-button">
+                            <img src="assets/images/app-store.png" alt="Download on App Store">
+                        </a>
+                        <a href="#" class="play-store-button">
+                            <img src="assets/images/play-store.png" alt="Get it on Google Play">
+                        </a>
+                    </div>
                 </div>
-            </div>
-            <div class="hero-image">
-                <img src="assets/images/hero-app.png" alt="TwinXCare App Interface">
+                <div class="hero-image">
+                    <img src="assets/images/hero-app.png" alt="TwinXCare App Interface">
+                </div>
             </div>
         </div>
     </section>
 
-    <section class="showcase" id="features">
-        <div class="showcase-container">
-            <div class="showcase-slide">
-                <img src="assets/images/screenshot1.png" alt="App Home Screen" class="showcase-image">
-            </div>
-            <div class="showcase-slide">
-                <img src="assets/images/screenshot2.png" alt="Services Screen" class="showcase-image">
-            </div>
-            <div class="showcase-slide">
-                <img src="assets/images/screenshot3.png" alt="Profile Screen" class="showcase-image">
+    <section class="features" id="features">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 14l9-5-9-5-9 5 9 5z"/>
+                            <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                        </svg>
+                    </div>
+                    <h3>Easy Access</h3>
+                    <p>Connect with healthcare professionals and services with just a few taps.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <h3>Secure & Private</h3>
+                    <p>Your health information is protected with enterprise-grade security.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                            <path d="M22 4L12 14.01l-3-3"/>
+                        </svg>
+                    </div>
+                    <h3>24/7 Support</h3>
+                    <p>Get assistance whenever you need it with our round-the-clock support team.</p>
+                </div>
             </div>
         </div>
-        <button class="showcase-button showcase-prev" aria-label="Previous slide">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M15 18l-6-6 6-6"/>
-            </svg>
-        </button>
-        <button class="showcase-button showcase-next" aria-label="Next slide">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 18l6-6-6-6"/>
-            </svg>
-        </button>
-        <div class="showcase-nav"></div>
     </section>
 
-    <section class="features">
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 14l9-5-9-5-9 5 9 5z"/>
-                        <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
-                    </svg>
+    <section class="showcase" id="app">
+        <div class="container">
+            <div class="showcase-container">
+                <div class="showcase-slide">
+                    <img src="assets/images/screenshot1.png" alt="App Home Screen" class="showcase-image">
                 </div>
-                <h3>Easy Access</h3>
-                <p>Connect with healthcare professionals and services with just a few taps.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                    </svg>
+                <div class="showcase-slide">
+                    <img src="assets/images/screenshot2.png" alt="Services Screen" class="showcase-image">
                 </div>
-                <h3>Secure & Private</h3>
-                <p>Your health information is protected with enterprise-grade security.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
-                        <path d="M22 4L12 14.01l-3-3"/>
-                    </svg>
+                <div class="showcase-slide">
+                    <img src="assets/images/screenshot3.png" alt="Profile Screen" class="showcase-image">
                 </div>
-                <h3>24/7 Support</h3>
-                <p>Get assistance whenever you need it with our round-the-clock support team.</p>
             </div>
+            <button class="showcase-button showcase-prev" aria-label="Previous slide">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 18l-6-6 6-6"/>
+                </svg>
+            </button>
+            <button class="showcase-button showcase-next" aria-label="Next slide">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18l6-6-6-6"/>
+                </svg>
+            </button>
+            <div class="showcase-nav"></div>
         </div>
     </section>
 
     <footer id="contact">
-        <div class="footer-grid">
-            <div class="footer-col">
-                <h4>About TwinXCare</h4>
-                <p>We're revolutionizing healthcare access through innovative technology and dedicated service.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Contact</h4>
-                <ul>
-                    <li><a href="mailto:support@twinxcare.com">support@twinxcare.com</a></li>
-                    <li><a href="tel:+1234567890">+1 (234) 567-890</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Follow Us</h4>
-                <ul>
-                    <li><a href="#">Twitter</a></li>
-                    <li><a href="#">Facebook</a></li>
-                    <li><a href="#">Instagram</a></li>
-                </ul>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>About TwinXCare</h4>
+                    <p>We're revolutionizing healthcare access through innovative technology and dedicated service.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <ul>
+                        <li><a href="mailto:support@twinxcare.com">support@twinxcare.com</a></li>
+                        <li><a href="tel:+1234567890">+1 (234) 567-890</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Follow Us</h4>
+                    <ul>
+                        <li><a href="#">Twitter</a></li>
+                        <li><a href="#">Facebook</a></li>
+                        <li><a href="#">Instagram</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </footer>

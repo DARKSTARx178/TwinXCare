@@ -1,16 +1,14 @@
 :root {
-  --background: #ffffff;
-  --text: #0D1321;
   --primary: #81ade7;
-  --unselected: #b1b1b1;
-  --unselected-tab: #f3f6fa;
   --icon: #62b8ea;
+  --text: #0D1321;
+  --background: #ffffff;
+  --muted: #6b7280;
+  --unselected: #b1b1b1;
+  --surface: #f3f6fa;
   --card-shadow: 0 6px 24px rgba(15,23,42,0.08);
-  --font-size: 18px;
-  
-  /* Animation variables */
-  --transition-speed: 0.3s;
-  --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+  --nav-height: 80px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Base styles */

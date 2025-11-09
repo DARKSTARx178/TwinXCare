@@ -1,53 +1,135 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>TwinXCare — About</title>
-    <style>
-      :root{--bg:#f7f8fb;--card:#fff;--muted:#6b7280;--accent:#0f172a}
-      html,body{height:100%;margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial}
-      body{background:linear-gradient(180deg,var(--bg),#ffffff);display:flex;align-items:center;justify-content:center;padding:24px}
-      .card{max-width:880px;width:100%;background:var(--card);border-radius:12px;box-shadow:0 6px 24px rgba(15,23,42,0.08);padding:32px}
-      header{display:flex;align-items:center;gap:16px}
-      .logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
-      h1{margin:.1rem 0;font-size:1.6rem;color:var(--accent)}
-      p{color:var(--muted);line-height:1.5}
-      .grid{display:flex;gap:16px;margin-top:20px;flex-wrap:wrap}
-      a.btn{display:inline-block;padding:10px 14px;border-radius:8px;text-decoration:none;background:#111827;color:#fff;font-weight:600}
-      a.link{color:#2563eb;text-decoration:none}
-      footer{margin-top:20px;color:var(--muted);font-size:.9rem}
-      @media (max-width:560px){.card{padding:20px}}
-    </style>
-  </head>
-  <body>
-    <main class="card" role="main">
-      <header>
-        <div class="logo">TX</div>
-        <div>
-          <h1>TwinXCare</h1>
-          <p class="muted">A simple site about the TwinXCare app. Use the links below to visit API endpoints or get help.</p>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TwinXCare - Healthcare Made Simple</title>
+    <meta name="description" content="TwinXCare is a revolutionary healthcare app that connects you with medical professionals, equipment rentals, and healthcare services.">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">TX</div>
+                <span>TwinXCare</span>
+            </a>
+            <div class="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#app" class="nav-link">Get the App</a>
+                <a href="#contact" class="nav-link">Contact</a>
+            </div>
+            <button class="mobile-nav-toggle" aria-label="Toggle navigation">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12h18M3 6h18M3 18h18"/>
+                </svg>
+            </button>
         </div>
-      </header>
+    </nav>
 
-      <section style="margin-top:20px">
-        <p>This site is the public homepage for the TwinXCare project. Your serverless API functions remain available under <code>/api/*</code>.</p>
-
-        <div class="grid">
-          <a class="btn" href="/api/send-email">Call send-email API</a>
-          <a class="btn" href="/api/delete-account">Delete account info</a>
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>Healthcare Made Simple</h1>
+                <p>Experience a new way of accessing healthcare services through our innovative app. Connect with professionals, access services, and manage your health journey with ease.</p>
+                <div class="app-buttons">
+                    <a href="#" class="app-store-button">
+                        <img src="assets/images/app-store.png" alt="Download on App Store">
+                    </a>
+                    <a href="#" class="play-store-button">
+                        <img src="assets/images/play-store.png" alt="Get it on Google Play">
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="assets/images/hero-app.png" alt="TwinXCare App Interface">
+            </div>
         </div>
-      </section>
+    </section>
 
-      <section style="margin-top:20px">
-        <h3 style="margin:0 0 8px 0">About</h3>
-        <p>If you want this homepage to be richer (React/Next.js, SEO, analytics), convert this static file into a Next.js page or add a build step. For now, this static file will be served at <code>/</code> when deployed to Vercel.</p>
-      </section>
+    <section class="showcase" id="features">
+        <div class="showcase-container">
+            <div class="showcase-slide">
+                <img src="assets/images/screenshot1.png" alt="App Home Screen" class="showcase-image">
+            </div>
+            <div class="showcase-slide">
+                <img src="assets/images/screenshot2.png" alt="Services Screen" class="showcase-image">
+            </div>
+            <div class="showcase-slide">
+                <img src="assets/images/screenshot3.png" alt="Profile Screen" class="showcase-image">
+            </div>
+        </div>
+        <button class="showcase-button showcase-prev" aria-label="Previous slide">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+        </button>
+        <button class="showcase-button showcase-next" aria-label="Next slide">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        </button>
+        <div class="showcase-nav"></div>
+    </section>
 
-      <footer>
-        <div>Links: <a class="link" href="/api/send-email">/api/send-email</a> • <a class="link" href="/api/delete-account">/api/delete-account</a></div>
-        <div style="margin-top:8px">Deployment: <span style="color:#111827;font-weight:600">https://twin-x-care.vercel.app/</span></div>
-      </footer>
-    </main>
-  </body>
+    <section class="features">
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 14l9-5-9-5-9 5 9 5z"/>
+                        <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                    </svg>
+                </div>
+                <h3>Easy Access</h3>
+                <p>Connect with healthcare professionals and services with just a few taps.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <h3>Secure & Private</h3>
+                <p>Your health information is protected with enterprise-grade security.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                        <path d="M22 4L12 14.01l-3-3"/>
+                    </svg>
+                </div>
+                <h3>24/7 Support</h3>
+                <p>Get assistance whenever you need it with our round-the-clock support team.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer id="contact">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>About TwinXCare</h4>
+                <p>We're revolutionizing healthcare access through innovative technology and dedicated service.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Contact</h4>
+                <ul>
+                    <li><a href="mailto:support@twinxcare.com">support@twinxcare.com</a></li>
+                    <li><a href="tel:+1234567890">+1 (234) 567-890</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Follow Us</h4>
+                <ul>
+                    <li><a href="#">Twitter</a></li>
+                    <li><a href="#">Facebook</a></li>
+                    <li><a href="#">Instagram</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/assets/js/script.js"></script>
+</body>
 </html>

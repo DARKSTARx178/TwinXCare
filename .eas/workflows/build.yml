@@ -1,12 +1,13 @@
-name: Build on Push to Main
+name: Build
+
 on:
   push:
     branches:
       - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🏗️ Build on EAS
-        run: eas build --platform android
+  build_android:
+    name: Build Android App
+    type: build
+    params:
+      platform: android

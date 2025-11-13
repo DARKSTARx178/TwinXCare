@@ -28,7 +28,7 @@
     "@types/react-router-dom": "^5.3.3",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
-    "expo": "^54.0.9",
+    "expo": "^54.0.23",
     "expo-auth-session": "~7.0.8",
     "expo-blur": "~15.0.7",
     "expo-constants": "~18.0.9",

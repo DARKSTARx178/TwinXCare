@@ -7,7 +7,6 @@
         "./*"
       ]
     },
-    // Removed typeRoots for i18n-js custom types
   },
   "include": [
     "**/*.ts",

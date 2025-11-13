@@ -1,32 +1,32 @@
-import React, { useRef, useState, useCallback, useEffect, createContext, useContext } from 'react';
-import {
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Image,
-  View,
-  Dimensions,
-  StyleSheet,
-  ScrollView,
-  Animated,
-  Easing,
-  Keyboard,
-  PanResponder,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { Tabs, useRouter } from 'expo-router';
-import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { AccessibilityProvider, useAccessibility } from '@/contexts/AccessibilityContext';
+import { auth, db } from '@/firebase/firebase';
+import { getThemeColors } from '@/utils/theme';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { GoogleGenAI } from '@google/genai';
 import Voice from '@react-native-voice/voice';
 import { useFocusEffect } from '@react-navigation/native';
-import { getThemeColors } from '@/utils/theme';
-import { aiExploreFilterControl } from './explore';
-import { auth, db } from '@/firebase/firebase';
+import { Tabs, useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import {
+    Animated,
+    Dimensions,
+    Easing,
+    Image,
+    Keyboard,
+    KeyboardAvoidingView,
+    PanResponder,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { aiExploreFilterControl } from './explore';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const ai = new GoogleGenAI({ apiKey: 'AIzaSyAIjiRYwpgibikuLrEsqhlpHD97NA6aR5U' });

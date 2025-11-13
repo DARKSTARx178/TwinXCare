@@ -17,6 +17,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   PanResponder,
+  PermissionsAndroid,
   Platform,
   ScrollView,
   StyleSheet,
@@ -24,7 +25,6 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  PermissionsAndroid,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { aiExploreFilterControl } from './explore';

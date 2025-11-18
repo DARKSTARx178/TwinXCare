@@ -1,16 +1,34 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase/firebase';
+import { useRouter } from 'expo-router';
+import { onAuthStateChanged } from 'firebase/auth';
+import { addDoc, collection, doc, getDoc, serverTimestamp } from 'firebase/firestore';
+import React, { useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { auth, db } from '../firebase/firebase';
 
 export default function Feedback() {
   const [message, setMessage] = useState('');
   const [rating, setRating] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [username, setUsername] = useState('Anonymous');
   const router = useRouter();
+
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+          if (userDoc.exists() && userDoc.data()?.username) {
+            setUsername(userDoc.data().username);
+          }
+        } catch (error) {
+          console.error('Error fetching username:', error);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleSend = async () => {
     if (!message.trim()) {
@@ -22,8 +40,6 @@ export default function Feedback() {
       return;
     }
 
-    const username = (await SecureStore.getItemAsync('user')) || 'Anonymous';
-
     try {
       setSubmitting(true);
 
@@ -31,28 +47,44 @@ export default function Feedback() {
       await addDoc(collection(db, 'feedback'), {
         message,
         rating,
-        username,
+        username: username || 'Anonymous',
         createdAt: serverTimestamp(),
       });
 
       // 2️⃣ Send email via Vercel function
       const response = await fetch('https://twin-x-care.vercel.app/api/send-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'TwinXCareApp/1.0',
+          'Accept': 'application/json',
+        },
         body: JSON.stringify({
-          message: `Feedback from ${username} (Rating: ${rating}):\n\n${message}`,
-          username,
+          message: `Feedback from ${username || 'Anonymous'} (Rating: ${rating}):\n\n${message}`,
+          username: username || 'Anonymous',
           type: 'feedback', // optional to differentiate in logs/email
         }),
       });
 
-      const text = await response.text();
       let data;
-      try {
-        data = text ? JSON.parse(text) : { success: false, error: 'Empty server response' };
-      } catch (e) {
-        console.warn('Failed to parse JSON response:', e);
-        data = { success: false, error: 'Invalid server response' };
+      if (response.status === 429) {
+        console.error('Rate limited by Vercel. Retrying in 2 seconds...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        throw new Error('Rate limited. Please try again.');
+      }
+
+      if (!response.ok && response.status >= 400) {
+        const text = await response.text();
+        console.error(`API error ${response.status}:`, text.substring(0, 200));
+        data = { success: false, error: `Server error (${response.status})` };
+      } else {
+        const text = await response.text();
+        try {
+          data = text ? JSON.parse(text) : { success: false, error: 'Empty server response' };
+        } catch (e) {
+          console.warn('Failed to parse JSON response:', e);
+          data = { success: false, error: 'Invalid server response' };
+        }
       }
 
       if (!data.success) {

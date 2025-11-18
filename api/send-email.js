@@ -5,6 +5,18 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 let logs = [];
 
 export default async function handler(req, res) {
+    // Add CORS headers
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS,PATCH,DELETE,POST,PUT");
+    res.setHeader("Access-Control-Allow-Headers", "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version");
+
+    // Handle preflight requests
+    if (req.method === "OPTIONS") {
+        res.status(200).end();
+        return;
+    }
+
     try {
         if (req.method === "POST") {
             const { message, username, type } = req.body;

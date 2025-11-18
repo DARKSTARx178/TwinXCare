@@ -1,4 +1,6 @@
-import * as SecureStore from 'expo-secure-store';
+import { db } from '@/firebase/firebase';
+
+import { arrayUnion, doc, getDoc, setDoc } from 'firebase/firestore';
 
 export type OrderHistoryItem = {
   id: string;
@@ -19,20 +21,29 @@ export type OrderHistoryItem = {
   longitude?: number;
 };
 
-export async function getOrderHistory(username: string): Promise<OrderHistoryItem[]> {
-  const key = `orders_${username}`;
-  const data = await SecureStore.getItemAsync(key);
-  if (!data) return [];
+export async function getOrderHistory(): Promise<OrderHistoryItem[]> {
   try {
-    return JSON.parse(data);
-  } catch {
+    const uid = await SecureStore.getItemAsync('uid');
+    if (!uid) return [];
+    const userDocRef = doc(db, 'users', uid);
+    const userDoc = await getDoc(userDocRef);
+    if (userDoc.exists() && userDoc.data()?.history) {
+      return userDoc.data().history;
+    }
+    return [];
+  } catch (e) {
+    console.warn('Error fetching order history:', e);
     return [];
   }
 }
 
-export async function addOrderToHistory(username: string, order: OrderHistoryItem): Promise<void> {
-  const key = `orders_${username}`;
-  const history = await getOrderHistory(username);
-  history.unshift(order); // newest first
-  await SecureStore.setItemAsync(key, JSON.stringify(history));
+export async function addOrderToHistory(order: OrderHistoryItem): Promise<void> {
+  try {
+    const uid = await SecureStore.getItemAsync('uid');
+    if (!uid) return;
+    const userDocRef = doc(db, 'users', uid);
+    await setDoc(userDocRef, { history: arrayUnion(order) }, { merge: true });
+  } catch (e) {
+    console.warn('Error saving order to history:', e);
+  }
 }

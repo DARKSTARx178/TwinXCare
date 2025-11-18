@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
-import { getThemeColors } from '@/utils/theme';
 import { getFontSizeValue } from '@/utils/fontSizes';
+import { getThemeColors } from '@/utils/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
+import React, { useState } from 'react';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../firebase/firebase';
-import * as SecureStore from 'expo-secure-store';
 
 export default function Register() {
   const router = useRouter();
@@ -41,13 +40,11 @@ export default function Register() {
         role: 'user',      // default role
         createdAt: new Date(),
         history: [],
-        booking: []
+        booking: [],
+        theme: []
       });
 
-      // ✅ Save locally for profile
-      await SecureStore.setItemAsync('uid', user.uid);
-      await SecureStore.setItemAsync('user', username);
-
+      // ✅ Firebase Auth persists session automatically
       router.replace('/profile');
     } catch (e: any) {
       console.error('Registration error:', e);

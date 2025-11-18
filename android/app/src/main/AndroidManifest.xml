@@ -4,7 +4,9 @@
   <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
   <uses-permission android:name="android.permission.VIBRATE"/>
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-  <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- Removed RECORD_AUDIO permission (no audio recording feature in app).
+      This prevents Play Console from requiring a privacy policy for microphone access.
+      If you deliberately add audio recording later, re-add this permission and provide a privacy policy. -->
   <queries>
     <intent>
       <action android:name="android.intent.action.VIEW"/>

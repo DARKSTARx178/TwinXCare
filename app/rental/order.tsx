@@ -1,23 +1,23 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Animated,
-  PanResponder,
-  Dimensions,
-  Platform,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Ionicons } from '@expo/vector-icons';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
-import { getThemeColors } from '@/utils/theme';
+import { ThemeContext } from '@/contexts/ThemeContext';
 import { getFontSizeValue } from '@/utils/fontSizes';
-import { Animated as RNAnimated } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useContext, useState } from 'react';
+import {
+    Animated,
+    Dimensions,
+    Image,
+    PanResponder,
+    Platform,
+    Animated as RNAnimated,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -25,7 +25,7 @@ export default function OrderPage() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const { scheme, fontSize } = useAccessibility();
-  const theme = getThemeColors();
+  const { theme } = useContext(ThemeContext);
   const textSize = getFontSizeValue(fontSize);
 
   const [quantity, setQuantity] = useState(1);

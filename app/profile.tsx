@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity, Alert } from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { useAccessibility } from "@/contexts/AccessibilityContext";
-import { getThemeColors } from "@/utils/theme";
+import { ThemeContext } from "@/contexts/ThemeContext";
 import { getFontSizeValue } from "@/utils/fontSizes";
-import { auth, db } from "../firebase/firebase";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import React, { useContext, useEffect, useState } from "react";
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { auth, db } from "../firebase/firebase";
 
 export default function Profile() {
   const router = useRouter();
   const { fontSize } = useAccessibility();
-  const theme = getThemeColors();
+  const { theme } = useContext(ThemeContext);
   const textSize = getFontSizeValue(fontSize);
 
   const [user, setUser] = useState<any>(null);

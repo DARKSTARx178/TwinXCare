@@ -1,8 +1,9 @@
+import { ThemeContext } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { onAuthStateChanged } from 'firebase/auth';
 import { addDoc, collection, doc, getDoc, serverTimestamp } from 'firebase/firestore';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../firebase/firebase';
 
@@ -12,6 +13,7 @@ export default function Feedback() {
   const [submitting, setSubmitting] = useState(false);
   const [username, setUsername] = useState('Anonymous');
   const router = useRouter();
+  const { theme } = useContext(ThemeContext);
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -104,15 +106,15 @@ export default function Feedback() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Ionicons name="arrow-back" size={28} color="#222" />
+        <Ionicons name="arrow-back" size={28} color={theme.text} />
       </TouchableOpacity>
 
-      <Text style={styles.title}>Submit Feedback</Text>
+      <Text style={[styles.title, { color: theme.text }]}>Submit Feedback</Text>
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, { borderColor: theme.primary, color: theme.text }]}
         placeholder="Your feedback..."
         value={message}
         onChangeText={setMessage}
@@ -126,7 +128,7 @@ export default function Feedback() {
             <Ionicons
               name={star <= rating ? 'star' : 'star-outline'}
               size={32}
-              color={star <= rating ? '#FFD700' : '#bbb'}
+              color={star <= rating ? theme.primary : '#bbb'}
               style={{ marginHorizontal: 2 }}
             />
           </TouchableOpacity>
@@ -134,11 +136,11 @@ export default function Feedback() {
       </View>
 
       <TouchableOpacity
-        style={[styles.submitButton, submitting && { opacity: 0.6 }]}
+        style={[styles.submitButton, { backgroundColor: theme.primary }, submitting && { opacity: 0.6 }]}
         onPress={handleSend}
         disabled={submitting}
       >
-        <Text style={styles.submitText}>
+        <Text style={[styles.submitText, { color: '#fff' }]}>
           {submitting ? 'Submitting...' : 'Submit'}
         </Text>
       </TouchableOpacity>
@@ -147,11 +149,11 @@ export default function Feedback() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, backgroundColor: '#f9fafb' },
+  container: { flex: 1, padding: 24 },
   backButton: { alignSelf: 'flex-start', marginBottom: 16, backgroundColor: 'transparent' },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 18, color: '#222' },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 10, padding: 14, fontSize: 16, marginBottom: 18, backgroundColor: '#fff', minHeight: 100, textAlignVertical: 'top' },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 18 },
+  input: { borderWidth: 1, borderRadius: 10, padding: 14, fontSize: 16, marginBottom: 18, minHeight: 100, textAlignVertical: 'top' },
   ratingRow: { flexDirection: 'row', justifyContent: 'center', marginBottom: 18 },
-  submitButton: { backgroundColor: '#4a90e2', padding: 16, borderRadius: 10, alignItems: 'center', marginBottom: 18 },
-  submitText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
+  submitButton: { padding: 16, borderRadius: 10, alignItems: 'center', marginBottom: 18 },
+  submitText: { fontWeight: 'bold', fontSize: 18 },
 });

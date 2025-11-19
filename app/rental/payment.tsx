@@ -1,18 +1,18 @@
 import { useAccessibility } from '@/contexts/AccessibilityContext';
-import { db, auth } from '@/firebase/firebase';
+import { ThemeContext } from '@/contexts/ThemeContext';
+import { auth, db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
-import { getThemeColors } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { doc, getDoc, updateDoc, setDoc, arrayUnion } from 'firebase/firestore';
-import React, { useState, useEffect } from 'react';
+import { arrayUnion, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import React, { useContext, useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function PaymentPage() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { fontSize } = useAccessibility();
-  const theme = getThemeColors();
+  const { theme } = useContext(ThemeContext);
   const textSize = getFontSizeValue(fontSize);
 
   const [address, setAddress] = useState('');

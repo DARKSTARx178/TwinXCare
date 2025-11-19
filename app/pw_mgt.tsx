@@ -1,22 +1,22 @@
-import React, { useState } from 'react';
+import { useAccessibility } from '@/contexts/AccessibilityContext';
+import { ThemeContext } from '@/contexts/ThemeContext';
+import { getFontSizeValue } from '@/utils/fontSizes';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useContext, useState } from 'react';
 import {
-    View,
+    Alert,
+    ScrollView,
+    StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    StyleSheet,
-    ScrollView,
-    Alert,
+    View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { getThemeColors } from '@/utils/theme';
-import { useAccessibility } from '@/contexts/AccessibilityContext';
-import { getFontSizeValue } from '@/utils/fontSizes';
 
 const PwMgt: React.FC = () => {
     const router = useRouter();
-    const theme = getThemeColors();
+    const { theme } = useContext(ThemeContext);
     const { fontSize } = useAccessibility();
     const textSize = getFontSizeValue(fontSize);
 

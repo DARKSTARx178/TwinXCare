@@ -1,10 +1,10 @@
 import { useAccessibility } from '@/contexts/AccessibilityContext';
+import { ThemeContext } from '@/contexts/ThemeContext';
 import { db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
-import { getThemeColors } from '@/utils/theme';
 import { useRouter } from 'expo-router';
 import { collection, getDocs } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Dimensions, FlatList, Image, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export interface ScheduleItem {
@@ -35,8 +35,7 @@ export default function Services() {
   const [showValueDropdown, setShowValueDropdown] = useState(false);
 
   const { scheme, fontSize } = useAccessibility();
-  //@ts-ignore
-  const theme = getThemeColors(scheme);
+  const { theme } = useContext(ThemeContext);
   const textSize = getFontSizeValue(fontSize);
   const router = useRouter();
 

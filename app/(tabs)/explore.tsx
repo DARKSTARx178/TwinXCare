@@ -1,10 +1,10 @@
 import { useAccessibility } from '@/contexts/AccessibilityContext';
+import { ThemeContext } from '@/contexts/ThemeContext';
 import app from '@/firebase/firebase'; // adjust path if needed
 import { getFontSizeValue } from '@/utils/fontSizes';
-import { getThemeColors } from '@/utils/theme';
 import { useRouter } from 'expo-router';
 import { collection, getDocs, getFirestore } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Dimensions, FlatList, Image, RefreshControl, FlatList as RNFlatList, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface EquipmentItem {
@@ -25,8 +25,7 @@ export default function Explore() {
   const [reloadKey, setReloadKey] = useState(0);
   const [itemAvailability, setItemAvailability] = useState<EquipmentItem[]>([]);
   const { scheme, fontSize } = useAccessibility();
-  //@ts-ignore
-  const theme = getThemeColors(scheme);
+  const { theme } = useContext(ThemeContext);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'brand' | 'item' | 'price' | 'availability' | null>(null);
   const [filterValue, setFilterValue] = useState<string>('');

@@ -1,17 +1,17 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { useAccessibility } from "@/contexts/AccessibilityContext";
-import { getThemeColors } from "@/utils/theme";
+import { ThemeContext } from "@/contexts/ThemeContext";
 import { getFontSizeValue } from "@/utils/fontSizes";
-import { auth } from "../firebase/firebase";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import React, { useContext, useState } from "react";
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { auth } from "../firebase/firebase";
 
 const Login: React.FC = () => {
   const router = useRouter();
   const { fontSize } = useAccessibility();
-  const theme = getThemeColors();
+  const { theme } = useContext(ThemeContext);
   const textSize = getFontSizeValue(fontSize);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

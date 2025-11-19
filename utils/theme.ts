@@ -1,4 +1,3 @@
-import type { AccessibilityMode } from '@/contexts/AccessibilityContext';
 
 export const getThemeColors = () => ({
     background: '#ffffff',

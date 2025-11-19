@@ -1,10 +1,12 @@
 
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { ThemeContext } from '@/contexts/ThemeContext';
 import { useRouter } from 'expo-router';
+import React, { useContext, useEffect } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function Splash() {
   const router = useRouter();
+  const { theme } = useContext(ThemeContext);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -14,8 +16,8 @@ export default function Splash() {
   }, [router]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>TwinXCare</Text>
+    <View style={[styles.container, { backgroundColor: theme.primary }]}>
+      <Text style={[styles.text, { color: '#fff' }]}>TwinXCare</Text>
     </View>
   );
 }
@@ -23,14 +25,12 @@ export default function Splash() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#4a90e2',
     justifyContent: 'center',
     alignItems: 'center',
   },
   text: {
     fontSize: 42,
     fontWeight: 'bold',
-    color: '#fff',
     fontFamily: 'RedHatDisplay_700Bold'
   },
 });

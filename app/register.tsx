@@ -1,18 +1,19 @@
 import { useAccessibility } from '@/contexts/AccessibilityContext';
+import { ThemeContext } from '@/contexts/ThemeContext';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { getThemeColors } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../firebase/firebase';
 
 export default function Register() {
   const router = useRouter();
   const { fontSize } = useAccessibility();
-  const theme = getThemeColors();
+  const { theme } = useContext(ThemeContext);
   const textSize = getFontSizeValue(fontSize);
 
   const [email, setEmail] = useState('');

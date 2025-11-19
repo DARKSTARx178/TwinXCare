@@ -1,13 +1,12 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { useRouter } from 'expo-router';
+import { ThemeContext } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
-import { useAccessibility } from '@/contexts/AccessibilityContext';
-import { getThemeColors } from '@/utils/theme';
+import { useRouter } from 'expo-router';
+import React, { useContext } from 'react';
+import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function HelpDocs() {
   const router = useRouter();
-  const theme = getThemeColors();
+  const { theme } = useContext(ThemeContext);
   const screenWidth = Dimensions.get('window').width;
   const responsiveText = (base: number) => Math.max(base * (screenWidth / 400), base * 0.85);
 

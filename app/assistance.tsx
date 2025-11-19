@@ -1,8 +1,9 @@
+import { ThemeContext } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { onAuthStateChanged } from 'firebase/auth';
 import { addDoc, collection, doc, getDoc, serverTimestamp } from "firebase/firestore";
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../firebase/firebase';
 
@@ -11,6 +12,7 @@ export default function Assistance() {
   const [submitting, setSubmitting] = useState(false);
   const [username, setUsername] = useState('Anonymous');
   const router = useRouter();
+  const { theme } = useContext(ThemeContext);
 
   type ResponseData = {
     success: boolean;
@@ -104,15 +106,15 @@ export default function Assistance() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Ionicons name="arrow-back" size={28} color="#222" />
+        <Ionicons name="arrow-back" size={28} color={theme.text} />
       </TouchableOpacity>
 
-      <Text style={styles.title}>Submit Assistance Request</Text>
+      <Text style={[styles.title, { color: theme.text }]}>Submit Assistance Request</Text>
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, { borderColor: theme.primary, color: theme.text }]}
         placeholder="Your request..."
         value={message}
         onChangeText={setMessage}
@@ -120,13 +122,13 @@ export default function Assistance() {
         numberOfLines={5}
       />
 
-      <TouchableOpacity
-        style={[styles.submitButton, submitting && { opacity: 0.6 }]}
+            <TouchableOpacity
+        style={[styles.submitButton, { backgroundColor: theme.primary }]}
         onPress={handleSend}
         disabled={submitting}
       >
-        <Text style={styles.submitText}>
-          {submitting ? 'Submitting...' : 'Submit'}
+        <Text style={[styles.submitText, { color: '#fff' }]}>
+          {submitting ? 'Submitting...' : 'Submit Request'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -134,7 +136,7 @@ export default function Assistance() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, backgroundColor: '#f9fafb' },
+  container: { flex: 1, padding: 20 },
   backButton: { alignSelf: 'flex-start', marginBottom: 16, backgroundColor: 'transparent' },
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 18, color: '#222' },
   input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 10, padding: 14, fontSize: 16, marginBottom: 18, backgroundColor: '#fff', minHeight: 100, textAlignVertical: 'top' },

@@ -1,19 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
-import { getThemeColors } from '@/utils/theme';
-import { getFontSizeValue } from '@/utils/fontSizes';
-import { useRouter } from 'expo-router';
-import { db, auth } from '@/firebase/firebase';
-import { doc, getDoc } from 'firebase/firestore';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { homeTranslations } from '@/utils/translations';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ThemeContext } from '@/contexts/ThemeContext';
+import { auth, db } from '@/firebase/firebase';
+import { getFontSizeValue } from '@/utils/fontSizes';
+import { homeTranslations } from '@/utils/translations';
+import { useRouter } from 'expo-router';
+import { doc, getDoc } from 'firebase/firestore';
+import React, { useContext, useEffect, useState } from 'react';
+import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function HomeScreen() {
   const { scheme, fontSize } = useAccessibility();
-  //@ts-ignore
-  const theme = getThemeColors(scheme);
+  const { theme } = useContext(ThemeContext);
   const textSize = getFontSizeValue(fontSize);
   const router = useRouter();
   const screenWidth = Dimensions.get('window').width;

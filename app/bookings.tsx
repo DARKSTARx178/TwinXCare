@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
-import { auth, db } from '@/firebase/firebase';
-import { doc, getDoc } from 'firebase/firestore';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
-import { getThemeColors } from '@/utils/theme';
+import { ThemeContext } from '@/contexts/ThemeContext';
+import { auth, db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
+import { doc, getDoc } from 'firebase/firestore';
+import React, { useContext, useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 
 interface Booking {
     serviceId: string;
@@ -18,7 +18,7 @@ interface Booking {
 
 export default function BookingsPage() {
     const { fontSize } = useAccessibility();
-    const theme = getThemeColors();
+    const { theme } = useContext(ThemeContext);
     const textSize = getFontSizeValue(fontSize);
 
     const [bookings, setBookings] = useState<Booking[]>([]);
@@ -61,7 +61,7 @@ export default function BookingsPage() {
 
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
-            <Text> </Text> //spacing
+            <Text> </Text>
             <Text style={[styles.header, { color: theme.text, fontSize: textSize + 4 }]}>My Bookings</Text>
 
             {bookings.length === 0 ? (
@@ -71,7 +71,7 @@ export default function BookingsPage() {
                     data={bookings}
                     keyExtractor={(item, index) => `${item.serviceId}-${index}`}
                     renderItem={({ item }) => (
-                        <View style={[styles.card, { backgroundColor: theme.card }]}>
+                        <View style={[styles.card, { backgroundColor: theme.unselectedTab }]}>
                             <Text style={[styles.title, { color: theme.text, fontSize: textSize + 2 }]}>{item.title}</Text>
                             <Text style={[styles.timing, { color: theme.text, fontSize: textSize }]}>
                                 {item.bookingDate} | {item.timeSlot}

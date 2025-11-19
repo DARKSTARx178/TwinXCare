@@ -1,24 +1,24 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableOpacity,
-  Dimensions,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import app from '../../firebase/firebase';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
-import { getThemeColors } from '@/utils/theme';
+import { ThemeContext } from '@/contexts/ThemeContext';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import {
+    Dimensions,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
+import app from '../../firebase/firebase';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const db = getFirestore(app);
@@ -28,7 +28,7 @@ export default function BookingScreen() {
   const params = React.useMemo(() => ({ ...rawParams }), []);
   const router = useRouter();
   const { fontSize } = useAccessibility();
-  const theme = getThemeColors();
+  const { theme } = useContext(ThemeContext);
   const textSize = getFontSizeValue(fontSize);
   const responsiveText = (size: number) =>
     Math.max(size * (SCREEN_WIDTH / 400), size * 0.85);

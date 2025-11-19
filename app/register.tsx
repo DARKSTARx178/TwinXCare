@@ -33,7 +33,7 @@ export default function Register() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // ✅ Add Firestore document with default role
+      // ✅ Add Firestore document with default role and default theme
       await setDoc(doc(db, 'users', user.uid), {
         username,
         email,
@@ -41,7 +41,7 @@ export default function Register() {
         createdAt: new Date(),
         history: [],
         booking: [],
-        theme: []
+        theme: getThemeColors()
       });
 
       // ✅ Firebase Auth persists session automatically

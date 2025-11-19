@@ -17,6 +17,12 @@ git fetch origin main
 git reset --hard origin/main
 
 ================================================================================
+DELETING ACCOUNT FROM FIREBASE INSTRUCTIONS
+================================================================================
+
+Delete the account from Firestore users document, then delete the Firebase Authentication account.
+
+================================================================================
 NPM VERSION UPDATE CHEAT SHEET
 ================================================================================
 

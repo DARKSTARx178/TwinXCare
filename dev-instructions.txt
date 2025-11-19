@@ -4,11 +4,13 @@ GITHUB INSTRUCTION SHEET
 
 To get the newest version of the app from GitHub, run:
 
-git pull origin main
+git fetch origin main
 
 If not working, 
 
-git pull origin main --force
+git clone https://github.com/DARKSTARx178/TwinXCare.git
+git fetch origin main
+git reset -hard origin/main
 
 ================================================================================
 NPM VERSION UPDATE CHEAT SHEET

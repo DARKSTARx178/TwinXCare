@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "TwinXCare",
-    "slug": "twinxcare",
-    "owner": "northstarx178",
+    "slug": "TwinXCare",
+    "owner": "darkstarx178",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -46,7 +46,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "0d332feb-771e-4584-ae1e-58595e97add9"
+        "projectId": "eadca27e-841e-4ef7-b9ce-773fd06ed084"
       }
     },
     "runtimeVersion": "1.0.0"

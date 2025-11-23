@@ -1,5 +1,5 @@
 import { ThemeContext } from '@/contexts/ThemeContext';
-import { db } from '@/firebase/firebase';
+import { auth, db } from '@/firebase/firebase';
 import { useRouter } from 'expo-router';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import React, { useContext, useState } from 'react';
@@ -27,9 +27,10 @@ export default function RequireEscort() {
 
 		setSubmitting(true);
 		try {
-			await addDoc(collection(db, 'escortRequests'), {
-				userId: 'guest',
-				userEmail: 'guest',
+			// store under collection path: escort -> request -> entries (auto-id)
+			await addDoc(collection(db, 'escort', 'request', 'entries'), {
+				userId: auth?.currentUser?.uid ?? 'guest',
+				userEmail: auth?.currentUser?.email ?? 'guest',
 				date,
 				time,
 				hospital,

@@ -1,9 +1,10 @@
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
-import { db } from '@/firebase/firebase';
+import { auth, db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { useRouter } from 'expo-router';
-import { collection, getDocs } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
 import { Dimensions, FlatList, Image, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -38,6 +39,9 @@ export default function Services() {
   const { theme } = useContext(ThemeContext);
   const textSize = getFontSizeValue(fontSize);
   const router = useRouter();
+
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userType, setUserType] = useState<string | null>(null);
 
   const screenWidth = Dimensions.get('window').width;
   const numColumns = screenWidth < 950 ? 2 : 3;
@@ -78,6 +82,30 @@ export default function Services() {
     fetchServices();
   }, []);
 
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      if (u) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', u.uid));
+          if (userDoc.exists()) {
+            const data: any = userDoc.data();
+            setUserRole(data.role ?? null);
+            setUserType(data.userType ?? null);
+          } else {
+            setUserRole(null);
+            setUserType(null);
+          }
+        } catch (err) {
+          console.error('Error fetching user profile:', err);
+        }
+      } else {
+        setUserRole(null);
+        setUserType(null);
+      }
+    });
+    return () => unsub();
+  }, []);
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchServices().finally(() => setRefreshing(false));
@@ -116,14 +144,30 @@ export default function Services() {
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>Services</Text>
 
-        {/* Medical Escort Request CTA */}
-        <TouchableOpacity
-          style={[styles.ctaButton, { backgroundColor: theme.primary }]}
-          activeOpacity={0.85}
-          onPress={() => router.push('/escorts/require-escort')}
-        >
-          <Text style={[styles.ctaButtonText, { color: '#fff', fontSize: responsiveText(textSize) }]}>Request Medical Escort</Text>
-        </TouchableOpacity>
+        {/* Conditional CTA(s) based on userType / role */}
+        {
+          // Admins see both. Escorts see the escort panel button only.
+          // Standard users see the Request Medical Escort button only.
+        }
+        {((userType === 'standard') || (userRole === 'admin') || (!userType && !userRole)) && (
+          <TouchableOpacity
+            style={[styles.ctaButton, { backgroundColor: theme.primary }]}
+            activeOpacity={0.85}
+            onPress={() => router.push('/escorts/require-escort')}
+          >
+            <Text style={[styles.ctaButtonText, { color: '#fff', fontSize: responsiveText(textSize) }]}>Request Medical Escort</Text>
+          </TouchableOpacity>
+        )}
+
+        {(userType === 'escort' || userRole === 'admin') && (
+          <TouchableOpacity
+            style={[styles.ctaButton, { backgroundColor: theme.unselectedTab || '#888' }]}
+            activeOpacity={0.85}
+            onPress={() => router.push('/escorts/escort')}
+          >
+            <Text style={[styles.ctaButtonText, { color: theme.text, fontSize: responsiveText(textSize) }]}>Open Escort Panel</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Search Input */}
         <TextInput

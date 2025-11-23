@@ -19,7 +19,12 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [userType, setUserType] = useState<'standard' | 'escort'>('standard');
   const [error, setError] = useState('');
+  const userTypeOptions = [
+    { label: 'Senior', value: 'standard' },
+    { label: 'Escort', value: 'escort' }
+  ] as const;
 
   const handleRegister = async () => {
     setError('');
@@ -34,11 +39,12 @@ export default function Register() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // ✅ Add Firestore document with default role and default theme
+      // ✅ Add Firestore document. Role stays 'user' by default; admins must change role server-side.
       await setDoc(doc(db, 'users', user.uid), {
         username,
         email,
-        role: 'user',      // default role
+        role: 'user',
+        userType,
         createdAt: new Date(),
         history: [],
         booking: [],
@@ -91,6 +97,22 @@ export default function Register() {
         onChangeText={setPassword}
       />
 
+      <Text style={{ alignSelf: 'flex-start', color: theme.text, marginBottom: 8 }}>I am signing up as</Text>
+      <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'space-between', marginBottom: 12 }}>
+        {userTypeOptions.map((opt) => (
+          <TouchableOpacity
+            key={opt.value}
+            onPress={() => setUserType(opt.value)}
+            style={[
+              styles.userTypeButton,
+              userType === opt.value && { borderColor: theme.primary, backgroundColor: theme.primary + '22' }
+            ]}
+          >
+            <Text style={{ color: userType === opt.value ? theme.primary : theme.text, fontWeight: userType === opt.value ? '700' : '500' }}>{opt.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {error ? <Text style={{ color: 'red', marginBottom: 10 }}>{error}</Text> : null}
 
       <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary }]} onPress={handleRegister}>
@@ -135,4 +157,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
+  userTypeButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 4,
+    backgroundColor: 'transparent'
+  }
 });

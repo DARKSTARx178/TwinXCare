@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "791637368111",
+    "project_id": "twinxcarebackend",
+    "storage_bucket": "twinxcarebackend.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:791637368111:android:6e8c4eb32f9897d83295da",
+        "android_client_info": {
+          "package_name": "com.darkstarx178.TwinXCare"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9JI-Q6VhVtVi6blh-Y_C76IhTw-jrxX0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

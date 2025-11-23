@@ -6,13 +6,16 @@ import { APP_VERSION } from '@/utils/appversion';
 import { Slot } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import { useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, Button, Linking, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Button, Linking, StatusBar, StyleSheet, Text, View } from 'react-native';
+import NotificationsSetup from './notifs/notifs-setup';
+import SplashScreen from './SplashScreen';
 
 function RootLayoutContent() {
   const { theme } = useContext(ThemeContext);
   const [checking, setChecking] = useState(true);
   const [blocked, setBlocked] = useState(false);
   const [remoteVersion, setRemoteVersion] = useState<string | null>(null);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     let mounted = true;
@@ -52,13 +55,16 @@ function RootLayoutContent() {
     return () => { mounted = false; };
   }, []);
   
+  // After checking completes, show a short transition splash before revealing the app
+  useEffect(() => {
+    if (!checking) {
+      const t = setTimeout(() => setShowSplash(false), 750);
+      return () => clearTimeout(t);
+    }
+  }, [checking]);
+  
   if (checking) {
-    return (
-      <View style={[styles.center, { backgroundColor: theme.background }]}> 
-        <ActivityIndicator size="large" color={theme.primary} />
-        <Text style={{ color: theme.text, marginTop: 12 }}>Checking app version...</Text>
-      </View>
-    );
+    return <SplashScreen message="Checking app version..." />;
   }
 
   if (blocked) {
@@ -74,8 +80,14 @@ function RootLayoutContent() {
     );
   }
 
+  // Show a short welcome splash after the check completes, then render the app
+  if (showSplash) {
+    return <SplashScreen message={"Done"} />;
+  }
+
   return (
     <>
+      <NotificationsSetup />
       <StatusBar barStyle={theme.background === '#ffffff' ? 'dark-content' : 'light-content'} backgroundColor={theme.background} />
       <Slot />
     </>

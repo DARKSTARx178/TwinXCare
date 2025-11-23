@@ -98,6 +98,11 @@ export default function HomeScreen() {
         </View>
       )}
 
+      {/* Temporary: Notifications test button for quick access during development */}
+      <TouchableOpacity onPress={() => router.push('/notifs/notifs' as any)} style={[styles.tempNotifButton, { backgroundColor: theme.primary, width: screenWidth - 40 }]}>
+        <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: '#fff' }]}>Notifications Test</Text>
+      </TouchableOpacity>
+
       {/* Order History Section */}
       <Text style={{ color: theme.text, fontSize: responsiveText(textSize + 4), fontWeight: 'bold', marginTop: 32, marginBottom: 8 }}>{t.orderHistory}</Text>
       {!user ? (
@@ -189,5 +194,11 @@ const styles = StyleSheet.create({
   buttonText: {
     fontWeight: '600',
     textAlign: 'center',
+  },
+  tempNotifButton: {
+    padding: 12,
+    borderRadius: 10,
+    marginVertical: 12,
+    alignItems: 'center',
   },
 });

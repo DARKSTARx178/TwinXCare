@@ -90,10 +90,10 @@ export default function AdminDeliveryPage() {
 
             await updateDoc(userRef, { history: updatedHistory });
             fetchAllOrders();
-            Alert.alert('Success', 'ETA updated.');
+            Alert.alert('Success', 'Info updated.');
         } catch (err) {
-            console.error('Error updating ETA:', err);
-            Alert.alert('Error', 'Failed to update delivery ETA.');
+            console.error('Error updating info:', err);
+            Alert.alert('Error', 'Failed to update delivery info.');
         }
     };
 

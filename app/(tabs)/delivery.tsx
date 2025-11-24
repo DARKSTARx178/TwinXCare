@@ -106,7 +106,7 @@ export default function DeliveryPage() {
 
           {!latest.isRenew && (
             <>
-              <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Estimated Delivery</Text>
+              <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Delivery Details</Text>
               <Text style={[etaStyle(theme), { fontSize: responsiveText(textSize + 2) }]}>{latest.deliveryEta || 'N/A'}</Text>
             </>
           )}

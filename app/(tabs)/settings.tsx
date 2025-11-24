@@ -43,19 +43,6 @@ const A11Y_PRESETS = [
     },
   },
   {
-    name: 'Dyslexia Friendly',
-    description: 'Optimized for dyslexic users',
-    theme: {
-      background: '#fffacd',
-      text: '#2c2c2c',
-      primary: '#6c63ff',
-      unselected: '#999999',
-      unselectedTab: '#f0f0f0',
-      icon: '#6c63ff',
-      fontSize: 18,
-    },
-  },
-  {
     name: 'Protanopia (Red-Blind)',
     description: 'For red color blindness',
     theme: {

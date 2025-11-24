@@ -53,7 +53,7 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ alignItems: 'center', justifyContent: 'flex-start', paddingBottom: 40 }}>
-      <Image source={require('@/assets/images/logo_all-white.png')} style={{ width: 120, height: 60, marginTop: 0, marginBottom: 5 }} />
+      <Image source={require('@/assets/images/logo_all-white.png')} style={{ height: 130, marginTop: 0, marginBottom: - 10, width: screenWidth - 295 }} resizeMode='stretch'/>
       <Text style={[styles.logo, { fontSize: responsiveText(textSize + 10), color: theme.text }]}>{t.home}</Text>
       <View style={styles.row}>
         <TouchableOpacity onPress={() => router.push('/explore')} style={[styles.card, { backgroundColor: theme.unselectedTab, width: screenWidth / 2 - 30 }]}>

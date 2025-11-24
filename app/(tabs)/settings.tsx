@@ -241,6 +241,10 @@ const SettingsScreen = () => {
           </View>
         </View>
       )}
+      <Text> </Text>
+      <Text style={{ textAlign: 'center', marginBottom: 20 }}>Copyright © 2025 TwinXCare</Text>
+      <Text> </Text>
+      <Text> </Text>
     </ScrollView>
   );
 };

@@ -165,7 +165,7 @@ export default function Services() {
             activeOpacity={0.85}
             onPress={() => router.push('/escorts/escort')}
           >
-            <Text style={[styles.ctaButtonText, { color: theme.text, fontSize: responsiveText(textSize) }]}>Open Escort Panel</Text>
+            <Text style={[styles.ctaButtonText, { color: theme.text, fontSize: responsiveText(textSize) }]}>Add Escort Timings</Text>
           </TouchableOpacity>
         )}
 

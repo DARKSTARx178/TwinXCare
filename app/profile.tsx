@@ -4,7 +4,7 @@ import { getFontSizeValue } from "@/utils/fontSizes";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import React, { useContext, useEffect, useState } from "react";
 import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { auth, db } from "../firebase/firebase";
@@ -18,6 +18,7 @@ export default function Profile() {
   const [user, setUser] = useState<any>(null);
   const [username, setUsername] = useState<string | null>(null);
   const [role, setRole] = useState<string>("user");
+  const [firestoreId, setFirestoreId] = useState<string | null>(null);
 
   // ✅ Listen to Firebase Auth state
   useEffect(() => {
@@ -25,13 +26,44 @@ export default function Profile() {
       if (currentUser) {
         setUser(currentUser);
 
-        // ✅ Fetch username + role from Firestore
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setUsername(data.username || currentUser.displayName || null);
-          setRole(data.role || "user");
-        } else {
+        // Try to fetch the Firestore document by UID (common case)
+        try {
+          const directDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          if (directDoc.exists()) {
+            const data = directDoc.data();
+            setUsername(data.username || currentUser.displayName || null);
+            setRole(data.role || 'user');
+            setFirestoreId(directDoc.id);
+          } else {
+            // Fallback: some projects store user records with random doc IDs and include an `uid` field
+            const usersCol = collection(db, 'users');
+            const q = query(usersCol, where('uid', '==', currentUser.uid));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+              const first = snap.docs[0];
+              const data = first.data();
+              setUsername(data.username || currentUser.displayName || null);
+              setRole(data.role || 'user');
+              setFirestoreId(first.id);
+            } else {
+              // Also try `authUid` field just in case
+              const q2 = query(usersCol, where('authUid', '==', currentUser.uid));
+              const snap2 = await getDocs(q2);
+              if (!snap2.empty) {
+                const first = snap2.docs[0];
+                const data = first.data();
+                setUsername(data.username || currentUser.displayName || null);
+                setRole(data.role || 'user');
+                setFirestoreId(first.id);
+              } else {
+                // No Firestore user doc found
+                setUsername(currentUser.displayName || currentUser.email);
+                setFirestoreId(null);
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching user doc:', err);
           setUsername(currentUser.displayName || currentUser.email);
         }
       } else {
@@ -87,7 +119,10 @@ export default function Profile() {
           <Text style={{ color: theme.text, fontWeight: "bold", marginBottom: 6, fontSize: textSize + 8 }}>
             {username || user.email}
           </Text>
-          <Text style={{ color: theme.text, marginBottom: 20, fontSize: textSize }}>Signed in</Text>
+          <Text style={{ color: theme.text, marginBottom: 6, fontSize: textSize }}>Signed in</Text>
+          {firestoreId ? (
+            <Text style={{ color: theme.unselected, marginBottom: 14, fontSize: Math.max(12, textSize - 2) }}>User ID: {firestoreId}</Text>
+          ) : null}
 
           {/* ✅ Show Admin button if role is admin */}
           {role === "admin" && (

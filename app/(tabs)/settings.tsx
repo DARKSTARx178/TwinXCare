@@ -121,7 +121,7 @@ const SettingsScreen = () => {
     large: lang === 'zh' ? '大' : 'Large',
     appearanceNote: lang === 'zh' ? '仅支持浅色模式。' : 'Only light mode is supported.',
     accessibilityPresets: lang === 'zh' ? '无障碍预设' : 'Accessibility Presets',
-    advanced: lang === 'zh' ? '高级' : 'Advanced',
+    advanced: lang === 'zh' ? '高级' : 'Advanced (work in progress)',
     customColors: lang === 'zh' ? '自定义颜色' : 'Custom Colors',
     resetDefaults: lang === 'zh' ? '重置默认值' : 'Reset defaults',
   };

@@ -1,19 +1,16 @@
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { AccessibilityProvider, useAccessibility } from '@/contexts/AccessibilityContext';
+import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
-import { getThemeColors } from '@/utils/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { Tabs, useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function TabLayout({ onHeaderSwipe }: { onHeaderSwipe?: () => void }) {
-  const { scheme } = useAccessibility();
-  // @ts-ignore
-  const theme = getThemeColors(scheme);
+  const { theme } = useContext(ThemeContext);
   const router = useRouter();
   const [profileUser, setProfileUser] = useState<string | null>(null);
 
@@ -111,11 +108,8 @@ function TabLayout({ onHeaderSwipe }: { onHeaderSwipe?: () => void }) {
 export default function RootLayout() {
   const insets = useSafeAreaInsets();
   return (
-    <AccessibilityProvider>
-      <View style={{ flex: 1, paddingTop: insets.top }}>
-        <TabLayout />
-      </View>
-    </AccessibilityProvider>
+    <View style={{ flex: 1, paddingTop: insets.top }}>
+      <TabLayout />
+    </View>
   );
 }
-

@@ -1,12 +1,12 @@
+import { useAccessibility } from '@/contexts/AccessibilityContext';
+import { ThemeContext } from '@/contexts/ThemeContext';
 import { db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
-import { getThemeColors } from '@/utils/theme';
-import { collection, doc, getDocs, updateDoc } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
-import { Alert, Dimensions, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useAccessibility } from '@/contexts/AccessibilityContext';
+import { collection, doc, getDocs, updateDoc } from 'firebase/firestore';
+import React, { useContext, useEffect, useState } from 'react';
+import { Alert, Dimensions, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
 
 if (Platform.OS === 'android') {
     UIManager.setLayoutAnimationEnabledExperimental?.(true);
@@ -28,7 +28,7 @@ interface Order {
 }
 
 export default function AdminDeliveryPage() {
-    const theme = getThemeColors();
+    const { theme } = useContext(ThemeContext);
     const textSize = getFontSizeValue('medium');
     const screenWidth = Dimensions.get('window').width;
     const { fontSize } = useAccessibility();

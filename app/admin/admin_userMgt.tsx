@@ -1,34 +1,34 @@
-import React, { useEffect, useState } from 'react';
-import {
-    View,
-    Text,
-    TouchableOpacity,
-    ScrollView,
-    StyleSheet,
-    ActivityIndicator,
-    Alert,
-} from 'react-native';
-import { Dimensions } from 'react-native';
+import { ThemeContext } from '@/contexts/ThemeContext';
 import { db } from '@/firebase/firebase';
+import { getFontSizeValue } from '@/utils/fontSizes';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import {
     collection,
-    getDocs,
-    updateDoc,
     deleteDoc,
     doc,
+    getDocs,
+    updateDoc,
 } from 'firebase/firestore';
-import { Ionicons } from '@expo/vector-icons';
-import { getThemeColors } from '@/utils/theme';
-import { getFontSizeValue } from '@/utils/fontSizes';
-import { useRouter } from 'expo-router';
+import React, { useContext, useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 export default function AdminUserMgt() {
-    const theme = getThemeColors();
+    const { theme } = useContext(ThemeContext);
     const textSize = getFontSizeValue('medium');
     const screenWidth = Dimensions.get('window').width;
 
     const [users, setUsers] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true); 
+    const [loading, setLoading] = useState(true);
     const router = useRouter();
 
     const fetchUsers = async () => {
@@ -111,12 +111,12 @@ export default function AdminUserMgt() {
             style={{ flex: 1, backgroundColor: theme.background }}
             contentContainerStyle={{ padding: 16 }}
         >
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={28} color={theme.text} left={-15} bottom={15} />
-        </TouchableOpacity>
-        <Text>  </Text>
-        <Text>  </Text>
-        <Text>  </Text>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Ionicons name="arrow-back" size={28} color={theme.text} left={-15} bottom={15} />
+            </TouchableOpacity>
+            <Text>  </Text>
+            <Text>  </Text>
+            <Text>  </Text>
             <Text
                 style={{
                     fontSize: textSize + 6,

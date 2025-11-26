@@ -49,6 +49,13 @@ export default function Services() {
   const gridTextSize = (base: number) => Math.max(base * (screenWidth / 400), base * 0.8);
 
   // Fetch services from Firestore
+  const convertGoogleDriveLink = (link: string) => {
+    if (!link) return '';
+    const match = link.match(/\/d\/(.*?)\//);
+    if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    return link;
+  };
+
   const fetchServices = async () => {
     try {
       const snapshot = await getDocs(collection(db, 'services'));
@@ -262,7 +269,7 @@ export default function Services() {
               activeOpacity={0.8}
               style={[styles.gridItem, { borderColor: theme.primary, maxWidth: `${100 / numColumns}%` }]}
             >
-              <Image source={{ uri: item.image }} style={[styles.gridImage, { width: screenWidth / numColumns - 32, height: (screenWidth / numColumns - 32) * 0.7, marginBottom: 8 }]} />
+              <Image source={{ uri: convertGoogleDriveLink(item.image) }} style={[styles.gridImage, { width: screenWidth / numColumns - 32, height: (screenWidth / numColumns - 32) * 0.7, marginBottom: 8 }]} />
               <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize), maxWidth: '95%' }]} numberOfLines={2}>{item.name}</Text>
               <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize - 4), maxWidth: '95%' }]} numberOfLines={1}>Next: {getNextAvailability(item.schedule)}</Text>
               <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize - 4), maxWidth: '95%' }]} numberOfLines={1}>${item.price}/hr | Pax: {getNextPax(item.schedule)}</Text>

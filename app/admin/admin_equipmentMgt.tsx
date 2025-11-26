@@ -1,14 +1,14 @@
+import { ThemeContext } from '@/contexts/ThemeContext';
 import { getFontSizeValue } from '@/utils/fontSizes';
-import { getThemeColors } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { addDoc, collection, deleteDoc, doc, getDocs, updateDoc } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Alert, FlatList, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { db } from '../../firebase/firebase';
 
 export default function AdminEquipmentMgt() {
-    const theme = getThemeColors();
+    const { theme } = useContext(ThemeContext);
     const textSize = getFontSizeValue('medium');
 
     const [name, setName] = useState('');
@@ -172,14 +172,14 @@ export default function AdminEquipmentMgt() {
             {/* Add New Equipment (compact: two-column rows) */}
             <View style={styles.inputContainer}>
                 <View style={styles.row}>
-                    <TextInput style={[styles.inputHalf, { borderColor: theme.primary, color: theme.text }]} placeholder="Name" placeholderTextColor="#aaa" value={name} onChangeText={setName} />
-                    <TextInput style={[styles.inputHalf, { borderColor: theme.primary, color: theme.text }]} placeholder="Brand" placeholderTextColor="#aaa" value={brand} onChangeText={setBrand} />
+                    <TextInput style={[styles.inputHalf, { borderColor: theme.primary, color: theme.text }]} placeholder="Name" placeholderTextColor={theme.unselected} value={name} onChangeText={setName} />
+                    <TextInput style={[styles.inputHalf, { borderColor: theme.primary, color: theme.text }]} placeholder="Brand" placeholderTextColor={theme.unselected} value={brand} onChangeText={setBrand} />   
                 </View>
                 <View style={styles.row}>
-                    <TextInput style={[styles.inputHalf, { borderColor: theme.primary, color: theme.text }]} placeholder="Price (per day)" placeholderTextColor="#aaa" keyboardType="numeric" value={price} onChangeText={setPrice} />
-                    <TextInput style={[styles.inputHalf, { borderColor: theme.primary, color: theme.text }]} placeholder="Stock" placeholderTextColor="#aaa" keyboardType="numeric" value={stock} onChangeText={setStock} />
+                    <TextInput style={[styles.inputHalf, { borderColor: theme.primary, color: theme.text }]} placeholder="Price (per day)" placeholderTextColor={theme.unselected} keyboardType="numeric" value={price} onChangeText={setPrice} />
+                    <TextInput style={[styles.inputHalf, { borderColor: theme.primary, color: theme.text }]} placeholder="Stock" placeholderTextColor={theme.unselected} keyboardType="numeric" value={stock} onChangeText={setStock} />
                 </View>
-                <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Description" placeholderTextColor="#aaa" value={description} onChangeText={setDescription} />
+                <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Description" placeholderTextColor={theme.unselected} value={description} onChangeText={setDescription} />
                 <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Image URL" placeholderTextColor="#aaa" value={image} onChangeText={setImage} />
 
                 <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary }]} onPress={handleAddEquipment}>
@@ -191,7 +191,7 @@ export default function AdminEquipmentMgt() {
             <Text style={[styles.subHeading, { color: theme.text, fontSize: textSize + 4 }]}>Existing Equipment</Text>
             <TextInput
                 placeholder="Search equipment..."
-                placeholderTextColor="#999"
+                placeholderTextColor={theme.unselected}
                 value={searchTerm}
                 onChangeText={setSearchTerm}
                 style={[styles.searchInput, { borderColor: theme.unselected, color: theme.text }]}

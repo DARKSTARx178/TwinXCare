@@ -6,16 +6,16 @@ import { useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import {
-    Dimensions,
-    LayoutAnimation,
-    Platform,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    UIManager,
-    View,
+  Dimensions,
+  LayoutAnimation,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  UIManager,
+  View,
 } from 'react-native';
 
 if (Platform.OS === 'android') {
@@ -66,6 +66,19 @@ export default function DeliveryPage() {
     fetchUserHistory();
   }, []);
 
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await fetchUserHistory();
@@ -99,7 +112,7 @@ export default function DeliveryPage() {
           </Text>
 
           <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Order Time</Text>
-          <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{latest.orderTime || 'N/A'}</Text>
+          <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{formatDate(latest.orderTime)}</Text>
 
           <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Transaction ID</Text>
           <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{latest.transactionId || 'N/A'}</Text>
@@ -124,7 +137,7 @@ export default function DeliveryPage() {
           <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{latest.title || 'N/A'}</Text>
 
           <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Date</Text>
-          <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{latest.bookingDate || 'N/A'}</Text>
+          <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{formatDate(latest.bookingDate)}</Text>
 
           <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Time</Text>
           <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{latest.timeSlot || 'N/A'}</Text>
@@ -202,13 +215,13 @@ export default function DeliveryPage() {
                   ) : (
                     <>
                       <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                        Date: {entry.bookingDate}
+                        Date: {formatDate(entry.bookingDate)}
                       </Text>
                       <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                        Time: {entry.timeSlot}
+                        Time: {entry.timeSlot || 'N/A'}
                       </Text>
                       <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                        Description: {entry.description}
+                        Description: {entry.description || 'N/A'}
                       </Text>
                     </>
                   )}

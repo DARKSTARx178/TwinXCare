@@ -1,9 +1,10 @@
+
+import { ThemeContext } from '@/contexts/ThemeContext';
 import { getFontSizeValue } from '@/utils/fontSizes';
-import { getThemeColors } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { addDoc, collection, deleteDoc, doc, getDocs, updateDoc } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { db } from '../../firebase/firebase';
 
@@ -21,11 +22,12 @@ interface ServiceItem {
     price: number;
     duration: string;
     company: string;
+    image?: string;
     schedule: ScheduleItem[];
 }
 
 export default function AdminServiceMgt() {
-    const theme = getThemeColors();
+    const { theme } = useContext(ThemeContext);
     const textSize = getFontSizeValue('medium');
 
     // Service fields
@@ -34,6 +36,7 @@ export default function AdminServiceMgt() {
     const [price, setPrice] = useState('');
     const [duration, setDuration] = useState('');
     const [company, setCompany] = useState('');
+    const [photoUrl, setPhotoUrl] = useState('');
 
     // Existing services
     const [services, setServices] = useState<ServiceItem[]>([]);
@@ -58,6 +61,7 @@ export default function AdminServiceMgt() {
                 price: doc.data().price,
                 duration: doc.data().duration,
                 company: doc.data().company,
+                image: doc.data().image,
                 schedule: doc.data().schedule || [],
             }));
             setServices(items);
@@ -83,9 +87,10 @@ export default function AdminServiceMgt() {
                 price: Number(price),
                 duration,
                 company,
+                image: photoUrl,
                 schedule: [],
             });
-            setName(''); setDescription(''); setPrice(''); setDuration(''); setCompany('');
+            setName(''); setDescription(''); setPrice(''); setDuration(''); setCompany(''); setPhotoUrl('');
             fetchServices();
         } catch (e) {
             console.error(e);
@@ -165,11 +170,12 @@ export default function AdminServiceMgt() {
             <Text>  </Text>
             <Text style={[styles.heading, { color: theme.text, fontSize: textSize + 6 }]}>Create New Service</Text>
 
-            <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Name" value={name} onChangeText={setName} />
-            <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Description" value={description} onChangeText={setDescription} />
-            <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Price" value={price} keyboardType="numeric" onChangeText={setPrice} />
-            <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Duration (e.g., 60min)" value={duration} onChangeText={setDuration} />
-            <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Company" value={company} onChangeText={setCompany} />
+            <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Name" placeholderTextColor={theme.unselected} value={name} onChangeText={setName} />
+            <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Description" placeholderTextColor={theme.unselected} value={description} onChangeText={setDescription} />
+            <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Price" placeholderTextColor={theme.unselected} value={price} keyboardType="numeric" onChangeText={setPrice} />
+            <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Duration (e.g., 60min)" placeholderTextColor={theme.unselected} value={duration} onChangeText={setDuration} />
+            <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Company" placeholderTextColor={theme.unselected} value={company} onChangeText={setCompany} />
+            <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Photo URL" placeholderTextColor={theme.unselected} value={photoUrl} onChangeText={setPhotoUrl} />
 
             <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary }]} onPress={handleAddService}>
                 <Text style={{ color: '#fff', fontWeight: 'bold' }}>Add Service</Text>
@@ -194,24 +200,28 @@ export default function AdminServiceMgt() {
                             <TextInput
                                 style={[styles.input, { borderColor: theme.primary, color: theme.text }]}
                                 placeholder="Date (YYYY-MM-DD)"
+                                placeholderTextColor={theme.unselected}
                                 value={newDate}
                                 onChangeText={handleDateChange}
                             />
                             <TextInput
                                 style={[styles.input, { borderColor: theme.primary, color: theme.text }]}
                                 placeholder="From Time (HH:MM)"
+                                placeholderTextColor={theme.unselected}
                                 value={newFrom}
                                 onChangeText={(text) => handleTimeChange(text, setNewFrom)}
                             />
                             <TextInput
                                 style={[styles.input, { borderColor: theme.primary, color: theme.text }]}
                                 placeholder="To Time (HH:MM)"
+                                placeholderTextColor={theme.unselected}
                                 value={newTo}
                                 onChangeText={(text) => handleTimeChange(text, setNewTo)}
                             />
                             <TextInput
                                 style={[styles.input, { borderColor: theme.primary, color: theme.text }]}
                                 placeholder="Pax"
+                                placeholderTextColor={theme.unselected}
                                 value={newPax}
                                 keyboardType="numeric"
                                 onChangeText={setNewPax}
@@ -268,5 +278,5 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 12,
     },
-    
+
 });

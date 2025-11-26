@@ -147,10 +147,10 @@ export default function Explore() {
         <TextInput
           style={[
             styles.input,
-            { backgroundColor: '#fff', color: '#000', fontSize: responsiveText(textSize) }
+            { backgroundColor: theme.background, color: theme.text, fontSize: responsiveText(textSize) }
           ]}
           placeholder="Search equipment..."
-          placeholderTextColor="#888"
+          placeholderTextColor={theme.unselected}
           value={search}
           onChangeText={setSearch}
         />
@@ -322,7 +322,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: '#eee',
+    borderColor: '#aaa',
+    borderWidth: 1,
     marginRight: 8,
   },
   dropdownBtnActive: {
@@ -348,6 +349,9 @@ const styles = StyleSheet.create({
   dropdownMenuItem: {
     paddingVertical: 10,
     paddingHorizontal: 16,
+    borderColor: '#aaa',
+    borderWidth: 1,
+    borderRadius: 8,
   },
   gridItem: {
     flex: 1,

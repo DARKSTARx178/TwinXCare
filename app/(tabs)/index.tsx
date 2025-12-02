@@ -1,11 +1,11 @@
+import OrderHistoryWidget from '@/components/OrderHistoryWidget';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
-import { auth, db } from '@/firebase/firebase';
+import { auth } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { homeTranslations } from '@/utils/translations';
 import { useRouter } from 'expo-router';
-import { doc, getDoc } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -19,41 +19,21 @@ export default function HomeScreen() {
   const responsiveText = (base: number) => Math.max(base * (screenWidth / 400), base * 0.85);
 
   const [user, setUser] = useState<any>(null);
-  const [orderHistory, setOrderHistory] = useState<any[]>([]);
   const { lang } = useLanguage();
   const t = homeTranslations[lang];
 
   useEffect(() => {
-    const fetchUserHistory = async () => {
+    const checkUser = () => {
       const currentUser = auth.currentUser;
-      if (!currentUser) {
-        setUser(null);
-        setOrderHistory([]);
-        return;
-      }
       setUser(currentUser);
-
-      try {
-        const userRef = doc(db, 'users', currentUser.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-          const data = userSnap.data();
-          setOrderHistory(data.history || []);
-        } else {
-          setOrderHistory([]);
-        }
-      } catch (err) {
-        console.error('Error fetching order history:', err);
-        setOrderHistory([]);
-      }
     };
 
-    fetchUserHistory();
+    checkUser();
   }, []);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ alignItems: 'center', justifyContent: 'flex-start', paddingBottom: 40 }}>
-      <Image source={require('@/assets/images/logo_all-white.png')} style={{ height: 130, marginTop: 0, marginBottom: - 10, width: screenWidth - 295 }} resizeMode='stretch'/>
+      <Image source={require('@/assets/images/logo_all-white.png')} style={{ height: 130, marginTop: 0, marginBottom: - 10, width: screenWidth - 295 }} resizeMode='stretch' />
       <Text style={[styles.logo, { fontSize: responsiveText(textSize + 10), color: theme.text }]}>{t.home}</Text>
       <View style={styles.row}>
         <TouchableOpacity onPress={() => router.push('/explore')} style={[styles.card, { backgroundColor: theme.unselectedTab, width: screenWidth / 2 - 30 }]}>
@@ -104,44 +84,8 @@ export default function HomeScreen() {
         <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: '#fff' }]}>temporary: notifs test</Text>
       </TouchableOpacity>
 
-      {/* Order History Section */}
-      <Text style={{ color: theme.text, fontSize: responsiveText(textSize + 4), fontWeight: 'bold', marginTop: 32, marginBottom: 8 }}>{t.orderHistory}</Text>
-      {!user ? (
-        <Text style={{ color: theme.unselected, fontSize: textSize }}>{t.signInToSeeHistory}</Text>
-      ) : orderHistory.length === 0 ? (
-        <Text style={{ color: theme.unselected, fontSize: textSize }}>{t.noOrders}</Text>
-      ) : (
-        <>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ width: '100%', paddingLeft: 10 }}>
-            {orderHistory.slice(0, 3).map((order, idx) => (
-              <View key={idx} style={{
-                backgroundColor: theme.unselectedTab,
-                borderRadius: 12,
-                padding: 16,
-                marginRight: 16,
-                minWidth: 180,
-                maxWidth: 220,
-                alignItems: 'flex-start',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,
-                shadowRadius: 4,
-                elevation: 2,
-                position: 'relative',
-              }}>
-                <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: responsiveText(textSize) }}>{order.name}</Text>
-                <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>{t.amount}: ${order.totalPrice}</Text>
-                {order.rentalStart && order.rentalEnd && (
-                  <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>{t.rental}: {order.rentalStart} - {order.rentalEnd}</Text>
-                )}
-              </View>
-            ))}
-          </ScrollView>
-          <TouchableOpacity onPress={() => router.push('/delivery')} style={{ marginTop: 12, alignSelf: 'flex-end', marginRight: 24 }}>
-            <Text style={{ color: theme.primary, fontWeight: 'bold', fontSize: textSize }}>{t.seeFullHistory}</Text>
-          </TouchableOpacity>
-        </>
-      )}
+      {/* Order History Widget */}
+      <OrderHistoryWidget />
     </ScrollView>
   );
 }

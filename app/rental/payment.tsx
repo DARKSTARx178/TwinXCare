@@ -3,6 +3,7 @@ import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
+import * as Notifications from 'expo-notifications';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { arrayUnion, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
@@ -97,6 +98,16 @@ export default function PaymentPage() {
           console.log('📝 Saving order data:', orderData);
           await setDoc(userRef, { history: arrayUnion(orderData) }, { merge: true });
           console.log('✅ Order saved');
+
+          // 🔔 Send Notification
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: 'Order Confirmed! 🎉',
+              body: `Your order for ${params.name} has been placed successfully.`,
+              data: { transactionId },
+            },
+            trigger: null, // Send immediately
+          });
         }
 
         router.replace('/delivery');
@@ -151,6 +162,15 @@ export default function PaymentPage() {
           console.log('📝 Saving booking data:', bookingData);
           await setDoc(userRef, { booking: arrayUnion(bookingData) }, { merge: true });
           console.log('✅ Booking saved');
+
+          // 🔔 Send Notification
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: 'Booking Confirmed! 🎉',
+              body: `Your booking for ${params.name} on ${params.bookingDate} at ${params.timeSlot} has been confirmed.`,
+            },
+            trigger: null, // Send immediately
+          });
         }
 
         router.replace('/delivery');

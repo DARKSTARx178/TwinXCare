@@ -3,16 +3,18 @@ import { ThemeContext } from '@/contexts/ThemeContext';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Picker } from '@react-native-picker/picker';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { db } from '@/firebase/firebase';
 import { getThemeColors as getDefaultTheme } from '@/utils/theme';
+import { doc, getDoc } from 'firebase/firestore';
 
 const COLOR_OPTIONS = [
   '#ffffff', '#000000', '#4a90e2', '#f5f5f5', '#ff5252', '#00c853', '#ffd54f', '#9e9e9e', '#2196f3', '#e0e0e0'
 ];
 
-const COLOR_KEYS = ['background','text','primary','unselected','unselectedTab','icon'];
+const COLOR_KEYS = ['background', 'text', 'primary', 'unselected', 'unselectedTab', 'icon'];
 
 // Accessibility color presets for different special needs
 const A11Y_PRESETS = [
@@ -90,12 +92,35 @@ const fontSizeOptions = [
 ];
 
 const SettingsScreen = () => {
+  const [version, setVersion] = useState<string>('Loading...');
   const [fontSize, setFontSize] = React.useState<'small' | 'medium' | 'large'>('medium');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const { theme, setTheme } = useContext(ThemeContext);
   const colors = theme ?? getDefaultTheme();
   const fontSizeValue = getFontSizeValue(fontSize);
   const { lang, setLang } = useLanguage();
+
+  useEffect(() => {
+    const fetchVersion = async () => {
+      try {
+        const docRef = doc(db, 'version', 'verProd');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          // Assuming the version is stored as a value in the document
+          const ver = Object.values(data)[0];
+          if (typeof ver === 'string') {
+            setVersion(ver);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching version:', error);
+        setVersion('Unknown');
+      }
+    };
+
+    fetchVersion();
+  }, []);
 
   const labels = {
     header: lang === 'zh' ? '设置' : 'Settings',
@@ -120,7 +145,7 @@ const SettingsScreen = () => {
   const activePresetName = activePreset ? activePreset.name : A11Y_PRESETS[0].name;
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}> 
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <Text style={[styles.header, { color: colors.text, fontSize: fontSizeValue + 12 }]}>{labels.header}</Text>
       {/* Accessibility Presets */}
       <Text style={{ color: colors.text, fontSize: fontSizeValue, fontWeight: 'bold', marginTop: 20, marginBottom: 10 }}>{labels.accessibilityPresets}</Text>
@@ -140,7 +165,7 @@ const SettingsScreen = () => {
           onPress={() => setTheme(preset.theme)}
         >
           <View style={{ flex: 1 }}>
-            <Text style={[styles.presetName, { color: colors.text, fontSize: fontSizeValue }]}> 
+            <Text style={[styles.presetName, { color: colors.text, fontSize: fontSizeValue }]}>
               {preset.name}
             </Text>
             <Text style={[styles.presetDescription, { color: colors.text, fontSize: (fontSizeValue - 2) }]}>{preset.description}</Text>
@@ -182,8 +207,8 @@ const SettingsScreen = () => {
           >
             <Text style={[styles.optionText, { color: colors.text, fontSize: fontSizeValue }]}>{
               opt.value === 'small' ? labels.small :
-              opt.value === 'medium' ? labels.medium :
-              opt.value === 'large' ? labels.large : ''
+                opt.value === 'medium' ? labels.medium :
+                  opt.value === 'large' ? labels.large : ''
             }</Text>
           </TouchableOpacity>
         ))}
@@ -197,10 +222,10 @@ const SettingsScreen = () => {
         <Text style={[styles.advancedTitle, { color: colors.text, fontSize: fontSizeValue }]}>
           {labels.advanced}
         </Text>
-        <MaterialIcons 
-          name={showAdvanced ? 'expand-less' : 'expand-more'} 
-          size={fontSizeValue + 8} 
-          color={colors.text} 
+        <MaterialIcons
+          name={showAdvanced ? 'expand-less' : 'expand-more'}
+          size={fontSizeValue + 8}
+          color={colors.text}
         />
       </TouchableOpacity>
 
@@ -243,6 +268,7 @@ const SettingsScreen = () => {
       )}
       <Text> </Text>
       <Text style={{ textAlign: 'center', marginBottom: 20 }}>Copyright © 2025 TwinXCare</Text>
+      <Text style={{ textAlign: 'center', marginBottom: 20 }}>Version number: Alpha {version}</Text>
       <Text> </Text>
       <Text> </Text>
     </ScrollView>

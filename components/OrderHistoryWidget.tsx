@@ -24,34 +24,47 @@ export default function OrderHistoryWidget() {
 
     useFocusEffect(
         useCallback(() => {
-            const fetchUserHistory = async () => {
-                const currentUser = auth.currentUser;
+            console.log('🔄 OrderHistoryWidget: Focus effect triggered');
+            let unsubscribeAuth: (() => void) | undefined;
+
+            const fetchHistory = async (currentUser: any) => {
                 if (!currentUser) {
+                    console.log('❌ OrderHistoryWidget: No user, clearing history');
                     setUser(null);
                     setOrderHistory([]);
                     return;
                 }
+
+                console.log('👤 OrderHistoryWidget: User found:', currentUser.uid);
                 setUser(currentUser);
 
                 try {
                     const userRef = doc(db, 'users', currentUser.uid);
                     const userSnap = await getDoc(userRef);
+
                     if (userSnap.exists()) {
                         const data = userSnap.data();
-                        // Sort by orderTime descending if available, or just take the array (usually appended, so reverse for latest)
+                        console.log('📄 OrderHistoryWidget: History count:', data.history?.length || 0);
                         const history = data.history || [];
-                        // Assuming history is appended, reverse to show latest first
                         setOrderHistory([...history].reverse());
                     } else {
+                        console.log('⚠️ OrderHistoryWidget: User doc not found');
                         setOrderHistory([]);
                     }
                 } catch (err) {
-                    console.error('Error fetching order history:', err);
+                    console.error('❌ OrderHistoryWidget: Fetch error:', err);
                     setOrderHistory([]);
                 }
             };
 
-            fetchUserHistory();
+            // Listen to auth state changes to ensure we have the user
+            unsubscribeAuth = auth.onAuthStateChanged((currentUser) => {
+                fetchHistory(currentUser);
+            });
+
+            return () => {
+                if (unsubscribeAuth) unsubscribeAuth();
+            };
         }, [])
     );
 

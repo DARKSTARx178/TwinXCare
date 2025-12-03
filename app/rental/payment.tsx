@@ -38,6 +38,32 @@ export default function PaymentPage() {
 
   console.log('💰 Price breakdown:', { pricePerDay, quantity, rentalDays, totalPrice });
 
+  const sendPushNotification = async (expoPushToken: string, title: string, body: string, data: any = {}) => {
+    const message = {
+      to: expoPushToken,
+      sound: 'default',
+      title,
+      body,
+      data,
+    };
+
+    try {
+      const response = await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Accept-encoding': 'gzip, deflate',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(message),
+      });
+      const result = await response.json();
+      console.log('🚀 Expo Push Result:', result);
+    } catch (error) {
+      console.error('❌ Error sending Expo Push:', error);
+    }
+  };
+
   const handleConfirm = async () => {
     try {
       console.log('🟢 Confirm button pressed. Type:', type);
@@ -76,6 +102,12 @@ export default function PaymentPage() {
         if (user) {
           console.log('👤 User ID:', user.uid);
           const userRef = doc(db, 'users', user.uid);
+
+          // Fetch user doc to get push token
+          const userSnap = await getDoc(userRef);
+          const userData = userSnap.data();
+          const pushToken = userData?.pushToken;
+
           const orderTime = new Date().toISOString();
           const randomSuffix = Math.random().toString(36).substr(2, 3).toUpperCase();
           const transactionId = `${(params.docId as string).substr(0, 3).toUpperCase()}-${randomSuffix}`;
@@ -99,15 +131,42 @@ export default function PaymentPage() {
           await setDoc(userRef, { history: arrayUnion(orderData) }, { merge: true });
           console.log('✅ Order saved');
 
-          // 🔔 Send Notification
-          await Notifications.scheduleNotificationAsync({
-            content: {
-              title: 'Order Confirmed! 🎉',
-              body: `Your order for ${params.name} has been placed successfully.`,
-              data: { transactionId },
-            },
-            trigger: null, // Send immediately
+          const notifTitle = 'Order Confirmed! 🎉';
+          const notifBody = `Your order for ${params.name} has been placed successfully.`;
+
+          // 🔔 Send Local Notification
+          console.log('🔔 Attempting to schedule local notification...');
+          Notifications.setNotificationHandler({
+            handleNotification: async () => ({
+              shouldShowAlert: true,
+              shouldPlaySound: false,
+              shouldSetBadge: false,
+              shouldShowBanner: true,
+              shouldShowList: true,
+            }),
           });
+
+          try {
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title: notifTitle,
+                body: notifBody,
+                data: { transactionId },
+              },
+              trigger: null,
+            });
+            console.log('✅ Local Notification scheduled');
+          } catch (notifErr) {
+            console.error('❌ Local Notification failed:', notifErr);
+          }
+
+          // 🚀 Send Expo Push Notification
+          if (pushToken) {
+            console.log('🚀 Sending Expo Push to:', pushToken);
+            await sendPushNotification(pushToken, notifTitle, notifBody, { transactionId });
+          } else {
+            console.log('⚠️ No push token found for user');
+          }
         }
 
         router.replace('/delivery');
@@ -149,6 +208,12 @@ export default function PaymentPage() {
         if (user) {
           console.log('👤 User ID:', user.uid);
           const userRef = doc(db, 'users', user.uid);
+
+          // Fetch user doc to get push token
+          const userSnap = await getDoc(userRef);
+          const userData = userSnap.data();
+          const pushToken = userData?.pushToken;
+
           const bookingData = {
             serviceId: params.docId,
             title: params.name || 'Untitled Service',
@@ -163,14 +228,41 @@ export default function PaymentPage() {
           await setDoc(userRef, { booking: arrayUnion(bookingData) }, { merge: true });
           console.log('✅ Booking saved');
 
-          // 🔔 Send Notification
-          await Notifications.scheduleNotificationAsync({
-            content: {
-              title: 'Booking Confirmed! 🎉',
-              body: `Your booking for ${params.name} on ${params.bookingDate} at ${params.timeSlot} has been confirmed.`,
-            },
-            trigger: null, // Send immediately
+          const serviceTitle = 'Booking Confirmed! 🎉';
+          const serviceBody = `Your booking for ${params.name} on ${params.bookingDate} at ${params.timeSlot} has been confirmed.`;
+
+          // 🔔 Send Local Notification
+          console.log('🔔 Attempting to schedule local notification...');
+          Notifications.setNotificationHandler({
+            handleNotification: async () => ({
+              shouldShowAlert: true,
+              shouldPlaySound: false,
+              shouldSetBadge: false,
+              shouldShowBanner: true,
+              shouldShowList: true,
+            }),
           });
+
+          try {
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title: serviceTitle,
+                body: serviceBody,
+              },
+              trigger: null,
+            });
+            console.log('✅ Local Service Notification scheduled');
+          } catch (notifErr) {
+            console.error('❌ Local Service Notification failed:', notifErr);
+          }
+
+          // 🚀 Send Expo Push Notification
+          if (pushToken) {
+            console.log('🚀 Sending Expo Push to:', pushToken);
+            await sendPushNotification(pushToken, serviceTitle, serviceBody);
+          } else {
+            console.log('⚠️ No push token found for user');
+          }
         }
 
         router.replace('/delivery');

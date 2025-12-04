@@ -47,6 +47,13 @@ export default function Admin() {
             >
                 <Text style={{ color: theme.background, fontWeight: 'bold', fontSize: textSize }}>Manage Users</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[styles.button, { backgroundColor: theme.primary }]}
+                onPress={() => router.push('./admin_escort_match')}
+            >
+                <Text style={{ color: theme.background, fontWeight: 'bold', fontSize: textSize }}>Escort Matching</Text>
+            </TouchableOpacity>
         </ScrollView>
     );
 }

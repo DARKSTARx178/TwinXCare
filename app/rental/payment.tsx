@@ -163,7 +163,12 @@ export default function PaymentPage() {
           // 🚀 Send Expo Push Notification
           if (pushToken) {
             console.log('🚀 Sending Expo Push to:', pushToken);
-            await sendPushNotification(pushToken, notifTitle, notifBody, { transactionId });
+            await sendPushNotification(
+              pushToken,
+              notifTitle,
+              notifBody,
+              { transactionId: transactionId || 'unknown', screen: '/(tabs)/delivery' }
+            );
           } else {
             console.log('⚠️ No push token found for user');
           }

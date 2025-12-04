@@ -1,5 +1,6 @@
 import { auth, db } from '@/firebase/firebase';
 import * as Notifications from 'expo-notifications';
+import { useRouter } from 'expo-router';
 import { doc, setDoc } from 'firebase/firestore';
 import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
@@ -14,7 +15,10 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// ... imports
+
 export default function NotificationsSetup() {
+  const router = useRouter();
   const notificationListener = useRef<any>(null);
   const responseListener = useRef<any>(null);
 
@@ -58,6 +62,11 @@ export default function NotificationsSetup() {
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
       console.log('Notification response', response);
+      const data = response.notification.request.content.data;
+      if (data && data.screen) {
+        console.log('Redirecting to:', data.screen);
+        router.push(data.screen as any);
+      }
     });
 
     return () => {

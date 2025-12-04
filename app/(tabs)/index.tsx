@@ -42,7 +42,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push('/services')} style={[styles.card, { backgroundColor: theme.unselectedTab, width: screenWidth / 2 - 30 }]}>
-          <MaterialCommunityIcons name="account-heart" size={32} color={theme.icon} />
+          <MaterialCommunityIcons name="car-side" size={32} color={theme.icon} />
           <Text style={[styles.cardText, { fontSize: responsiveText(textSize), color: theme.text }]}>{t.services}</Text>
         </TouchableOpacity>
       </View>

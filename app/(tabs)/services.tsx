@@ -4,103 +4,35 @@ import { auth, db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { useRouter } from 'expo-router';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
-import { Dimensions, FlatList, Image, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-
-export interface ScheduleItem {
-  date: string;
-  from: string;
-  to: string;
-  pax?: number;
-}
-
-export interface ServiceItem {
-  id: string; // ✅ added for Firestore docId
-  name: string;
-  duration: string;
-  company: string;
-  price: number;
-  image: string;
-  description?: string;
-  schedule?: ScheduleItem[];
-}
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Services() {
-  const [services, setServices] = useState<ServiceItem[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
-  const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'brand' | 'company' | 'price' | null>(null);
-  const [filterValue, setFilterValue] = useState('');
-  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
-  const [showValueDropdown, setShowValueDropdown] = useState(false);
-
-  const { scheme, fontSize } = useAccessibility();
   const { theme } = useContext(ThemeContext);
+  const { fontSize } = useAccessibility();
   const textSize = getFontSizeValue(fontSize);
   const router = useRouter();
 
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userType, setUserType] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  const screenWidth = Dimensions.get('window').width;
-  const numColumns = screenWidth < 950 ? 2 : 3;
-  const responsiveText = (base: number) => Math.max(base * (screenWidth / 400), base * 0.85);
-  const gridTextSize = (base: number) => Math.max(base * (screenWidth / 400), base * 0.8);
-
-  // Fetch services from Firestore
-  const convertGoogleDriveLink = (link: string) => {
-    if (!link) return '';
-    const match = link.match(/\/d\/(.*?)\//);
-    if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
-    return link;
-  };
-
-  const fetchServices = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, 'services'));
-      const items: ServiceItem[] = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id, // ✅ include Firestore docId
-          name: data.name,
-          brand: data.brand,
-          duration: data.duration,
-          company: data.company,
-          price: Number(data.price),
-          image: data.image || '',
-          description: data.description || '',
-          schedule: data.schedule || [],
-        };
-      });
-      setServices(items);
-    } catch (err) {
-      console.error('Error fetching services:', err);
-    }
-  };
-
-  const getNextPax = (schedule?: ScheduleItem[]) => {
-    if (!schedule || schedule.length === 0) return '-';
-    const sorted = schedule.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    return sorted[0].pax || '-';
-  };
-
-  useEffect(() => {
-    fetchServices();
-  }, []);
+  const [myRequests, setMyRequests] = useState<any[]>([]);
+  const [myAvailabilities, setMyAvailabilities] = useState<any[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (u) {
+        setUserId(u.uid);
         try {
           const userDoc = await getDoc(doc(db, 'users', u.uid));
           if (userDoc.exists()) {
             const data: any = userDoc.data();
             setUserRole(data.role ?? null);
             setUserType(data.userType ?? null);
-          } else {
-            setUserRole(null);
-            setUserType(null);
+            fetchUserData(u.uid, data.role, data.userType);
           }
         } catch (err) {
           console.error('Error fetching user profile:', err);
@@ -108,193 +40,147 @@ export default function Services() {
       } else {
         setUserRole(null);
         setUserType(null);
+        setUserId(null);
+        setMyRequests([]);
+        setMyAvailabilities([]);
       }
     });
     return () => unsub();
   }, []);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchServices().finally(() => setRefreshing(false));
+  const fetchUserData = async (uid: string, role: string, type: string) => {
+    try {
+      // If Patient (Standard) or Admin -> Fetch Requests
+      if (type === 'standard' || role === 'admin' || !type) {
+        const q = query(collection(db, 'escort', 'request', 'entries'), where('userId', '==', uid));
+        const snap = await getDocs(q);
+        setMyRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
+
+      // If Escort or Admin -> Fetch Availabilities
+      if (type === 'escort' || role === 'admin') {
+        const q = query(collection(db, 'escort', 'availability', 'entries'), where('providerId', '==', uid));
+        const snap = await getDocs(q);
+        setMyAvailabilities(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
+    } catch (e) {
+      console.error('Error fetching dashboard data:', e);
+    }
   };
 
-  if (!services.length) {
+  const onRefresh = () => {
+    setRefreshing(true);
+    if (userId) fetchUserData(userId, userRole || '', userType || '');
+    setTimeout(() => setRefreshing(false), 1000);
+  };
+
+  const renderStatusBadge = (status: string) => {
+    let color = theme.unselected;
+    if (status === 'matched') color = '#10b981'; // green
+    if (status === 'pending' || status === 'available') color = '#f59e0b'; // orange
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }}>
-        <Text style={{ color: theme.text, fontSize: 20 }}>Loading services...</Text>
+      <View style={{ backgroundColor: color, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, alignSelf: 'flex-start', marginTop: 4 }}>
+        <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase' }}>{status}</Text>
       </View>
     );
-  }
-
-  const allCompanies = Array.from(new Set(services.map(s => s.company)));
-
-  let filteredItems = services.filter(s => (s.name + ' ' + s.company).toLowerCase().includes(search.toLowerCase()));
-
-  if (filter) {
-    if (filter === 'company' && filterValue) filteredItems = filteredItems.filter(s => s.company.toLowerCase() === filterValue.toLowerCase());
-    if (filter === 'price' && filterValue) filteredItems = filteredItems.filter(s => s.price <= Number(filterValue));
-  }
-
-  const getNextAvailability = (schedule?: ScheduleItem[]) => {
-    if (!schedule || schedule.length === 0) return 'No slots';
-    const sorted = schedule.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    const next = sorted[0];
-    return `${next.date} ${next.from}-${next.to}`;
   };
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: theme.background }}
-      contentContainerStyle={{ paddingBottom: 40 }}
+      contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} tintColor={theme.primary} />}
     >
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>Services</Text>
+      <Text style={[styles.title, { color: theme.text, fontSize: textSize + 8 }]}>Escort Dashboard</Text>
 
-        {/* Conditional CTA(s) based on userType / role */}
-        {
-          // Admins see both. Escorts see the escort panel button only.
-          // Standard users see the Request Medical Escort button only.
-        }
-        {((userType === 'standard') || (userRole === 'admin') || (!userType && !userRole)) && (
+      {/* ADMIN SECTION */}
+      {userRole === 'admin' && (
+        <View style={{ marginBottom: 20 }}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Admin Actions</Text>
+          <TouchableOpacity
+            style={[styles.card, { backgroundColor: theme.primary, alignItems: 'center' }]}
+            onPress={() => router.push('/admin/admin_escort_match')}
+          >
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: textSize }}>Manage Matching</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* PATIENT SECTION */}
+      {((userType === 'standard') || (userRole === 'admin') || (!userType && !userRole)) && (
+        <View style={{ marginBottom: 30 }}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>My Escort Requests</Text>
+
           <TouchableOpacity
             style={[styles.ctaButton, { backgroundColor: theme.primary }]}
-            activeOpacity={0.85}
             onPress={() => router.push('/escorts/require-escort')}
           >
-            <Text style={[styles.ctaButtonText, { color: '#fff', fontSize: responsiveText(textSize) }]}>Request Medical Escort</Text>
-          </TouchableOpacity>
-        )}
-
-        {(userType === 'escort' || userRole === 'admin') && (
-          <TouchableOpacity
-            style={[styles.ctaButton, { backgroundColor: theme.unselectedTab || '#888' }]}
-            activeOpacity={0.85}
-            onPress={() => router.push('/escorts/escort')}
-          >
-            <Text style={[styles.ctaButtonText, { color: theme.text, fontSize: responsiveText(textSize) }]}>Add Escort Timings</Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Search Input */}
-        <TextInput
-          style={[styles.input, { backgroundColor: '#fff', color: '#000', fontSize: responsiveText(textSize) }]}
-          placeholder="Search services..."
-          placeholderTextColor="#888"
-          value={search}
-          onChangeText={setSearch}
-        />
-
-        {/* Filter Row */}
-        <View style={styles.dropdownRow}>
-          <TouchableOpacity
-            style={[styles.dropdownBtn, filter && styles.dropdownBtnActive]}
-            onPress={() => { setShowFilterDropdown(!showFilterDropdown); setShowValueDropdown(false); }}
-          >
-            <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-              {filter ? filter.charAt(0).toUpperCase() + filter.slice(1) : 'Filter By'}
-            </Text>
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: textSize }}>+ New Request</Text>
           </TouchableOpacity>
 
-          {filter && (
-            <TouchableOpacity style={styles.clearBtn} onPress={() => { setFilter(null); setFilterValue(''); setShowValueDropdown(false); }}>
-              <Text style={{ color: theme.primary, fontSize: responsiveText(textSize - 2) }}>✕</Text>
-            </TouchableOpacity>
+          {myRequests.length === 0 ? (
+            <Text style={{ color: theme.unselected, fontStyle: 'italic' }}>No active requests.</Text>
+          ) : (
+            myRequests.map((req) => (
+              <View key={req.id} style={[styles.card, { backgroundColor: theme.unselectedTab }]}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: textSize }}>{req.hospital}</Text>
+                  <Text style={{ color: theme.text }}>{req.date}</Text>
+                </View>
+                <Text style={{ color: theme.text, marginTop: 4 }}>Time: {req.time}</Text>
+                {renderStatusBadge(req.status)}
+                {req.status === 'matched' && (
+                  <Text style={{ color: theme.primary, marginTop: 8, fontWeight: 'bold' }}>
+                    Matched with: {req.matchedProviderName || 'Volunteer'}
+                  </Text>
+                )}
+              </View>
+            ))
           )}
         </View>
+      )}
 
-        {/* Filter dropdown */}
-        {showFilterDropdown && (
-          <View style={styles.dropdownMenu}>
-            {['company', 'price'].map(f => (
-              <TouchableOpacity
-                key={f}
-                style={styles.dropdownMenuItem}
-                onPress={() => {
-                  setFilter(f as any);
-                  setShowFilterDropdown(false);
-                  setShowValueDropdown(f === 'brand' || f === 'company');
-                  setFilterValue('');
-                }}
-              >
-                <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>{f.charAt(0).toUpperCase() + f.slice(1)}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
+      {/* ESCORT SECTION */}
+      {(userType === 'escort' || userRole === 'admin') && (
+        <View style={{ marginBottom: 30 }}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>My Availability</Text>
 
-        {/* Value dropdown */}
-        {showValueDropdown && filter === 'company' && (
-          <FlatList
-            data={allCompanies}
-            keyExtractor={(c) => c}
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.dropdownMenuItem} onPress={() => { setFilterValue(item); setShowValueDropdown(false); }}>
-                <Text style={{ color: theme.text }}>{item}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        )}
+          <TouchableOpacity
+            style={[styles.ctaButton, { backgroundColor: theme.primary }]}
+            onPress={() => router.push('/escorts/escort')}
+          >
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: textSize }}>+ Add Availability</Text>
+          </TouchableOpacity>
 
-        {/* Price Input */}
-        {filter === 'price' && (
-          <TextInput
-            style={[styles.input, { backgroundColor: '#fff', color: '#000', fontSize: responsiveText(textSize - 2), marginBottom: 10 }]}
-            placeholder="Max price..."
-            placeholderTextColor="#888"
-            keyboardType="numeric"
-            value={filterValue}
-            onChangeText={setFilterValue}
-          />
-        )}
-
-        {/* Services Grid */}
-        <FlatList
-          data={filteredItems}
-          keyExtractor={(_, i) => i.toString()}
-          numColumns={numColumns}
-          contentContainerStyle={{ paddingBottom: 30 }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => {
-                const params = {
-                  ...item,
-                  docId: item.id, // ✅ ensure booking screen gets Firestore docId
-                  price: String(item.price),
-                  schedule: item.schedule ? JSON.stringify(item.schedule) : undefined
-                };
-                console.log("Passing to booking:", params); // ✅ debug print
-                router.push({ pathname: '/rental/booking', params });
-              }}
-              activeOpacity={0.8}
-              style={[styles.gridItem, { borderColor: theme.primary, maxWidth: `${100 / numColumns}%` }]}
-            >
-              <Image source={{ uri: convertGoogleDriveLink(item.image) }} style={[styles.gridImage, { width: screenWidth / numColumns - 32, height: (screenWidth / numColumns - 32) * 0.7, marginBottom: 8 }]} />
-              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize), maxWidth: '95%' }]} numberOfLines={2}>{item.name}</Text>
-              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize - 4), maxWidth: '95%' }]} numberOfLines={1}>Next: {getNextAvailability(item.schedule)}</Text>
-              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize - 4), maxWidth: '95%' }]} numberOfLines={1}>${item.price}/hr | Pax: {getNextPax(item.schedule)}</Text>
-            </TouchableOpacity>
+          {myAvailabilities.length === 0 ? (
+            <Text style={{ color: theme.unselected, fontStyle: 'italic' }}>No availability slots posted.</Text>
+          ) : (
+            myAvailabilities.map((avail) => (
+              <View key={avail.id} style={[styles.card, { backgroundColor: theme.unselectedTab }]}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: textSize }}>{avail.location}</Text>
+                  <Text style={{ color: theme.text }}>{avail.date}</Text>
+                </View>
+                <Text style={{ color: theme.text, marginTop: 4 }}>{avail.fromTime} - {avail.toTime}</Text>
+                {renderStatusBadge(avail.status)}
+                {avail.status === 'matched' && (
+                  <Text style={{ color: theme.primary, marginTop: 8, fontWeight: 'bold' }}>
+                    Matched! Check details.
+                  </Text>
+                )}
+              </View>
+            ))
           )}
-          ListEmptyComponent={<Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize) }]}>No results found.</Text>}
-        />
-      </View>
+        </View>
+      )}
+
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 60, paddingHorizontal: 20 },
-  input: { height: 45, borderRadius: 12, paddingHorizontal: 15, marginBottom: 20, borderWidth: 1, borderColor: '#ccc' },
-  title: { fontWeight: 'bold', marginBottom: 20, fontSize: 20 },
-  ctaButton: { paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, alignItems: 'center', marginBottom: 16, alignSelf: 'stretch' },
-  ctaButtonText: { fontWeight: '700' },
-  dropdownRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  dropdownBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: '#eee', marginRight: 8 },
-  dropdownBtnActive: { backgroundColor: '#dbeafe' },
-  clearBtn: { padding: 6, borderRadius: 8, backgroundColor: '#f3f4f6' },
-  dropdownMenu: { backgroundColor: '#fff', borderRadius: 8, marginBottom: 10, elevation: 4, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, maxHeight: 180, alignSelf: 'stretch' },
-  dropdownMenuItem: { paddingVertical: 10, paddingHorizontal: 16 },
-  gridItem: { flex: 1, aspectRatio: 0.85, margin: 6, borderWidth: 2, borderColor: '#4a90e2', borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', elevation: 2, overflow: 'hidden' },
-  gridImage: { marginBottom: 12, borderRadius: 18, resizeMode: 'cover' },
-  gridText: { textAlign: 'center', fontWeight: '500' },
+  title: { fontWeight: 'bold', marginBottom: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 10 },
+  ctaButton: { padding: 12, borderRadius: 8, alignItems: 'center', marginBottom: 16 },
+  card: { padding: 16, borderRadius: 12, marginBottom: 12 },
 });

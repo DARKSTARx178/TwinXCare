@@ -54,7 +54,7 @@ function RootLayoutContent() {
     })();
     return () => { mounted = false; };
   }, []);
-  
+
   // After checking completes, show a short transition splash before revealing the app
   useEffect(() => {
     if (!checking) {
@@ -62,7 +62,7 @@ function RootLayoutContent() {
       return () => clearTimeout(t);
     }
   }, [checking]);
-  
+
   if (checking) {
     return <SplashScreen message="Checking app version..." />;
   }
@@ -70,7 +70,7 @@ function RootLayoutContent() {
   if (blocked) {
     const playStoreUrl = `https://play.google.com/store/apps/details?id=com.darkstarx178.TwinXCare`;
     return (
-      <View style={[styles.center, { backgroundColor: theme.background, padding: 24 }]}> 
+      <View style={[styles.center, { backgroundColor: theme.background, padding: 24 }]}>
         <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 18, marginBottom: 12 }}>Update required</Text>
         <Text style={{ color: theme.text, textAlign: 'center', marginBottom: 20 }}>
           {`Your app version (${APP_VERSION}) is out of date. Latest version is ${remoteVersion}. Please update to continue.`}

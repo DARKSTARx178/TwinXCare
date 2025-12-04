@@ -2,7 +2,7 @@ export const homeTranslations = {
   en: {
     home: 'Home',
     bookEquipment: 'Book Equipment',
-    services: 'Services',
+    services: 'Escort',
     requireAssistance: 'Require Assistance',
     myRentals: 'Bookings',
     welcome: 'Welcome',

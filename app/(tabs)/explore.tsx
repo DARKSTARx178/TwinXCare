@@ -17,6 +17,18 @@ interface EquipmentItem {
   description?: string;
 }
 
+export interface ServiceItem {
+  id: string;
+  name: string;
+  brand?: string;
+  duration: string;
+  company: string;
+  price: number;
+  image: string;
+  description?: string;
+  schedule?: any[];
+}
+
 
 export let aiExploreFilterControl = { setSearch: undefined as undefined | ((v: string) => void) };
 
@@ -24,10 +36,13 @@ export default function Explore() {
   const [refreshing, setRefreshing] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [itemAvailability, setItemAvailability] = useState<EquipmentItem[]>([]);
+  const [services, setServices] = useState<ServiceItem[]>([]); // Added services state
+  const [viewMode, setViewMode] = useState<'equipment' | 'services'>('equipment'); // Toggle state
+
   const { scheme, fontSize } = useAccessibility();
   const { theme } = useContext(ThemeContext);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'brand' | 'item' | 'price' | 'availability' | null>(null);
+  const [filter, setFilter] = useState<'brand' | 'item' | 'price' | 'availability' | 'company' | null>(null);
   const [filterValue, setFilterValue] = useState<string>('');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [showValueDropdown, setShowValueDropdown] = useState(false);
@@ -42,11 +57,15 @@ export default function Explore() {
 
   useEffect(() => {
     aiExploreFilterControl.setSearch = setSearch;
-    fetchEquipment();
+    if (viewMode === 'equipment') {
+      fetchEquipment();
+    } else {
+      fetchServices();
+    }
     return () => {
       aiExploreFilterControl.setSearch = undefined;
     };
-  }, [reloadKey]);
+  }, [reloadKey, viewMode]);
 
   const fetchEquipment = async () => {
     try {
@@ -56,7 +75,7 @@ export default function Explore() {
       snapshot.forEach(doc => {
         const data = doc.data();
         items.push({
-          docId: doc.id, // ✅ matches interface
+          docId: doc.id,
           name: data.name || 'Unnamed',
           brand: data.brand || 'Unknown',
           price: data.price || 0,
@@ -64,7 +83,6 @@ export default function Explore() {
           description: data.description || '',
           image: convertGoogleDriveLink(data.image),
         });
-
       });
       setItemAvailability(items);
     } catch (err) {
@@ -72,15 +90,52 @@ export default function Explore() {
     }
   };
 
+  const fetchServices = async () => {
+    try {
+      const snapshot = await getDocs(collection(db, 'services'));
+      const items: ServiceItem[] = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name,
+          brand: data.brand,
+          duration: data.duration,
+          company: data.company,
+          price: Number(data.price),
+          image: convertGoogleDriveLink(data.image || ''),
+          description: data.description || '',
+          schedule: data.schedule || [],
+        };
+      });
+      setServices(items);
+    } catch (err) {
+      console.error('Error fetching services:', err);
+    }
+  };
+
   const convertGoogleDriveLink = (link: string) => {
     if (!link) return '';
     const match = link.match(/\/d\/(.*?)\//);
     if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
-    return link; // fallback if not a Google Drive link
+    return link;
+  };
+
+  const getNextAvailability = (schedule?: any[]) => {
+    if (!schedule || schedule.length === 0) return 'No slots';
+    const sorted = schedule.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const next = sorted[0];
+    return `${next.date} ${next.from}-${next.to}`;
+  };
+
+  const getNextPax = (schedule?: any[]) => {
+    if (!schedule || schedule.length === 0) return '-';
+    const sorted = schedule.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return sorted[0].pax || '-';
   };
 
   const allBrands = Array.from(new Set(itemAvailability.map((item) => item.brand))) as string[];
   const allItems = Array.from(new Set(itemAvailability.map((item) => item.name))) as string[];
+  const allCompanies = Array.from(new Set(services.map(s => s.company)));
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -88,45 +143,26 @@ export default function Explore() {
     setTimeout(() => setRefreshing(false), 600);
   };
 
-  if (itemAvailability.length === 0) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }}>
-        <Text style={{ color: theme.text, fontSize: 20 }}>Loading equipment...</Text>
-      </View>
-    );
-  }
+  let filteredItems: any[] = viewMode === 'equipment' ? itemAvailability : services;
 
-  let filteredItems = itemAvailability.filter((item) =>
-    (item.name + ' ' + item.brand).toLowerCase().includes(search.toLowerCase())
+  filteredItems = filteredItems.filter((item) =>
+    (item.name + ' ' + (item.brand || item.company || '')).toLowerCase().includes(search.toLowerCase())
   );
 
   if (filter) {
-    if (filter === 'brand' && filterValue) {
+    if (filter === 'brand' && filterValue && viewMode === 'equipment') {
       const val = filterValue.toLowerCase().replace(/\s+/g, '');
-      filteredItems = filteredItems.filter((i) => {
-        const brandNorm = i.brand.toLowerCase().replace(/\s+/g, '');
-        return (
-          brandNorm === val ||
-          brandNorm.startsWith(val) ||
-          brandNorm.includes(val) ||
-          val.startsWith(brandNorm)
-        );
-      });
+      filteredItems = filteredItems.filter((i) => i.brand?.toLowerCase().replace(/\s+/g, '').includes(val));
+    }
+    if (filter === 'company' && filterValue && viewMode === 'services') {
+      filteredItems = filteredItems.filter(s => s.company?.toLowerCase() === filterValue.toLowerCase());
     }
     if (filter === 'item' && filterValue) {
       const val = filterValue.toLowerCase().replace(/\s+/g, '');
-      filteredItems = filteredItems.filter((i) => {
-        const nameNorm = i.name.toLowerCase().replace(/\s+/g, '');
-        return (
-          nameNorm === val ||
-          nameNorm.startsWith(val) ||
-          nameNorm.includes(val) ||
-          val.startsWith(nameNorm)
-        );
-      });
+      filteredItems = filteredItems.filter((i) => i.name.toLowerCase().replace(/\s+/g, '').includes(val));
     }
     if (filter === 'price' && filterValue) filteredItems = filteredItems.filter((i) => i.price <= parseFloat(filterValue));
-    if (filter === 'availability') filteredItems = filteredItems.filter((i) => i.stock > 0);
+    if (filter === 'availability' && viewMode === 'equipment') filteredItems = filteredItems.filter((i) => i.stock > 0);
   }
 
   return (
@@ -143,17 +179,35 @@ export default function Explore() {
       }
     >
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>Equipment</Text>
+        <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>Explore</Text>
+
+        {/* Toggle Switch */}
+        <View style={{ flexDirection: 'row', marginBottom: 20, backgroundColor: theme.unselectedTab, borderRadius: 12, padding: 4 }}>
+          <TouchableOpacity
+            style={{ flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10, backgroundColor: viewMode === 'equipment' ? theme.primary : 'transparent' }}
+            onPress={() => { setViewMode('equipment'); setFilter(null); }}
+          >
+            <Text style={{ fontWeight: 'bold', color: viewMode === 'equipment' ? '#fff' : theme.text }}>Equipment</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10, backgroundColor: viewMode === 'services' ? theme.primary : 'transparent' }}
+            onPress={() => { setViewMode('services'); setFilter(null); }}
+          >
+            <Text style={{ fontWeight: 'bold', color: viewMode === 'services' ? '#fff' : theme.text }}>Services</Text>
+          </TouchableOpacity>
+        </View>
+
         <TextInput
           style={[
             styles.input,
             { backgroundColor: theme.background, color: theme.text, fontSize: responsiveText(textSize) }
           ]}
-          placeholder="Search equipment..."
+          placeholder={`Search ${viewMode}...`}
           placeholderTextColor={theme.unselected}
           value={search}
           onChangeText={setSearch}
         />
+
         {/* Filter dropdown */}
         <View style={styles.dropdownRow}>
           <TouchableOpacity
@@ -180,16 +234,17 @@ export default function Explore() {
             </TouchableOpacity>
           )}
         </View>
+
         {showFilterDropdown && (
           <View style={styles.dropdownMenu}>
-            {['brand', 'item', 'price', 'availability'].map((f) => (
+            {(viewMode === 'equipment' ? ['brand', 'item', 'price', 'availability'] : ['company', 'price']).map((f) => (
               <TouchableOpacity
                 key={f}
                 style={styles.dropdownMenuItem}
                 onPress={() => {
                   setFilter(f as any);
                   setShowFilterDropdown(false);
-                  setShowValueDropdown(f === 'brand' || f === 'item');
+                  setShowValueDropdown(f === 'brand' || f === 'item' || f === 'company');
                   setFilterValue('');
                 }}
               >
@@ -198,30 +253,12 @@ export default function Explore() {
             ))}
           </View>
         )}
-        {/* Value dropdown for brand/item */}
-        {showValueDropdown && filter === 'brand' && (
+
+        {/* Value dropdowns */}
+        {showValueDropdown && (
           <View style={styles.dropdownMenu}>
             <RNFlatList
-              data={allBrands}
-              keyExtractor={(b) => String(b)}
-              renderItem={({ item: b }) => (
-                <TouchableOpacity
-                  style={styles.dropdownMenuItem}
-                  onPress={() => {
-                    setFilterValue(b);
-                    setShowValueDropdown(false);
-                  }}
-                >
-                  <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>{b}</Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        )}
-        {showValueDropdown && filter === 'item' && (
-          <View style={styles.dropdownMenu}>
-            <RNFlatList
-              data={allItems}
+              data={filter === 'brand' ? allBrands : filter === 'company' ? allCompanies : allItems}
               keyExtractor={(i) => String(i)}
               renderItem={({ item: i }) => (
                 <TouchableOpacity
@@ -237,6 +274,7 @@ export default function Explore() {
             />
           </View>
         )}
+
         {filter === 'price' && (
           <TextInput
             style={[styles.input, { backgroundColor: '#fff', color: '#000', fontSize: responsiveText(textSize - 2), marginBottom: 10 }]}
@@ -247,7 +285,8 @@ export default function Explore() {
             onChangeText={setFilterValue}
           />
         )}
-        {/* Equipment grid */}
+
+        {/* Grid */}
         <FlatList
           data={filteredItems}
           keyExtractor={(_, index) => index.toString()}
@@ -255,18 +294,30 @@ export default function Explore() {
           contentContainerStyle={{ paddingBottom: 30 }}
           renderItem={({ item }) => (
             <TouchableOpacity
-              onPress={() => router.push({
-                pathname: '/rental/order',
-                params: {
-                  docId: item.docId,  // pass this
-                  name: item.name,
-                  brand: item.brand,
-                  price: String(item.price),
-                  stock: String(item.stock),
-                  image: item.image,
-                  description: item.description || ''
+              onPress={() => {
+                if (viewMode === 'equipment') {
+                  router.push({
+                    pathname: '/rental/order',
+                    params: {
+                      docId: item.docId,
+                      name: item.name,
+                      brand: item.brand,
+                      price: String(item.price),
+                      stock: String(item.stock),
+                      image: item.image,
+                      description: item.description || ''
+                    }
+                  });
+                } else {
+                  const params = {
+                    ...item,
+                    docId: item.id,
+                    price: String(item.price),
+                    schedule: item.schedule ? JSON.stringify(item.schedule) : undefined
+                  };
+                  router.push({ pathname: '/rental/booking', params });
                 }
-              })}
+              }}
               activeOpacity={0.8}
               style={[styles.gridItem, { borderColor: theme.primary, maxWidth: `${100 / numColumns}%` }]}
             >
@@ -279,8 +330,18 @@ export default function Explore() {
                 }
               ]} />
               <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize), maxWidth: '95%' }]} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
-              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize - 2), maxWidth: '95%' }]} numberOfLines={1} ellipsizeMode="tail">{item.brand}</Text>
-              <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize - 4), maxWidth: '95%' }]} numberOfLines={1} ellipsizeMode="tail">${item.price}/day | Stock: {item.stock}</Text>
+
+              {viewMode === 'equipment' ? (
+                <>
+                  <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize - 2), maxWidth: '95%' }]} numberOfLines={1} ellipsizeMode="tail">{item.brand}</Text>
+                  <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize - 4), maxWidth: '95%' }]} numberOfLines={1} ellipsizeMode="tail">${item.price}/day | Stock: {item.stock}</Text>
+                </>
+              ) : (
+                <>
+                  <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize - 4), maxWidth: '95%' }]} numberOfLines={1}>Next: {getNextAvailability(item.schedule)}</Text>
+                  <Text style={[styles.gridText, { color: theme.text, fontSize: gridTextSize(textSize - 4), maxWidth: '95%' }]} numberOfLines={1}>${item.price}/hr | Pax: {getNextPax(item.schedule)}</Text>
+                </>
+              )}
             </TouchableOpacity>
           )}
           ListEmptyComponent={

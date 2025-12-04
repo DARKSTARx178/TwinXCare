@@ -98,7 +98,7 @@ function TabLayout({ onHeaderSwipe }: { onHeaderSwipe?: () => void }) {
     >
       <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({ color }) => <IconSymbol name="house.fill" size={32} color={color} />, tabBarLabel: ({ color }) => <Text style={{ color, fontSize: 12 }}>Home</Text> }} />
       <Tabs.Screen name="explore" options={{ title: 'Equipment', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="hospital-box" size={32} color={color} />, tabBarLabel: ({ color }) => <Text style={{ color, fontSize: 12 }}>Equipment</Text> }} />
-      <Tabs.Screen name="services" options={{ title: 'Services', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="account-heart" size={32} color={color} />, tabBarLabel: ({ color }) => <Text style={{ color, fontSize: 12 }}>Services</Text> }} />
+      <Tabs.Screen name="services" options={{ title: 'Escort', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="car-side" size={32} color={color} />, tabBarLabel: ({ color }) => <Text style={{ color, fontSize: 12 }}>Escort</Text> }} />
       <Tabs.Screen name="delivery" options={{ title: 'Delivery', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="car" size={32} color={color} />, tabBarLabel: ({ color }) => <Text style={{ color, fontSize: 12 }}>Delivery</Text> }} />
       <Tabs.Screen name="settings" options={{ title: 'Settings', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="cog" size={32} color={color} />, tabBarLabel: ({ color }) => <Text style={{ color, fontSize: 12 }}>Settings</Text> }} />
     </Tabs>

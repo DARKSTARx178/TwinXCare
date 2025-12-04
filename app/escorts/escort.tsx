@@ -1,5 +1,7 @@
 import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
+import { checkMatchForAvailability } from '@/services/matchingService';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import React, { useContext, useState } from 'react';
@@ -9,29 +11,41 @@ export default function EscortAvailability() {
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
 
-  const [date, setDate] = useState('');
-  const [fromTime, setFromTime] = useState('');
-  const [toTime, setToTime] = useState('');
+  const [date, setDate] = useState(new Date());
+  const [fromTime, setFromTime] = useState(new Date());
+  const [toTime, setToTime] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showFromPicker, setShowFromPicker] = useState(false);
+  const [showToPicker, setShowToPicker] = useState(false);
+
   const [location, setLocation] = useState('');
   const [maxPax, setMaxPax] = useState('1');
   const [contactPhone, setContactPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // Helpers to format for Firestore (keeping existing string format)
+  const formatDate = (d: Date) => d.toISOString().split('T')[0];
+  const formatTime = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
   const handleSubmit = async () => {
-    if (!date.trim() || !fromTime.trim() || !toTime.trim() || !location.trim()) {
-      Alert.alert('Please fill required fields', 'Date, from/to time and location are required.');
+    const dateStr = formatDate(date);
+    const fromStr = formatTime(fromTime);
+    const toStr = formatTime(toTime);
+
+    if (!location.trim()) {
+      Alert.alert('Please fill required fields', 'Location is required.');
       return;
     }
 
     setSubmitting(true);
     try {
-      await addDoc(collection(db, 'escort', 'availability', 'entries'), {
+      const docRef = await addDoc(collection(db, 'escort', 'availability', 'entries'), {
         providerId: auth?.currentUser?.uid ?? 'guest',
         providerEmail: auth?.currentUser?.email ?? 'guest',
-        date,
-        fromTime,
-        toTime,
+        date: dateStr,
+        fromTime: fromStr,
+        toTime: toStr,
         location,
         maxPax: Number(maxPax) || 1,
         contactPhone,
@@ -39,6 +53,23 @@ export default function EscortAvailability() {
         createdAt: serverTimestamp(),
         status: 'available'
       });
+
+      console.log('✅ Availability added with ID:', docRef.id);
+
+      const availData = {
+        providerId: auth?.currentUser?.uid ?? 'guest',
+        providerEmail: auth?.currentUser?.email ?? 'guest',
+        date: dateStr,
+        fromTime: fromStr,
+        toTime: toStr,
+        location,
+        maxPax: Number(maxPax) || 1,
+        contactPhone,
+        notes,
+        status: 'available'
+      };
+
+      checkMatchForAvailability(docRef.id, availData);
 
       Alert.alert('Availability submitted', 'Thank you — your availability has been posted.');
       router.back();
@@ -51,20 +82,64 @@ export default function EscortAvailability() {
   };
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}> 
+    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}>
       <Text style={[styles.title, { color: theme.text }]}>Volunteer / Escort Availability</Text>
 
-      <Text style={[styles.label, { color: theme.text }]}>Date (YYYY-MM-DD)</Text>
-      <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="2025-11-10" value={date} onChangeText={setDate} />
+      <Text style={[styles.label, { color: theme.text }]}>Date</Text>
+      <TouchableOpacity onPress={() => setShowDatePicker(true)} style={[styles.input, { borderColor: theme.primary, justifyContent: 'center' }]}>
+        <Text style={{ color: theme.text }}>{formatDate(date)}</Text>
+      </TouchableOpacity>
+      {showDatePicker && (
+        <DateTimePicker
+          value={date}
+          mode="date"
+          display="default"
+          minimumDate={new Date()}
+          onChange={(event, selectedDate) => {
+            setShowDatePicker(false);
+            if (selectedDate) setDate(selectedDate);
+          }}
+        />
+      )}
 
       <View style={{ flexDirection: 'row', gap: 8 }}>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.label, { color: theme.text }]}>From (HH:MM)</Text>
-          <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="09:00" value={fromTime} onChangeText={setFromTime} />
+          <Text style={[styles.label, { color: theme.text }]}>From</Text>
+          <TouchableOpacity onPress={() => setShowFromPicker(true)} style={[styles.input, { borderColor: theme.primary, justifyContent: 'center' }]}>
+            <Text style={{ color: theme.text }}>{formatTime(fromTime)}</Text>
+          </TouchableOpacity>
+          {showFromPicker && (
+            <DateTimePicker
+              value={fromTime}
+              mode="time"
+              is24Hour={true}
+              display="default"
+              minuteInterval={5}
+              onChange={(event, selectedDate) => {
+                setShowFromPicker(false);
+                if (selectedDate) setFromTime(selectedDate);
+              }}
+            />
+          )}
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.label, { color: theme.text }]}>To (HH:MM)</Text>
-          <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="12:00" value={toTime} onChangeText={setToTime} />
+          <Text style={[styles.label, { color: theme.text }]}>To</Text>
+          <TouchableOpacity onPress={() => setShowToPicker(true)} style={[styles.input, { borderColor: theme.primary, justifyContent: 'center' }]}>
+            <Text style={{ color: theme.text }}>{formatTime(toTime)}</Text>
+          </TouchableOpacity>
+          {showToPicker && (
+            <DateTimePicker
+              value={toTime}
+              mode="time"
+              is24Hour={true}
+              display="default"
+              minuteInterval={5}
+              onChange={(event, selectedDate) => {
+                setShowToPicker(false);
+                if (selectedDate) setToTime(selectedDate);
+              }}
+            />
+          )}
         </View>
       </View>
 

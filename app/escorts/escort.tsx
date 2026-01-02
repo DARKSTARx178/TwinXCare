@@ -1,6 +1,7 @@
 import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
 import { checkMatchForAvailability } from '@/services/matchingService';
+import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
@@ -24,7 +25,6 @@ export default function EscortAvailability() {
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Helpers to format for Firestore (keeping existing string format)
   const formatDate = (d: Date) => d.toISOString().split('T')[0];
   const formatTime = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
@@ -54,8 +54,6 @@ export default function EscortAvailability() {
         status: 'available'
       });
 
-      console.log('✅ Availability added with ID:', docRef.id);
-
       const availData = {
         providerId: auth?.currentUser?.uid ?? 'guest',
         providerEmail: auth?.currentUser?.email ?? 'guest',
@@ -82,91 +80,266 @@ export default function EscortAvailability() {
   };
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}>
-      <Text style={[styles.title, { color: theme.text }]}>Volunteer / Escort Availability</Text>
-
-      <Text style={[styles.label, { color: theme.text }]}>Date</Text>
-      <TouchableOpacity onPress={() => setShowDatePicker(true)} style={[styles.input, { borderColor: theme.primary, justifyContent: 'center' }]}>
-        <Text style={{ color: theme.text }}>{formatDate(date)}</Text>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: theme.background }}
+      contentContainerStyle={{ paddingBottom: 60 }}
+      showsVerticalScrollIndicator={false}
+    >
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <Ionicons name="arrow-back" size={28} color={theme.text} />
       </TouchableOpacity>
-      {showDatePicker && (
-        <DateTimePicker
-          value={date}
-          mode="date"
-          display="default"
-          minimumDate={new Date()}
-          onChange={(event, selectedDate) => {
-            setShowDatePicker(false);
-            if (selectedDate) setDate(selectedDate);
-          }}
-        />
-      )}
 
-      <View style={{ flexDirection: 'row', gap: 8 }}>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.label, { color: theme.text }]}>From</Text>
-          <TouchableOpacity onPress={() => setShowFromPicker(true)} style={[styles.input, { borderColor: theme.primary, justifyContent: 'center' }]}>
-            <Text style={{ color: theme.text }}>{formatTime(fromTime)}</Text>
-          </TouchableOpacity>
-          {showFromPicker && (
-            <DateTimePicker
-              value={fromTime}
-              mode="time"
-              is24Hour={true}
-              display="default"
-              minuteInterval={5}
-              onChange={(event, selectedDate) => {
-                setShowFromPicker(false);
-                if (selectedDate) setFromTime(selectedDate);
-              }}
-            />
-          )}
+      <View style={styles.header}>
+        <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
+          <Ionicons name="calendar-outline" size={32} color={theme.primary} />
         </View>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.label, { color: theme.text }]}>To</Text>
-          <TouchableOpacity onPress={() => setShowToPicker(true)} style={[styles.input, { borderColor: theme.primary, justifyContent: 'center' }]}>
-            <Text style={{ color: theme.text }}>{formatTime(toTime)}</Text>
-          </TouchableOpacity>
-          {showToPicker && (
-            <DateTimePicker
-              value={toTime}
-              mode="time"
-              is24Hour={true}
-              display="default"
-              minuteInterval={5}
-              onChange={(event, selectedDate) => {
-                setShowToPicker(false);
-                if (selectedDate) setToTime(selectedDate);
-              }}
-            />
-          )}
-        </View>
+        <Text style={[styles.title, { color: theme.text }]}>Volunteer Availability</Text>
+        <Text style={[styles.subtitle, { color: theme.textDim }]}>
+          Offer your assistance to patients in need
+        </Text>
       </View>
 
-      <Text style={[styles.label, { color: theme.text }]}>Location</Text>
-      <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Hospital / Area" value={location} onChangeText={setLocation} />
+      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+        <Text style={[styles.cardHeading, { color: theme.text }]}>Service Schedule</Text>
 
-      <Text style={[styles.label, { color: theme.text }]}>Max Pax</Text>
-      <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="1" value={maxPax} onChangeText={setMaxPax} keyboardType="numeric" />
+        <View style={styles.inputWrapper}>
+          <Text style={[styles.label, { color: theme.textDim }]}>Escort Date</Text>
+          <TouchableOpacity
+            onPress={() => setShowDatePicker(true)}
+            style={[styles.datePicker, { backgroundColor: '#F1F5F9' }]}
+          >
+            <Ionicons name="calendar-outline" size={20} color={theme.primary} style={{ marginRight: 10 }} />
+            <Text style={[styles.dateText, { color: theme.text }]}>{formatDate(date)}</Text>
+          </TouchableOpacity>
+        </View>
 
-      <Text style={[styles.label, { color: theme.text }]}>Contact phone</Text>
-      <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Phone" value={contactPhone} onChangeText={setContactPhone} keyboardType="phone-pad" />
+        {showDatePicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display="default"
+            minimumDate={new Date()}
+            onChange={(event, selectedDate) => {
+              setShowDatePicker(false);
+              if (selectedDate) setDate(selectedDate);
+            }}
+          />
+        )}
 
-      <Text style={[styles.label, { color: theme.text }]}>Notes</Text>
-      <TextInput style={[styles.input, { minHeight: 80, borderColor: theme.primary, color: theme.text }]} placeholder="Any notes or constraints" value={notes} onChangeText={setNotes} multiline />
+        <View style={[styles.formRow, { gap: 12 }]}>
+          <View style={styles.inputWrapper}>
+            <Text style={[styles.label, { color: theme.textDim }]}>Available From</Text>
+            <TouchableOpacity
+              onPress={() => setShowFromPicker(true)}
+              style={[styles.timePicker, { backgroundColor: '#F1F5F9' }]}
+            >
+              <Ionicons name="time-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
+              <Text style={[styles.timeText, { color: theme.text }]}>{formatTime(fromTime)}</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.inputWrapper}>
+            <Text style={[styles.label, { color: theme.textDim }]}>Available Until</Text>
+            <TouchableOpacity
+              onPress={() => setShowToPicker(true)}
+              style={[styles.timePicker, { backgroundColor: '#F1F5F9' }]}
+            >
+              <Ionicons name="time-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
+              <Text style={[styles.timeText, { color: theme.text }]}>{formatTime(toTime)}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
-      <TouchableOpacity style={[styles.submitButton, { backgroundColor: theme.primary }, submitting && { opacity: 0.6 }]} onPress={handleSubmit} disabled={submitting}>
-        <Text style={[styles.submitText, { color: '#fff' }]}>{submitting ? 'Submitting...' : 'Submit Availability'}</Text>
-      </TouchableOpacity>
+        {showFromPicker && (
+          <DateTimePicker
+            value={fromTime}
+            mode="time"
+            is24Hour={true}
+            display="default"
+            minuteInterval={5}
+            onChange={(event, selectedDate) => {
+              setShowFromPicker(false);
+              if (selectedDate) setFromTime(selectedDate);
+            }}
+          />
+        )}
+
+        {showToPicker && (
+          <DateTimePicker
+            value={toTime}
+            mode="time"
+            is24Hour={true}
+            display="default"
+            minuteInterval={5}
+            onChange={(event, selectedDate) => {
+              setShowToPicker(false);
+              if (selectedDate) setToTime(selectedDate);
+            }}
+          />
+        )}
+      </View>
+
+      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+        <Text style={[styles.cardHeading, { color: theme.text }]}>Assignment Details</Text>
+
+        <View style={styles.inputWrapper}>
+          <Text style={[styles.label, { color: theme.textDim }]}>Preferred Location</Text>
+          <TextInput
+            style={[styles.input, { color: theme.text }]}
+            placeholder="Hospital, area, or facility"
+            placeholderTextColor="#94a3b8"
+            value={location}
+            onChangeText={setLocation}
+          />
+        </View>
+
+        <View style={styles.formRow}>
+          <View style={[styles.inputWrapper, { flex: 1, marginRight: 12 }]}>
+            <Text style={[styles.label, { color: theme.textDim }]}>Capacity (Pax)</Text>
+            <TextInput
+              style={[styles.input, { color: theme.text }]}
+              placeholder="1"
+              value={maxPax}
+              onChangeText={setMaxPax}
+              keyboardType="numeric"
+            />
+          </View>
+          <View style={[styles.inputWrapper, { flex: 2 }]}>
+            <Text style={[styles.label, { color: theme.textDim }]}>Contact Phone</Text>
+            <TextInput
+              style={[styles.input, { color: theme.text }]}
+              placeholder="Your active number"
+              placeholderTextColor="#94a3b8"
+              value={contactPhone}
+              onChangeText={setContactPhone}
+              keyboardType="phone-pad"
+            />
+          </View>
+        </View>
+
+        <View style={styles.inputWrapper}>
+          <Text style={[styles.label, { color: theme.textDim }]}>Additional Notes</Text>
+          <TextInput
+            style={[styles.input, { color: theme.text, minHeight: 80, textAlignVertical: 'top' }]}
+            placeholder="Constraints or references..."
+            placeholderTextColor="#94a3b8"
+            value={notes}
+            onChangeText={setNotes}
+            multiline
+          />
+        </View>
+
+        <TouchableOpacity
+          style={[styles.submitButton, { backgroundColor: theme.primary }, submitting && { opacity: 0.7 }]}
+          onPress={handleSubmit}
+          disabled={submitting}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.submitText, { color: '#fff' }]}>
+            {submitting ? 'Registering...' : 'Register Availability'}
+          </Text>
+          {!submitting && <Ionicons name="checkmark-circle-outline" size={20} color="#fff" style={{ marginLeft: 8 }} />}
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 20 },
-  title: { fontSize: 22, fontWeight: '700', marginBottom: 12 },
-  label: { fontSize: 14, marginTop: 10, marginBottom: 6 },
-  input: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10 },
-  submitButton: { paddingVertical: 14, paddingHorizontal: 16, borderRadius: 10, alignItems: 'center', marginTop: 18, marginBottom: 40 },
-  submitText: { fontWeight: '700', fontSize: 16 }
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+  },
+  header: {
+    marginTop: 100,
+    marginBottom: 30,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  title: { fontSize: 24, fontWeight: '900', textAlign: 'center' },
+  subtitle: { fontSize: 14, fontWeight: '500', marginTop: 4, textAlign: 'center' },
+  card: {
+    marginHorizontal: 20,
+    padding: 24,
+    borderRadius: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 6,
+    marginBottom: 20,
+  },
+  cardHeading: {
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 20,
+  },
+  inputWrapper: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 11,
+    fontWeight: '800',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  datePicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  dateText: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  timePicker: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+  },
+  timeText: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  formRow: {
+    flexDirection: 'row',
+  },
+  input: {
+    backgroundColor: '#F1F5F9',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  submitButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderRadius: 18,
+    marginTop: 10,
+  },
+  submitText: {
+    fontWeight: '800',
+    fontSize: 16,
+  },
 });

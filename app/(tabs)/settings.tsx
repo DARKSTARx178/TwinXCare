@@ -1,7 +1,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
-import { getFontSizeValue } from '@/utils/fontSizes';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import React, { useContext, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -16,11 +15,11 @@ const COLOR_OPTIONS = [
 
 const COLOR_KEYS = ['background', 'text', 'primary', 'unselected', 'unselectedTab', 'icon'];
 
-// Accessibility color presets for different special needs
 const A11Y_PRESETS = [
   {
     name: 'Standard',
-    description: 'Default color scheme',
+    description: 'Balanced for general use',
+    icon: 'apps-outline',
     theme: {
       background: '#ffffff',
       text: '#000000',
@@ -33,7 +32,8 @@ const A11Y_PRESETS = [
   },
   {
     name: 'High Contrast',
-    description: 'For low vision users',
+    description: 'Maximum legibility',
+    icon: 'contrast-outline',
     theme: {
       background: '#000000',
       text: '#ffff00',
@@ -45,59 +45,27 @@ const A11Y_PRESETS = [
     },
   },
   {
-    name: 'Protanopia (Red-Blind)',
-    description: 'For red color blindness',
+    name: 'Eye Comfort',
+    description: 'Reduced blue light strain',
+    icon: 'sunny-outline',
     theme: {
-      background: '#ffffff',
-      text: '#000000',
-      primary: '#0173b2',
-      unselected: '#999999',
-      unselectedTab: '#f5f5f5',
-      icon: '#0173b2',
+      background: '#fffbf0',
+      text: '#3e2723',
+      primary: '#d84315',
+      unselected: '#a1887f',
+      unselectedTab: '#efebe9',
+      icon: '#8d6e63',
       fontSize: 18,
     },
   },
-  {
-    name: 'Deuteranopia (Green-Blind)',
-    description: 'For green color blindness',
-    theme: {
-      background: '#ffffff',
-      text: '#000000',
-      primary: '#e1597a',
-      unselected: '#999999',
-      unselectedTab: '#f5f5f5',
-      icon: '#cc2936',
-      fontSize: 18,
-    },
-  },
-  {
-    name: 'Tritanopia (Blue-Blind)',
-    description: 'For blue-yellow color blindness',
-    theme: {
-      background: '#ffffff',
-      text: '#000000',
-      primary: '#f0ad4e',
-      unselected: '#999999',
-      unselectedTab: '#f5f5f5',
-      icon: '#d58512',
-      fontSize: 18,
-    },
-  },
-];
-
-const fontSizeOptions = [
-  { label: 'Small', value: 'small' },
-  { label: 'Normal', value: 'medium' },
-  { label: 'Large', value: 'large' },
 ];
 
 const SettingsScreen = () => {
-  const [version, setVersion] = useState<string>('Loading...');
-  const [fontSize, setFontSize] = React.useState<'small' | 'medium' | 'large'>('medium');
+  const [version, setVersion] = useState<string>('...');
+  const [fontSize, setFontSizeState] = React.useState<'small' | 'medium' | 'large'>('medium');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const { theme, setTheme } = useContext(ThemeContext);
   const colors = theme ?? getDefaultTheme();
-  const fontSizeValue = getFontSizeValue(fontSize);
   const { lang, setLang } = useLanguage();
 
   useEffect(() => {
@@ -107,265 +75,236 @@ const SettingsScreen = () => {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
-          // Assuming the version is stored as a value in the document
           const ver = Object.values(data)[0];
-          if (typeof ver === 'string') {
-            setVersion(ver);
-          }
+          if (typeof ver === 'string') setVersion(ver);
         }
-      } catch (error) {
-        console.error('Error fetching version:', error);
-        setVersion('Unknown');
-      }
+      } catch (e) { }
     };
-
     fetchVersion();
   }, []);
 
   const labels = {
-    header: lang === 'zh' ? '设置' : 'Settings',
-    appearance: lang === 'zh' ? '外观' : 'Appearance',
-    light: lang === 'zh' ? '浅色' : 'Light',
-    language: lang === 'zh' ? '语言' : 'Language',
-    textSize: lang === 'zh' ? '文字大小' : 'Text Size',
-    small: lang === 'zh' ? '小' : 'Small',
-    medium: lang === 'zh' ? '中' : 'Normal',
-    large: lang === 'zh' ? '大' : 'Large',
-    appearanceNote: lang === 'zh' ? '仅支持浅色模式。' : 'Only light mode is supported.',
-    accessibilityPresets: lang === 'zh' ? '无障碍预设' : 'Accessibility Presets',
-    advanced: lang === 'zh' ? '高级' : 'Advanced (work in progress)',
-    customColors: lang === 'zh' ? '自定义颜色' : 'Custom Colors',
-    resetDefaults: lang === 'zh' ? '重置默认值' : 'Reset defaults',
+    header: lang === 'zh' ? '参数设置' : 'System Settings',
+    appearance: lang === 'zh' ? '界面外观' : 'Appearance',
+    language: lang === 'zh' ? '应用语言' : 'Language',
+    textSize: lang === 'zh' ? '字体大小' : 'Typography',
+    accessibility: lang === 'zh' ? '辅助功能' : 'Accessibility',
+    advanced: lang === 'zh' ? '高级开发者选项' : 'Advanced Configuration',
   };
 
-  // Determine active preset: match by color keys; default to 'Standard' if none match
-  const presetKeys = ['background', 'text', 'primary', 'unselected', 'unselectedTab', 'icon'];
-  const isPresetMatch = (presetTheme: any) => presetKeys.every((k) => (colors as any)[k] === presetTheme[k]);
+  const isPresetMatch = (presetTheme: any) =>
+    COLOR_KEYS.every((k) => (colors as any)[k] === presetTheme[k]);
+
   const activePreset = A11Y_PRESETS.find((p) => isPresetMatch(p.theme));
-  const activePresetName = activePreset ? activePreset.name : A11Y_PRESETS[0].name;
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.header, { color: colors.text, fontSize: fontSizeValue + 12 }]}>{labels.header}</Text>
-      {/* Accessibility Presets */}
-      <Text style={{ color: colors.text, fontSize: fontSizeValue, fontWeight: 'bold', marginTop: 20, marginBottom: 10 }}>{labels.accessibilityPresets}</Text>
-      <Text style={[styles.sectionDescription, { color: colors.text, fontSize: (fontSizeValue - 2) }]}>{lang === 'zh' ? '为不同视觉需求的用户优化的配色方案' : 'Color schemes optimized for different visual needs'}</Text>
-
-      {A11Y_PRESETS.map((preset) => (
-        <TouchableOpacity
-          key={preset.name}
-          style={[
-            styles.presetButton,
-            {
-              backgroundColor: colors.unselectedTab,
-              borderWidth: 2,
-              borderColor: activePresetName === preset.name ? colors.primary : 'transparent',
-            },
-          ]}
-          onPress={() => setTheme(preset.theme)}
-        >
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.presetName, { color: colors.text, fontSize: fontSizeValue }]}>
-              {preset.name}
-            </Text>
-            <Text style={[styles.presetDescription, { color: colors.text, fontSize: (fontSizeValue - 2) }]}>{preset.description}</Text>
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={[styles.presetColorPreview, { backgroundColor: preset.theme.primary }]} />
-            {activePresetName === preset.name && (
-              <MaterialIcons name="check" size={18} color={colors.primary} style={{ marginLeft: 8 }} />
-            )}
-          </View>
-        </TouchableOpacity>
-      ))}
-
-      {/* Language Picker */}
-      <Text style={{ color: colors.text, fontSize: fontSizeValue, fontWeight: 'bold', marginTop: 20, marginBottom: 10 }}>{labels.language}</Text>
-      <View style={styles.pickerRow}>
-        <Picker
-          selectedValue={lang}
-          style={{ flex: 1, color: colors.text, backgroundColor: colors.unselectedTab }}
-          onValueChange={(itemValue) => setLang(itemValue)}
-          mode="dropdown"
-        >
-          <Picker.Item label="English" value="en" />
-          <Picker.Item label="中文" value="zh" />
-        </Picker>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={{ paddingBottom: 60 }}>
+      <View style={styles.headerArea}>
+        <View style={[styles.iconCircle, { backgroundColor: colors.unselectedTab }]}>
+          <Ionicons name="settings-sharp" size={32} color={colors.primary} />
+        </View>
+        <Text style={[styles.headerText, { color: colors.text }]}>{labels.header}</Text>
+        <Text style={[styles.subHeaderText, { color: colors.text + '80' }]}>
+          Personalize your care experience and interface
+        </Text>
       </View>
 
-      {/* Text Size */}
-      <Text style={{ color: colors.text, fontSize: fontSizeValue, fontWeight: 'bold', marginTop: 20, marginBottom: 10 }}>{labels.textSize}</Text>
-      <View style={styles.row}>
-        {fontSizeOptions.map((opt) => (
+      {/* Accessibility Presets */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{labels.accessibility}</Text>
+        {A11Y_PRESETS.map((preset) => (
           <TouchableOpacity
-            key={opt.value}
+            key={preset.name}
             style={[
-              styles.optionButton,
-              { backgroundColor: fontSize === opt.value ? colors.primary : colors.unselectedTab },
+              styles.presetCard,
+              {
+                backgroundColor: colors.surface || colors.unselectedTab,
+                borderColor: activePreset?.name === preset.name ? colors.primary : 'transparent',
+                borderWidth: 2,
+              },
             ]}
-            onPress={() => setFontSize(opt.value as 'small' | 'medium' | 'large')}
+            onPress={() => setTheme(preset.theme)}
+            activeOpacity={0.8}
           >
-            <Text style={[styles.optionText, { color: colors.text, fontSize: fontSizeValue }]}>{
-              opt.value === 'small' ? labels.small :
-                opt.value === 'medium' ? labels.medium :
-                  opt.value === 'large' ? labels.large : ''
-            }</Text>
+            <View style={[styles.presetIconWrap, { backgroundColor: preset.theme.primary + '15' }]}>
+              <Ionicons name={preset.icon as any} size={24} color={preset.theme.primary} />
+            </View>
+            <View style={{ flex: 1, marginLeft: 16 }}>
+              <Text style={[styles.presetName, { color: colors.text }]}>{preset.name}</Text>
+              <Text style={[styles.presetDesc, { color: colors.text + '80' }]}>{preset.description}</Text>
+            </View>
+            {activePreset?.name === preset.name && (
+              <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+            )}
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Advanced Section */}
-      <TouchableOpacity
-        style={[styles.advancedHeader, { backgroundColor: colors.unselectedTab }]}
-        onPress={() => setShowAdvanced(!showAdvanced)}
-      >
-        <Text style={[styles.advancedTitle, { color: colors.text, fontSize: fontSizeValue }]}>
-          {labels.advanced}
-        </Text>
-        <MaterialIcons
-          name={showAdvanced ? 'expand-less' : 'expand-more'}
-          size={fontSizeValue + 8}
-          color={colors.text}
-        />
-      </TouchableOpacity>
+      {/* Core Settings */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Core Preferences</Text>
 
-      {showAdvanced && (
-        <View style={{ marginTop: 16, marginBottom: 32 }}>
-          {/* Color picker for theme customization */}
-          <Text style={[styles.sectionTitle, { color: colors.unselected, fontSize: fontSizeValue }]}>
-            {labels.customColors}
-          </Text>
-
-          {(COLOR_KEYS as string[]).map((key) => (
-            <View key={key} style={{ marginBottom: 12 }}>
-              <Text style={{ color: colors.text, marginBottom: 6, fontSize: fontSizeValue }}>{key}</Text>
-              <View style={styles.colorGrid}>
-                {COLOR_OPTIONS.map((c) => (
-                  <TouchableOpacity
-                    key={c}
-                    onPress={() => {
-                      const next = { ...colors, [key]: c } as any;
-                      setTheme(next);
-                    }}
-                    style={[styles.swatch, { backgroundColor: c, borderColor: (colors as any)[key] === c ? '#000' : 'transparent' }]}
-                  />
-                ))}
-              </View>
+        <View style={[styles.controlCard, { backgroundColor: colors.unselectedTab }]}>
+          <View style={styles.controlRow}>
+            <View style={styles.controlInfo}>
+              <Ionicons name="language-outline" size={20} color={colors.text} />
+              <Text style={[styles.controlLabel, { color: colors.text }]}>{labels.language}</Text>
             </View>
-          ))}
+            <View style={styles.pickerWrap}>
+              <Picker
+                selectedValue={lang}
+                style={{ color: colors.text, width: 140 }}
+                onValueChange={(v) => setLang(v)}
+                mode="dropdown"
+              >
+                <Picker.Item label="English" value="en" />
+                <Picker.Item label="简体中文" value="zh" />
+              </Picker>
+            </View>
+          </View>
 
-          <View style={{ flexDirection: 'row', marginTop: 16 }}>
-            <TouchableOpacity
-              onPress={() => {
-                setTheme(getDefaultTheme());
-              }}
-              style={[styles.optionButton, { backgroundColor: colors.unselectedTab }]}
-            >
-              <Text style={[styles.optionText, { color: colors.text }]}>{labels.resetDefaults}</Text>
-            </TouchableOpacity>
+          <View style={[styles.separator, { backgroundColor: colors.text + '10' }]} />
+
+          <View style={styles.controlRow}>
+            <View style={styles.controlInfo}>
+              <Ionicons name="text-outline" size={20} color={colors.text} />
+              <Text style={[styles.controlLabel, { color: colors.text }]}>{labels.textSize}</Text>
+            </View>
+            <View style={styles.sizeToggle}>
+              {['S', 'M', 'L'].map((s, idx) => {
+                const val = idx === 0 ? 'small' : idx === 1 ? 'medium' : 'large';
+                const active = fontSize === val;
+                return (
+                  <TouchableOpacity
+                    key={s}
+                    onPress={() => setFontSizeState(val as any)}
+                    style={[styles.sizeBtn, active && { backgroundColor: colors.primary }]}
+                  >
+                    <Text style={[styles.sizeBtnText, { color: active ? '#fff' : colors.text }]}>{s}</Text>
+                  </TouchableOpacity>
+                )
+              })}
+            </View>
           </View>
         </View>
-      )}
-      <Text> </Text>
-      <Text style={{ textAlign: 'center', marginBottom: 20 }}>Copyright © 2025 TwinXCare</Text>
-      <Text style={{ textAlign: 'center', marginBottom: 20 }}>Version number: Alpha {version}</Text>
-      <Text> </Text>
-      <Text> </Text>
+      </View>
+
+      {/* Developer / Advanced */}
+      <View style={styles.section}>
+        <TouchableOpacity
+          style={styles.advancedToggle}
+          onPress={() => setShowAdvanced(!showAdvanced)}
+        >
+          <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 0 }]}>{labels.advanced}</Text>
+          <Ionicons name={showAdvanced ? "chevron-up" : "chevron-down"} size={20} color={colors.text} />
+        </TouchableOpacity>
+
+        {showAdvanced && (
+          <View style={[styles.advancedPanel, { backgroundColor: colors.unselectedTab }]}>
+            <Text style={[styles.devNote, { color: colors.text + '70' }]}>
+              Modify individual design tokens. Changes here bypass standard presets.
+            </Text>
+            {COLOR_KEYS.map((key) => (
+              <View key={key} style={styles.tokenRow}>
+                <Text style={[styles.tokenName, { color: colors.text }]}>{key.toUpperCase()}</Text>
+                <View style={styles.swatchGrid}>
+                  {COLOR_OPTIONS.map((c) => (
+                    <TouchableOpacity
+                      key={c}
+                      onPress={() => setTheme({ ...colors, [key]: c } as any)}
+                      style={[styles.swatch, { backgroundColor: c, borderColor: (colors as any)[key] === c ? colors.text : 'transparent' }]}
+                    />
+                  ))}
+                </View>
+              </View>
+            ))}
+            <TouchableOpacity
+              style={[styles.resetBtn, { backgroundColor: colors.primary }]}
+              onPress={() => setTheme(getDefaultTheme())}
+            >
+              <Text style={styles.resetBtnText}>Restore Default Tokens</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.footer}>
+        <Text style={[styles.footerText, { color: colors.text + '50' }]}>
+          TwinXCare alpha-{version} build
+        </Text>
+        <Text style={[styles.footerText, { color: colors.text + '30' }]}>
+          © 2026 DeepMind Agency Core
+        </Text>
+      </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
+  container: { flex: 1 },
+  headerArea: {
+    marginTop: 80,
+    marginBottom: 40,
+    paddingHorizontal: 24,
+    alignItems: 'center',
   },
-  header: {
-    fontWeight: 'bold',
-    marginBottom: 24,
+  iconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
   },
-  sectionTitle: {
-    fontWeight: 'bold',
-    marginBottom: 8,
-    letterSpacing: 1.2,
-  },
-  sectionDescription: {
-    marginBottom: 12,
-    fontStyle: 'italic',
-  },
-  row: {
-    flexDirection: 'row',
-    marginBottom: 12,
-  },
-  optionButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 8,
-    marginRight: 8,
-  },
-  optionText: {
-    fontWeight: 'bold',
-  },
-  subtext: {
-    marginBottom: 32,
-  },
-  pickerRow: {
+  headerText: { fontSize: 28, fontWeight: '900' },
+  subHeaderText: { fontSize: 13, fontWeight: '600', textAlign: 'center', marginTop: 6, maxWidth: '80%' },
+  section: { paddingHorizontal: 24, marginBottom: 32 },
+  sectionTitle: { fontSize: 18, fontWeight: '800', marginBottom: 16 },
+  presetCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    padding: 18,
+    borderRadius: 24,
+    marginBottom: 12,
   },
-  colorGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  swatch: {
-    width: 36,
-    height: 36,
-    borderRadius: 6,
-    marginRight: 8,
-    marginBottom: 8,
-    borderWidth: 2,
-  },
-  presetButton: {
-    flexDirection: 'row',
+  presetIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 8,
-    marginBottom: 10,
   },
-  presetName: {
-    fontWeight: 'bold',
+  presetName: { fontSize: 16, fontWeight: '800' },
+  presetDesc: { fontSize: 12, fontWeight: '600', marginTop: 2 },
+  controlCard: {
+    borderRadius: 24,
+    padding: 4,
   },
-  presetDescription: {
-    marginTop: 4,
-  },
-  presetColorPreview: {
-    width: 28,
-    height: 28,
-    borderRadius: 6,
-    marginLeft: 12,
-  },
-  advancedHeader: {
+  controlRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 8,
-    marginVertical: 16,
+    height: 60,
   },
-  advancedTitle: {
-    fontWeight: 'bold',
-  },
-  link: {
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  signOut: {
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
+  controlInfo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  controlLabel: { fontSize: 14, fontWeight: '700' },
+  separator: { height: 1, marginHorizontal: 16 },
+  pickerWrap: { height: 50, justifyContent: 'center' },
+  sizeToggle: { flexDirection: 'row', gap: 4, backgroundColor: 'rgba(0,0,0,0.05)', padding: 4, borderRadius: 12 },
+  sizeBtn: { width: 36, height: 32, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+  sizeBtnText: { fontSize: 12, fontWeight: '900' },
+  advancedToggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  advancedPanel: { marginTop: 16, padding: 20, borderRadius: 24 },
+  devNote: { fontSize: 11, fontWeight: '600', lineHeight: 16, marginBottom: 20 },
+  tokenRow: { marginBottom: 16 },
+  tokenName: { fontSize: 10, fontWeight: '800', marginBottom: 8, letterSpacing: 0.5 },
+  swatchGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  swatch: { width: 28, height: 28, borderRadius: 8, borderWidth: 1.5 },
+  resetBtn: { marginTop: 12, paddingVertical: 14, borderRadius: 16, alignItems: 'center' },
+  resetBtnText: { color: '#fff', fontWeight: '800', fontSize: 13 },
+  footer: { marginTop: 20, alignItems: 'center' },
+  footerText: { fontSize: 11, fontWeight: '700', marginBottom: 4 },
 });
 
 export default SettingsScreen;

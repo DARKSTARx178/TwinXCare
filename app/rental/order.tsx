@@ -6,17 +6,16 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useContext, useState } from 'react';
 import {
-    Animated,
-    Dimensions,
-    Image,
-    PanResponder,
-    Platform,
-    Animated as RNAnimated,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  Dimensions,
+  Image,
+  PanResponder,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -96,93 +95,141 @@ export default function OrderPage() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.background }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 140 }}>
-        <View style={{ height: 32 }} />
+      <ScrollView contentContainerStyle={{ paddingBottom: 160 }} showsVerticalScrollIndicator={false}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={28} color={theme.text} />
+        </TouchableOpacity>
 
-        {/* Product Info */}
-        <View style={[styles.box, { alignItems: 'center', padding: 24, backgroundColor: boxBackground }]}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={28} color={theme.text} />
-          </TouchableOpacity>
-          <Image source={{ uri: params.image as string }} style={styles.image} />
-          <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>{params.name}</Text>
-          <Text style={[styles.brand, { color: theme.text, fontSize: responsiveText(textSize) }]}>{params.brand}</Text>
-          <Text style={[styles.modeBtnText, { color: theme.primary, fontSize: responsiveText(textSize) }]}>
-            Rent <Text style={[styles.modePrice, { color: theme.primary, fontSize: responsiveText(textSize - 2) }]}>${pricePerDay}/day</Text>
-          </Text>
-          <Text style={[styles.stock, { color: theme.text, fontSize: responsiveText(textSize) }]}>Stock: {stock}</Text>
-          <Text style={[styles.description, { color: theme.text, fontSize: responsiveText(textSize - 2) }]}>{params.description || 'No description available.'}</Text>
-        </View>
-
-        {/* Quantity */}
-        <View style={[styles.box, { backgroundColor: boxBackground }]}>
-          <View style={styles.qtyRow}>
-            <Text style={[styles.qtyLabel, { color: theme.text, fontSize: responsiveText(textSize) }]}>Quantity:</Text>
-            <TouchableOpacity
-              style={[styles.qtyBtn, { backgroundColor: theme.unselectedTab }, quantity === 1 || stock === 0 ? styles.qtyBtnDisabled : null]}
-              onPress={() => setQuantity((q) => Math.max(1, q - 1))}
-              disabled={quantity === 1 || stock === 0}
-            >
-              <Text style={[styles.qtyBtnText, { color: theme.text, fontSize: responsiveText(textSize + 2) }]}>-</Text>
-            </TouchableOpacity>
-            <Text style={[styles.qtyValue, { color: theme.text, fontSize: responsiveText(textSize + 2) }]}>{quantity}</Text>
-            <TouchableOpacity
-              style={[styles.qtyBtn, { backgroundColor: theme.unselectedTab }, quantity === maxQty || stock === 0 ? styles.qtyBtnDisabled : null]}
-              onPress={() => setQuantity((q) => Math.min(maxQty, q + 1))}
-              disabled={quantity === maxQty || stock === 0}
-            >
-              <Text style={[styles.qtyBtnText, { color: theme.text, fontSize: responsiveText(textSize + 2) }]}>+</Text>
-            </TouchableOpacity>
+        <View style={styles.content}>
+          <View style={[styles.imageCard, { backgroundColor: theme.surface }]}>
+            <Image source={{ uri: params.image as string }} style={styles.image} resizeMode="cover" />
+            <View style={styles.priceBadge}>
+              <Text style={styles.priceBadgeText}>${pricePerDay}/day</Text>
+            </View>
           </View>
-        </View>
 
-        {/* Rental Calendar */}
-        <View style={[styles.box, { paddingVertical: 16, backgroundColor: boxBackground }]}>
-          <Text style={[styles.calendarLabel, { color: theme.text, fontSize: 16, textAlign: 'center' }]}>Select rental period:</Text>
-          <View style={{ flexDirection: 'column', alignItems: 'center', gap: 6, marginTop: 8 }}>
-            <TouchableOpacity style={[styles.calendarBtn, { backgroundColor: theme.unselectedTab }]} onPress={() => setShowStart(true)}>
-              <Text style={[styles.calendarBtnText, { color: theme.primary, fontSize: 14 }]}>From: {rentalStart.toDateString()}</Text>
-            </TouchableOpacity>
-            <Text style={[styles.calendarLabel, { color: theme.text, fontSize: 14 }]}>({getRentalDays()} day{getRentalDays() > 1 ? 's' : ''})</Text>
-            <TouchableOpacity style={[styles.calendarBtn, { backgroundColor: theme.unselectedTab }]} onPress={() => setShowEnd(true)}>
-              <Text style={[styles.calendarBtnText, { color: theme.primary, fontSize: 14 }]}>To: {rentalEnd.toDateString()}</Text>
-            </TouchableOpacity>
+          <View style={styles.headerInfo}>
+            <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 12) }]}>{params.name}</Text>
+            <Text style={[styles.brand, { color: theme.textDim, fontSize: responsiveText(textSize) }]}>{params.brand}</Text>
+
+            <View style={[styles.stockBadge, { backgroundColor: stock > 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)' }]}>
+              <View style={[styles.stockDot, { backgroundColor: stock > 0 ? '#10b981' : '#ef4444' }]} />
+              <Text style={[styles.stockText, { color: stock > 0 ? '#10b981' : '#ef4444' }]}>
+                {stock > 0 ? `${stock} units available` : 'Out of stock'}
+              </Text>
+            </View>
           </View>
-          {showStart && (
-            <DateTimePicker
-              value={rentalStart}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'inline' : 'default'}
-              onChange={(_, date) => { if (date) { setRentalStart(date); if (date > rentalEnd) setRentalEnd(date); } setShowStart(false); }}
-              minimumDate={new Date()}
-            />
-          )}
-          {showEnd && (
-            <DateTimePicker
-              value={rentalEnd}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'inline' : 'default'}
-              onChange={(_, date) => { if (date && date >= rentalStart) setRentalEnd(date); setShowEnd(false); }}
-              minimumDate={rentalStart}
-            />
-          )}
+
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Description</Text>
+            <Text style={[styles.description, { color: theme.textDim, fontSize: responsiveText(textSize - 2) }]}>
+              {params.description || 'No detailed description available for this item.'}
+            </Text>
+          </View>
+
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <View style={styles.rowBetween}>
+              <View>
+                <Text style={[styles.sectionTitle, { color: theme.text, marginBottom: 4 }]}>Quantity</Text>
+                <Text style={[styles.sectionSubtitle, { color: theme.textDim }]}>How many do you need?</Text>
+              </View>
+              <View style={styles.qtyControls}>
+                <TouchableOpacity
+                  style={[styles.qtyBtn, { backgroundColor: '#F1F5F9' }, (quantity === 1 || stock === 0) && { opacity: 0.5 }]}
+                  onPress={() => setQuantity((q) => Math.max(1, q - 1))}
+                  disabled={quantity === 1 || stock === 0}
+                >
+                  <Ionicons name="remove" size={22} color={theme.text} />
+                </TouchableOpacity>
+                <Text style={[styles.qtyValue, { color: theme.text }]}>{quantity}</Text>
+                <TouchableOpacity
+                  style={[styles.qtyBtn, { backgroundColor: '#F1F5F9' }, (quantity === maxQty || stock === 0) && { opacity: 0.5 }]}
+                  onPress={() => setQuantity((q) => Math.min(maxQty, q + 1))}
+                  disabled={quantity === maxQty || stock === 0}
+                >
+                  <Ionicons name="add" size={22} color={theme.text} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Rental Period</Text>
+            <Text style={[styles.sectionSubtitle, { color: theme.textDim, marginBottom: 20 }]}>
+              Selected for {getRentalDays()} day{getRentalDays() > 1 ? 's' : ''}
+            </Text>
+
+            <View style={styles.calendarContainer}>
+              <TouchableOpacity
+                style={[styles.datePicker, { backgroundColor: '#F1F5F9' }]}
+                onPress={() => setShowStart(true)}
+              >
+                <Ionicons name="calendar-outline" size={18} color={theme.primary} style={{ marginRight: 10 }} />
+                <View>
+                  <Text style={[styles.dateLabel, { color: theme.textDim }]}>Starts</Text>
+                  <Text style={[styles.dateValue, { color: theme.text }]}>{rentalStart.toDateString()}</Text>
+                </View>
+              </TouchableOpacity>
+
+              <View style={styles.dateDivider}>
+                <Ionicons name="arrow-forward" size={16} color={theme.textDim} />
+              </View>
+
+              <TouchableOpacity
+                style={[styles.datePicker, { backgroundColor: '#F1F5F9' }]}
+                onPress={() => setShowEnd(true)}
+              >
+                <Ionicons name="calendar-outline" size={18} color={theme.primary} style={{ marginRight: 10 }} />
+                <View>
+                  <Text style={[styles.dateLabel, { color: theme.textDim }]}>Ends</Text>
+                  <Text style={[styles.dateValue, { color: theme.text }]}>{rentalEnd.toDateString()}</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            {showStart && (
+              <DateTimePicker
+                value={rentalStart}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                onChange={(_, date) => { if (date) { setRentalStart(date); if (date > rentalEnd) setRentalEnd(date); } setShowStart(false); }}
+                minimumDate={new Date()}
+              />
+            )}
+            {showEnd && (
+              <DateTimePicker
+                value={rentalEnd}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                onChange={(_, date) => { if (date && date >= rentalStart) setRentalEnd(date); setShowEnd(false); }}
+                minimumDate={rentalStart}
+              />
+            )}
+          </View>
         </View>
       </ScrollView>
 
-      {/* Bottom Bar */}
-      <View style={[styles.bottomBar, { backgroundColor: theme.background, borderColor: theme.unselected }]}>
-        <View style={styles.totalPriceBox}>
-          <Text style={[styles.totalPriceLabel, { color: theme.unselected, fontSize: responsiveText(textSize - 4) }]}>Total</Text>
-          <Text style={[styles.totalPrice, { color: theme.text, fontSize: responsiveText(textSize + 4) }]}>
+      <View style={[styles.bottomBar, { backgroundColor: theme.surface }]}>
+        <View style={styles.priceInfo}>
+          <Text style={[styles.totalLabel, { color: theme.textDim }]}>Estimated Total</Text>
+          <Text style={[styles.totalPrice, { color: theme.text }]}>
             ${(pricePerDay * quantity * getRentalDays()).toFixed(2)}
           </Text>
         </View>
-        <View style={styles.swipeContainerCentered}>
-          <Text style={[styles.swipeLabel, { color: theme.unselected, fontSize: responsiveText(textSize - 2) }]}>Swipe to Order</Text>
-          <View style={[styles.swipeTrack, { backgroundColor: theme.unselectedTab }]} {...(stock > 0 ? panResponder.panHandlers : {})}>
-            <RNAnimated.View style={[styles.swipeThumb, { backgroundColor: stock === 0 ? theme.unselectedTab : theme.primary }, { transform: [{ translateX: swipeX }] }, swiped && { backgroundColor: '#4CAF50' }]}>
-              <Text style={[styles.swipeThumbText, { fontSize: responsiveText(textSize + 10) }]}>{swiped ? '✓' : '→'}</Text>
-            </RNAnimated.View>
+
+        <View style={styles.swipeArea}>
+          <View style={[styles.swipeTrack, { backgroundColor: '#F1F5F9' }]} {...(stock > 0 ? panResponder.panHandlers : {})}>
+            <Text style={[styles.swipeActionText, { color: theme.textDim }]}>
+              {swiped ? 'ORDER PLACED' : 'SWIPE TO RENT'}
+            </Text>
+            <Animated.View style={[
+              styles.swipeThumb,
+              { backgroundColor: stock === 0 ? '#CBD5E1' : theme.primary },
+              { transform: [{ translateX: swipeX }] },
+              swiped && { backgroundColor: '#10b981' }
+            ]}>
+              <Ionicons name={swiped ? 'checkmark' : 'chevron-forward'} size={24} color="#fff" />
+            </Animated.View>
           </View>
         </View>
       </View>
@@ -190,33 +237,123 @@ export default function OrderPage() {
   );
 }
 
-// --- Styles ---
 const styles = StyleSheet.create({
-  box: { marginHorizontal: 16, marginVertical: 8, borderRadius: 12, padding: 16 },
-  backButton: { alignSelf: 'flex-start', marginBottom: 16, padding: 0, borderRadius: 0, backgroundColor: 'transparent' },
-  image: { width: 240, height: 240, borderRadius: 16, marginBottom: 20, backgroundColor: '#eee' },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' },
-  brand: { fontSize: 20, marginBottom: 8, textAlign: 'center' },
-  modeBtnText: { fontSize: 18, fontWeight: 'bold' },
-  modePrice: { fontSize: 16, fontWeight: 'normal' },
-  stock: { fontSize: 18, marginBottom: 12, textAlign: 'center' },
-  description: { fontSize: 16, textAlign: 'center', marginBottom: 24 },
-  qtyRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  qtyLabel: { fontSize: 18, marginRight: 10 },
-  qtyBtn: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center', marginHorizontal: 8 },
-  qtyBtnDisabled: { backgroundColor: '#ddd' },
-  qtyBtnText: { fontSize: 22 },
-  qtyValue: { fontSize: 20, fontWeight: 'bold', minWidth: 32, textAlign: 'center' },
-  calendarLabel: { fontSize: 16, marginBottom: 4 },
-  calendarBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, marginHorizontal: 4 },
-  calendarBtnText: { fontSize: 16 },
-  bottomBar: { position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: 40, paddingTop: 8, borderTopWidth: 1, paddingHorizontal: 24 },
-  totalPriceBox: { alignItems: 'flex-start', justifyContent: 'flex-end', flex: 1, marginBottom: 8 },
-  totalPriceLabel: { fontSize: 14, marginBottom: 2 },
-  totalPrice: { fontSize: 22, fontWeight: 'bold' },
-  swipeContainerCentered: { flex: 2, alignItems: 'center', justifyContent: 'flex-end', marginLeft: 0 },
-  swipeLabel: { fontSize: 16, marginBottom: 8 },
-  swipeTrack: { width: 260, height: 64, borderRadius: 32, justifyContent: 'center', overflow: 'hidden' },
-  swipeThumb: { position: 'absolute', left: 0, width: 64, height: 64, borderRadius: 32, justifyContent: 'center', alignItems: 'center', elevation: 3 },
-  swipeThumbText: { fontWeight: 'bold' },
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.8)',
+  },
+  content: { paddingHorizontal: 20, paddingTop: 60 },
+  imageCard: {
+    width: '100%',
+    height: 320,
+    borderRadius: 32,
+    overflow: 'hidden',
+    marginBottom: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  image: { width: '100%', height: '100%' },
+  priceBadge: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    backgroundColor: '#81ade7',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 100,
+  },
+  priceBadgeText: { color: '#fff', fontWeight: '900', fontSize: 18 },
+  headerInfo: { alignItems: 'center', marginBottom: 25 },
+  title: { fontWeight: '800', textAlign: 'center', marginBottom: 6 },
+  brand: { fontWeight: '600', marginBottom: 12 },
+  stockBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 100,
+  },
+  stockDot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
+  stockText: { fontSize: 13, fontWeight: '700' },
+  card: {
+    padding: 24,
+    borderRadius: 28,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  sectionTitle: { fontSize: 16, fontWeight: '800', marginBottom: 8 },
+  sectionSubtitle: { fontSize: 13, fontWeight: '500' },
+  description: { lineHeight: 22 },
+  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  qtyControls: { flexDirection: 'row', alignItems: 'center' },
+  qtyBtn: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  qtyValue: { fontSize: 18, fontWeight: '800', marginHorizontal: 16, minWidth: 20, textAlign: 'center' },
+  calendarContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  datePicker: { flex: 1, padding: 12, borderRadius: 16, flexDirection: 'row', alignItems: 'center' },
+  dateLabel: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', marginBottom: 2 },
+  dateValue: { fontSize: 13, fontWeight: '700' },
+  dateDivider: { paddingHorizontal: 8 },
+  bottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 40,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 20,
+  },
+  priceInfo: { flex: 1 },
+  totalLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
+  totalPrice: { fontSize: 24, fontWeight: '900' },
+  swipeArea: { flex: 1.5, marginLeft: 10 },
+  swipeTrack: {
+    width: '100%',
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  swipeActionText: {
+    width: '100%',
+    textAlign: 'center',
+    fontWeight: '800',
+    fontSize: 12,
+    letterSpacing: 1,
+  },
+  swipeThumb: {
+    position: 'absolute',
+    left: 0,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
+  },
 });

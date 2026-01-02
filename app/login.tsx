@@ -41,35 +41,68 @@ const Login: React.FC = () => {
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={28} color={theme.text} />
       </TouchableOpacity>
-      <Text style={{ color: theme.text, fontWeight: "bold", fontSize: textSize + 8, marginBottom: 20 }}>Login</Text>
 
-      <TextInput
-        style={[styles.input, { color: theme.text, borderColor: theme.primary }]}
-        placeholder="Email"
-        placeholderTextColor="#aaa"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        style={[styles.input, { color: theme.text, borderColor: theme.primary }]}
-        placeholder="Password"
-        placeholderTextColor="#aaa"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+        <View style={styles.logoCircle}>
+          <Ionicons name="shield-checkmark" size={40} color={theme.primary} />
+        </View>
 
-      {error ? <Text style={{ color: "red", marginBottom: 10 }}>{error}</Text> : null}
+        <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>Welcome Back</Text>
+        <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>
+          Please sign in to your TwinXCare account
+        </Text>
 
-      <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary }]} onPress={handleLogin}>
-        <Text style={{ color: theme.background, fontWeight: "bold", fontSize: textSize }}>Login</Text>
-      </TouchableOpacity>
+        {error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
 
-      <TouchableOpacity onPress={() => router.replace("/register")}>
-        <Text style={{ color: theme.primary, marginTop: 10 }}>Don't have an account? Register</Text>
-      </TouchableOpacity>
+        <View style={styles.inputWrapper}>
+          <Text style={[styles.label, { color: theme.textDim }]}>Email Address</Text>
+          <View style={[styles.inputContainer, { borderColor: theme.border }]}>
+            <Ionicons name="mail-outline" size={20} color={theme.textDim} style={styles.inputIcon} />
+            <TextInput
+              style={[styles.input, { color: theme.text }]}
+              placeholder="admin@twinxcare.com"
+              placeholderTextColor="#94a3b8"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+            />
+          </View>
+        </View>
+
+        <View style={styles.inputWrapper}>
+          <Text style={[styles.label, { color: theme.textDim }]}>Password</Text>
+          <View style={[styles.inputContainer, { borderColor: theme.border }]}>
+            <Ionicons name="lock-closed-outline" size={20} color={theme.textDim} style={styles.inputIcon} />
+            <TextInput
+              style={[styles.input, { color: theme.text }]}
+              placeholder="••••••••"
+              placeholderTextColor="#94a3b8"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: theme.primary }]}
+          onPress={handleLogin}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.buttonText, { fontSize: textSize }]}>Sign In</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.replace("/register")} style={styles.footerLink}>
+          <Text style={{ color: theme.textDim }}>
+            Don't have an account? <Text style={{ color: theme.primary, fontWeight: '700' }}>Register</Text>
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -77,33 +110,109 @@ const Login: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
     paddingTop: 80,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
   },
   backButton: {
     position: "absolute",
-    top: 35,
+    top: 50,
     left: 20,
-    zIndex: 1,
-    backgroundColor: "transparent",
-    padding: 6,
+    zIndex: 10,
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+  },
+  card: {
+    padding: 32,
+    borderRadius: 32,
+    width: '100%',
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(129, 173, 231, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  title: {
+    fontWeight: "800",
+    marginBottom: 8,
+  },
+  subtitle: {
+    textAlign: 'center',
+    marginBottom: 24,
+    fontWeight: '500',
+  },
+  inputWrapper: {
+    width: '100%',
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#F1F5F9',
+  },
+  inputIcon: {
+    marginRight: 10,
   },
   input: {
-    width: "100%",
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
+    flex: 1,
+    paddingVertical: 14,
     fontSize: 16,
-    backgroundColor: "rgba(0,0,0,0.04)",
+    fontWeight: '500',
   },
   button: {
     width: "100%",
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 16,
+    borderRadius: 16,
     alignItems: "center",
-    marginTop: 8,
+    marginTop: 16,
+    shadowColor: "#81ade7",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontWeight: "800",
+  },
+  errorContainer: {
+    width: '100%',
+    padding: 12,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.2)',
+  },
+  errorText: {
+    color: '#ef4444',
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  footerLink: {
+    marginTop: 24,
   },
 });
 

@@ -286,58 +286,189 @@ export default function PaymentPage() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Text style={[styles.title, { color: theme.text, fontSize: textSize + 6 }]}>Payment</Text>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <Ionicons name="arrow-back" size={28} color={theme.text} />
+      </TouchableOpacity>
 
-      <Text style={[styles.label, { color: theme.text, fontSize: textSize }]}>
-        Total: ${totalPrice.toFixed(2)} ({quantity} item{quantity > 1 ? 's' : ''} × {rentalDays}{' '}
-        day{rentalDays > 1 ? 's' : ''})
-      </Text>
+      <View style={styles.header}>
+        <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
+          <Ionicons name="cash-outline" size={32} color={theme.primary} />
+        </View>
+        <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>Payment Details</Text>
+        <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>
+          Finalize your {type} booking
+        </Text>
+      </View>
+
+      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+        <Text style={[styles.cardHeading, { color: theme.text }]}>Order Summary</Text>
+
+        <View style={styles.summaryRow}>
+          <Text style={[styles.summaryLabel, { color: theme.textDim }]}>Quantity</Text>
+          <Text style={[styles.summaryValue, { color: theme.text }]}>{quantity}</Text>
+        </View>
+
+        <View style={styles.summaryRow}>
+          <Text style={[styles.summaryLabel, { color: theme.textDim }]}>Duration</Text>
+          <Text style={[styles.summaryValue, { color: theme.text }]}>{rentalDays} Day{rentalDays > 1 ? 's' : ''}</Text>
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.totalRow}>
+          <Text style={[styles.totalLabel, { color: theme.text }]}>Total Amount</Text>
+          <Text style={[styles.totalValue, { color: theme.primary }]}>${totalPrice.toFixed(2)}</Text>
+        </View>
+      </View>
 
       {type === 'equipment' && (
-        <>
-          <Text style={[styles.label, { color: theme.text, fontSize: textSize }]}>Delivery Address</Text>
-          <TextInput
-            placeholder="1234 Main St, City, Country"
-            placeholderTextColor={theme.unselected}
-            value={address}
-            onChangeText={setAddress}
-            style={[
-              styles.input,
-              { borderColor: theme.unselected, color: theme.text, fontSize: textSize },
-            ]}
-            multiline
-          />
-        </>
+        <View style={[styles.card, { backgroundColor: theme.surface, marginTop: 20 }]}>
+          <Text style={[styles.cardHeading, { color: theme.text }]}>Delivery Information</Text>
+          <View style={styles.inputWrapper}>
+            <Text style={[styles.label, { color: theme.textDim }]}>Address</Text>
+            <View style={[styles.inputContainer, { borderColor: theme.border }]}>
+              <Ionicons name="location-outline" size={20} color={theme.textDim} style={styles.inputIcon} />
+              <TextInput
+                placeholder="1234 Main St, City, Country"
+                placeholderTextColor="#94a3b8"
+                value={address}
+                onChangeText={setAddress}
+                style={[styles.input, { color: theme.text }]}
+                multiline
+              />
+            </View>
+          </View>
+        </View>
       )}
 
-      <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary }]} onPress={handleConfirm}>
-        <Ionicons name="checkmark-circle-outline" size={24} color={theme.background} />
-        <Text style={{ color: theme.background, fontWeight: 'bold', fontSize: textSize + 2 }}>
-          Confirm Payment
-        </Text>
+      <TouchableOpacity
+        style={[styles.confirmButton, { backgroundColor: theme.primary }]}
+        onPress={handleConfirm}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.confirmButtonText}>Complete Transaction</Text>
+        <Ionicons name="shield-checkmark" size={20} color="#fff" style={{ marginLeft: 8 }} />
       </TouchableOpacity>
+
+      <View style={styles.securitySeal}>
+        <Ionicons name="lock-closed-outline" size={14} color={theme.textDim} />
+        <Text style={[styles.securityText, { color: theme.textDim }]}>Secure SSL Encrypted Payment</Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, justifyContent: 'center' },
-  title: { fontWeight: 'bold', marginBottom: 32, textAlign: 'center' },
-  label: { marginBottom: 8 },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 24,
-    minHeight: 80,
-    textAlignVertical: 'top',
+  container: {
+    flex: 1,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+    paddingTop: 40,
   },
-  button: {
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+  },
+  header: {
+    marginBottom: 40,
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  title: { fontWeight: '800', textAlign: 'center' },
+  subtitle: { fontWeight: '500', marginTop: 4, textAlign: 'center' },
+  card: {
+    padding: 24,
+    borderRadius: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 6,
+  },
+  cardHeading: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginBottom: 20,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  summaryLabel: { fontSize: 14, fontWeight: '500' },
+  summaryValue: { fontSize: 14, fontWeight: '700' },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    marginVertical: 15,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  totalLabel: { fontSize: 16, fontWeight: '800' },
+  totalValue: { fontSize: 24, fontWeight: '900' },
+  inputWrapper: { width: '100%' },
+  label: {
+    fontSize: 11,
+    fontWeight: '800',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderWidth: 1.5,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#F1F5F9',
+  },
+  inputIcon: { marginRight: 10, marginTop: 2 },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '500',
+    minHeight: 60,
+  },
+  confirmButton: {
+    flexDirection: 'row',
+    width: '100%',
+    paddingVertical: 18,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 30,
+    shadowColor: "#81ade7",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  confirmButtonText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+  securitySeal: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
-    paddingVertical: 14,
-    borderRadius: 32,
+    marginTop: 20,
+  },
+  securityText: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 6,
   },
 });

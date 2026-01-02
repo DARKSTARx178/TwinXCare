@@ -2,6 +2,7 @@ import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
@@ -50,14 +51,12 @@ export default function Services() {
 
   const fetchUserData = async (uid: string, role: string, type: string) => {
     try {
-      // If Patient (Standard) or Admin -> Fetch Requests
       if (type === 'standard' || role === 'admin' || !type) {
         const q = query(collection(db, 'escort', 'request', 'entries'), where('userId', '==', uid));
         const snap = await getDocs(q);
         setMyRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       }
 
-      // If Escort or Admin -> Fetch Availabilities
       if (type === 'escort' || role === 'admin') {
         const q = query(collection(db, 'escort', 'availability', 'entries'), where('providerId', '==', uid));
         const snap = await getDocs(q);
@@ -75,12 +74,15 @@ export default function Services() {
   };
 
   const renderStatusBadge = (status: string) => {
-    let color = theme.unselected;
-    if (status === 'matched') color = '#10b981'; // green
-    if (status === 'pending' || status === 'available') color = '#f59e0b'; // orange
+    let color = '#94a3b8';
+    let bgColor = '#f8fafc';
+    if (status === 'matched') { color = '#10b981'; bgColor = '#ecfdf5'; }
+    if (status === 'pending' || status === 'available') { color = '#f59e0b'; bgColor = '#fffbeb'; }
+
     return (
-      <View style={{ backgroundColor: color, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, alignSelf: 'flex-start', marginTop: 4 }}>
-        <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase' }}>{status}</Text>
+      <View style={[styles.statusBadge, { backgroundColor: bgColor }]}>
+        <View style={[styles.statusDot, { backgroundColor: color }]} />
+        <Text style={[styles.statusText, { color }]}>{status.toUpperCase()}</Text>
       </View>
     );
   };
@@ -88,53 +90,75 @@ export default function Services() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: theme.background }}
-      contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+      contentContainerStyle={{ paddingBottom: 60 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} tintColor={theme.primary} />}
     >
-      <Text style={[styles.title, { color: theme.text, fontSize: textSize + 8 }]}>Escort Dashboard</Text>
+      <View style={styles.header}>
+        <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
+          <Ionicons name="shield-outline" size={32} color={theme.primary} />
+        </View>
+        <Text style={[styles.title, { color: theme.text }]}>Care Dashboard</Text>
+        <Text style={[styles.subtitle, { color: theme.textDim }]}>
+          Monitor and manage your active support requests
+        </Text>
+      </View>
 
       {/* ADMIN SECTION */}
       {userRole === 'admin' && (
-        <View style={{ marginBottom: 20 }}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Admin Actions</Text>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Admin Terminal</Text>
+            <Ionicons name="lock-closed-outline" size={16} color={theme.primary} />
+          </View>
           <TouchableOpacity
-            style={[styles.card, { backgroundColor: theme.primary, alignItems: 'center' }]}
+            style={[styles.adminCard, { backgroundColor: theme.primary }]}
             onPress={() => router.push('/admin/admin_escort_match')}
+            activeOpacity={0.8}
           >
-            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: textSize }}>Manage Matching</Text>
+            <Ionicons name="git-network-outline" size={24} color="#fff" />
+            <Text style={styles.adminCardText}>Launch Matching Engine</Text>
+            <Ionicons name="chevron-forward" size={18} color="#fff" />
           </TouchableOpacity>
         </View>
       )}
 
       {/* PATIENT SECTION */}
       {((userType === 'standard') || (userRole === 'admin') || (!userType && !userRole)) && (
-        <View style={{ marginBottom: 30 }}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>My Escort Requests</Text>
-
-          <TouchableOpacity
-            style={[styles.ctaButton, { backgroundColor: theme.primary }]}
-            onPress={() => router.push('/escorts/require-escort')}
-          >
-            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: textSize }}>+ New Request</Text>
-          </TouchableOpacity>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Patient Support</Text>
+            <TouchableOpacity onPress={() => router.push('/escorts/require-escort')}>
+              <View style={[styles.addButton, { backgroundColor: theme.primaryGlow }]}>
+                <Ionicons name="add" size={20} color={theme.primary} />
+              </View>
+            </TouchableOpacity>
+          </View>
 
           {myRequests.length === 0 ? (
-            <Text style={{ color: theme.unselected, fontStyle: 'italic' }}>No active requests.</Text>
+            <View style={[styles.emptyCard, { backgroundColor: theme.surface }]}>
+              <Ionicons name="document-text-outline" size={40} color={theme.textDim} style={{ opacity: 0.3 }} />
+              <Text style={[styles.emptyText, { color: theme.textDim }]}>No active escort requests found.</Text>
+            </View>
           ) : (
             myRequests.map((req) => (
-              <View key={req.id} style={[styles.card, { backgroundColor: theme.unselectedTab }]}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: textSize }}>{req.hospital}</Text>
-                  <Text style={{ color: theme.text }}>{req.date}</Text>
+              <TouchableOpacity key={req.id} style={[styles.itemCard, { backgroundColor: theme.surface }]} activeOpacity={0.7}>
+                <View style={styles.cardInfo}>
+                  <Text style={[styles.hospitalName, { color: theme.text }]}>{req.hospital}</Text>
+                  <View style={styles.detailRow}>
+                    <Ionicons name="calendar-outline" size={14} color={theme.textDim} />
+                    <Text style={[styles.detailText, { color: theme.textDim }]}>{req.date} at {req.time}</Text>
+                  </View>
                 </View>
-                <Text style={{ color: theme.text, marginTop: 4 }}>Time: {req.time}</Text>
                 {renderStatusBadge(req.status)}
                 {req.status === 'matched' && (
-                  <Text style={{ color: theme.primary, marginTop: 8, fontWeight: 'bold' }}>
-                    Matched with: {req.matchedProviderName || 'Volunteer'}
-                  </Text>
+                  <View style={[styles.matchInfo, { backgroundColor: theme.primaryGlow }]}>
+                    <Ionicons name="checkmark-circle" size={16} color={theme.primary} />
+                    <Text style={[styles.matchText, { color: theme.primary }]}>
+                      Volunteer Assigned
+                    </Text>
+                  </View>
                 )}
-              </View>
+              </TouchableOpacity>
             ))
           )}
         </View>
@@ -142,45 +166,170 @@ export default function Services() {
 
       {/* ESCORT SECTION */}
       {(userType === 'escort' || userRole === 'admin') && (
-        <View style={{ marginBottom: 30 }}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>My Availability</Text>
-
-          <TouchableOpacity
-            style={[styles.ctaButton, { backgroundColor: theme.primary }]}
-            onPress={() => router.push('/escorts/escort')}
-          >
-            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: textSize }}>+ Add Availability</Text>
-          </TouchableOpacity>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Volunteer Slots</Text>
+            <TouchableOpacity onPress={() => router.push('/escorts/escort')}>
+              <View style={[styles.addButton, { backgroundColor: theme.primaryGlow }]}>
+                <Ionicons name="add" size={20} color={theme.primary} />
+              </View>
+            </TouchableOpacity>
+          </View>
 
           {myAvailabilities.length === 0 ? (
-            <Text style={{ color: theme.unselected, fontStyle: 'italic' }}>No availability slots posted.</Text>
+            <View style={[styles.emptyCard, { backgroundColor: theme.surface }]}>
+              <Ionicons name="calendar-clear-outline" size={40} color={theme.textDim} style={{ opacity: 0.3 }} />
+              <Text style={[styles.emptyText, { color: theme.textDim }]}>No availability slots posted.</Text>
+            </View>
           ) : (
             myAvailabilities.map((avail) => (
-              <View key={avail.id} style={[styles.card, { backgroundColor: theme.unselectedTab }]}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: textSize }}>{avail.location}</Text>
-                  <Text style={{ color: theme.text }}>{avail.date}</Text>
+              <TouchableOpacity key={avail.id} style={[styles.itemCard, { backgroundColor: theme.surface }]} activeOpacity={0.7}>
+                <View style={styles.cardInfo}>
+                  <Text style={[styles.hospitalName, { color: theme.text }]}>{avail.location}</Text>
+                  <View style={styles.detailRow}>
+                    <Ionicons name="time-outline" size={14} color={theme.textDim} />
+                    <Text style={[styles.detailText, { color: theme.textDim }]}>{avail.date} • {avail.fromTime} - {avail.toTime}</Text>
+                  </View>
                 </View>
-                <Text style={{ color: theme.text, marginTop: 4 }}>{avail.fromTime} - {avail.toTime}</Text>
                 {renderStatusBadge(avail.status)}
                 {avail.status === 'matched' && (
-                  <Text style={{ color: theme.primary, marginTop: 8, fontWeight: 'bold' }}>
-                    Matched! Check details.
-                  </Text>
+                  <View style={[styles.matchInfo, { backgroundColor: theme.primaryGlow }]}>
+                    <Ionicons name="heart" size={16} color={theme.primary} />
+                    <Text style={[styles.matchText, { color: theme.primary }]}>Matched with Patient</Text>
+                  </View>
                 )}
-              </View>
+              </TouchableOpacity>
             ))
           )}
         </View>
       )}
-
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { fontWeight: 'bold', marginBottom: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 10 },
-  ctaButton: { padding: 12, borderRadius: 8, alignItems: 'center', marginBottom: 16 },
-  card: { padding: 16, borderRadius: 12, marginBottom: 12 },
+  header: {
+    marginTop: 80,
+    marginBottom: 30,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  title: { fontSize: 26, fontWeight: '900' },
+  subtitle: { fontSize: 14, fontWeight: '500', marginTop: 4, textAlign: 'center', maxWidth: '85%' },
+  section: {
+    paddingHorizontal: 20,
+    marginBottom: 32,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  addButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  adminCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    borderRadius: 24,
+    gap: 16,
+  },
+  adminCardText: {
+    flex: 1,
+    color: '#fff',
+    fontWeight: '800',
+    fontSize: 16,
+  },
+  itemCard: {
+    padding: 20,
+    borderRadius: 28,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  cardInfo: {
+    marginBottom: 12,
+  },
+  hospitalName: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  detailText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    alignSelf: 'flex-start',
+    gap: 6,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  matchInfo: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  matchText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  emptyCard: {
+    padding: 40,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#f1f5f9',
+    borderStyle: 'dashed',
+  },
+  emptyText: {
+    marginTop: 12,
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  }
 });

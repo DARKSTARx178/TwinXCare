@@ -33,25 +33,18 @@ export default function DeliveryPage() {
   const [expandedOrders, setExpandedOrders] = useState<Set<number>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
 
-  const responsiveText = (base: number) =>
-    Math.max(base * (screenWidth / 400), base * 0.85);
-
   const fetchUserHistory = async () => {
     const currentUser = auth.currentUser;
     if (!currentUser) return;
-
     setUser(currentUser);
-
     const userRef = doc(db, 'users', currentUser.uid);
     const userSnap = await getDoc(userRef);
     if (userSnap.exists()) {
       const data = userSnap.data();
-      // Merge history and booking arrays into one timeline
       const combined = [
         ...(data.history || []).map((h: any) => ({ ...h, type: 'order' })),
         ...(data.booking || []).map((b: any) => ({ ...b, type: 'booking' })),
       ];
-      // Sort by createdAt (if exists), else leave as is
       combined.sort((a, b) => {
         if (a.createdAt && b.createdAt) {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -71,9 +64,9 @@ export default function DeliveryPage() {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return dateString;
     return date.toLocaleString('en-US', {
-      year: 'numeric',
       month: 'short',
       day: 'numeric',
+      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });
@@ -98,183 +91,336 @@ export default function DeliveryPage() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: theme.background }}
-      contentContainerStyle={{ paddingBottom: 40 }}
+      contentContainerStyle={{ paddingBottom: 60 }}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />
       }
     >
-      {/* Top card (different for booking vs order) */}
-      {latest && latest.type === 'order' && (
-        <View style={[cardStyle(theme), { width: '90%', alignSelf: 'center' }]}>
-          <Ionicons name="car" size={48} color={theme.primary} />
-          <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>
-            Delivery Scheduled
-          </Text>
-
-          <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Order Time</Text>
-          <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{formatDate(latest.orderTime)}</Text>
-
-          <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Transaction ID</Text>
-          <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{latest.transactionId || 'N/A'}</Text>
-
-          {!latest.isRenew && (
-            <>
-              <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Delivery Details</Text>
-              <Text style={[etaStyle(theme), { fontSize: responsiveText(textSize + 2) }]}>{latest.deliveryEta || 'N/A'}</Text>
-            </>
-          )}
-        </View>
-      )}
-
-      {latest && latest.type === 'booking' && (
-        <View style={[cardStyle(theme), { width: '90%', alignSelf: 'center' }]}>
-          <Ionicons name="calendar" size={48} color={theme.primary} />
-          <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 8) }]}>
-            Booking Success
-          </Text>
-
-          <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Service</Text>
-          <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{latest.title || 'N/A'}</Text>
-
-          <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Date</Text>
-          <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{formatDate(latest.bookingDate)}</Text>
-
-          <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Time</Text>
-          <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{latest.timeSlot || 'N/A'}</Text>
-
-          <Text style={[labelStyle(theme), { fontSize: responsiveText(textSize - 2) }]}>Description</Text>
-          <Text style={[valueStyle(theme), { fontSize: responsiveText(textSize) }]}>{latest.description || 'N/A'}</Text>
-        </View>
-      )}
-
-      {/* Back button */}
-      <TouchableOpacity style={[buttonStyle(theme)]} onPress={() => router.replace('/(tabs)')}>
-        <Ionicons name="arrow-back" size={28} color={theme.background} />
-        <Text style={{ color: theme.background, fontSize: responsiveText(textSize + 2), fontWeight: 'bold' }}>
-          Back to Home
-        </Text>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.replace('/(tabs)')}>
+        <Ionicons name="arrow-back" size={28} color={theme.text} />
       </TouchableOpacity>
 
-      {/* History section */}
-      <Text style={{ color: theme.text, fontSize: responsiveText(textSize + 4), fontWeight: 'bold', marginTop: 32, marginBottom: 8 }}>     History</Text>
+      <View style={styles.header}>
+        <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
+          <Ionicons name="receipt-outline" size={32} color={theme.primary} />
+        </View>
+        <Text style={[styles.title, { color: theme.text }]}>Order Tracker</Text>
+        <Text style={[styles.subtitle, { color: theme.textDim }]}>
+          Real-time updates on your equipment and services
+        </Text>
+      </View>
 
-      {!user ? (
-        <Text style={{ color: theme.unselected, fontSize: textSize }}>      Sign in to see history.</Text>
-      ) : orderHistory.length === 0 ? (
-        <Text style={{ color: theme.unselected, fontSize: textSize }}>      No records yet.</Text>
+      {/* Hero section: Latest Activity */}
+      {latest ? (
+        <View style={[styles.heroCard, { backgroundColor: theme.surface }]}>
+          <View style={styles.heroHeader}>
+            <Text style={[styles.heroType, { color: theme.primary }]}>
+              {latest.type === 'order' ? 'LATEST ORDER' : 'LATEST BOOKING'}
+            </Text>
+            <View style={[styles.pulseDot, { backgroundColor: theme.primary }]} />
+          </View>
+
+          <Text style={[styles.heroTitle, { color: theme.text }]}>
+            {latest.type === 'order' ? latest.name : latest.title}
+          </Text>
+
+          <View style={styles.heroGrid}>
+            <View style={styles.heroItem}>
+              <Text style={[styles.heroLabel, { color: theme.textDim }]}>STATUS</Text>
+              <Text style={[styles.heroValue, { color: theme.primary }]}>
+                {latest.status || (latest.type === 'order' ? 'Processing' : 'Confirmed')}
+              </Text>
+            </View>
+            <View style={styles.heroItem}>
+              <Text style={[styles.heroLabel, { color: theme.textDim }]}>DATE</Text>
+              <Text style={[styles.heroValue, { color: theme.text }]}>
+                {latest.type === 'order' ? formatDate(latest.orderTime).split(',')[0] : formatDate(latest.bookingDate).split(',')[0]}
+              </Text>
+            </View>
+          </View>
+
+          {latest.type === 'order' && latest.deliveryEta && (
+            <View style={[styles.etaBanner, { backgroundColor: theme.primaryGlow }]}>
+              <Ionicons name="time" size={18} color={theme.primary} />
+              <Text style={[styles.etaText, { color: theme.primary }]}>
+                Delivery ETA: {latest.deliveryEta}
+              </Text>
+            </View>
+          )}
+        </View>
       ) : (
-        orderHistory.map((entry, idx) => {
+        <View style={[styles.heroCard, { backgroundColor: theme.surface, padding: 40, alignItems: 'center' }]}>
+          <Ionicons name="basket-outline" size={48} color={theme.textDim} style={{ opacity: 0.2 }} />
+          <Text style={[styles.emptyHeroText, { color: theme.textDim }]}>No active orders found.</Text>
+        </View>
+      )}
+
+      {/* Timeline section */}
+      <View style={styles.historySection}>
+        <View style={styles.historyHeader}>
+          <Text style={[styles.historyTitle, { color: theme.text }]}>Timeline</Text>
+          <View style={[styles.countBadge, { backgroundColor: '#F1F5F9' }]}>
+            <Text style={styles.countText}>{orderHistory.length}</Text>
+          </View>
+        </View>
+
+        {orderHistory.map((entry, idx) => {
           const expanded = expandedOrders.has(idx);
+          const isOrder = entry.type === 'order';
           return (
             <TouchableOpacity
               key={idx}
-              activeOpacity={0.8}
+              activeOpacity={0.9}
               onPress={() => toggleExpand(idx)}
-              style={{
-                backgroundColor: theme.unselectedTab,
-                borderRadius: 12,
-                padding: 16,
-                marginVertical: 8,
-                width: '90%',
-                alignSelf: 'center',
-              }}
+              style={[styles.timelineCard, { backgroundColor: theme.surface }]}
             >
-              <Text style={{ color: theme.text, fontSize: responsiveText(textSize), fontWeight: 'bold' }}>
-                {entry.type === 'order'
-                  ? `${entry.name} x${entry.quantity}`
-                  : `Booking: ${entry.title}`}
-              </Text>
+              <View style={styles.timelineMain}>
+                <View style={[styles.timelineIcon, { backgroundColor: isOrder ? '#eff6ff' : '#f5f3ff' }]}>
+                  <Ionicons
+                    name={isOrder ? "cube-outline" : "calendar-outline"}
+                    size={20}
+                    color={isOrder ? "#3b82f6" : "#8b5cf6"}
+                  />
+                </View>
+                <View style={{ flex: 1, marginLeft: 16 }}>
+                  <Text style={[styles.timelineName, { color: theme.text }]}>
+                    {isOrder ? `${entry.name} (x${entry.quantity})` : entry.title}
+                  </Text>
+                  <Text style={[styles.timelineDate, { color: theme.textDim }]}>
+                    {isOrder ? formatDate(entry.orderTime) : formatDate(entry.bookingDate)}
+                  </Text>
+                </View>
+                <Ionicons
+                  name={expanded ? "chevron-up" : "chevron-down"}
+                  size={18}
+                  color={theme.textDim}
+                />
+              </View>
 
               {expanded && (
-                <View style={{ marginTop: 8 }}>
-                  {entry.type === 'order' ? (
-                    <>
-                      {entry.rentalStart && entry.rentalEnd && (
-                        <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                          Rental: {entry.rentalStart} - {entry.rentalEnd}
-                        </Text>
-                      )}
-                      <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                        Amount: ${entry.totalPrice}
-                      </Text>
-                      <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                        Transaction ID: {entry.transactionId}
-                      </Text>
-                      <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                        Delivery Address: {entry.deliveryAddress}
-                      </Text>
-                      {entry.deliveryEta && (
-                        <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                          Delivery ETA: {entry.deliveryEta}
-                        </Text>
-                      )}
-                      <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                        Status: {entry.status}
-                      </Text>
-                    </>
-                  ) : (
-                    <>
-                      <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                        Date: {formatDate(entry.bookingDate)}
-                      </Text>
-                      <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                        Time: {entry.timeSlot || 'N/A'}
-                      </Text>
-                      <Text style={{ color: theme.text, fontSize: responsiveText(textSize - 2) }}>
-                        Description: {entry.description || 'N/A'}
-                      </Text>
-                    </>
-                  )}
+                <View style={[styles.expandedContent, { borderTopColor: '#f1f5f9' }]}>
+                  <View style={styles.detailGrid}>
+                    <View style={styles.detailItem}>
+                      <Text style={[styles.detailLabel, { color: theme.textDim }]}>Reference</Text>
+                      <Text style={[styles.detailValue, { color: theme.text }]}>{isOrder ? entry.transactionId : 'N/A'}</Text>
+                    </View>
+                    <View style={styles.detailItem}>
+                      <Text style={[styles.detailLabel, { color: theme.textDim }]}>Total</Text>
+                      <Text style={[styles.detailValue, { color: theme.text }]}>{isOrder ? `$${entry.totalPrice}` : 'Prepaid/Included'}</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.descriptionBox}>
+                    <Text style={[styles.detailLabel, { color: theme.textDim }]}>{isOrder ? 'Delivery Address' : 'Slot Details'}</Text>
+                    <Text style={[styles.detailValue, { color: theme.text }]}>
+                      {isOrder ? entry.deliveryAddress : `${entry.timeSlot || 'Anytime'} • ${entry.description || 'No notes'}`}
+                    </Text>
+                  </View>
+
+                  <View style={[styles.statusRow, { backgroundColor: '#f8fafc' }]}>
+                    <Text style={[styles.statusLabel, { color: theme.textDim }]}>Final Status</Text>
+                    <View style={[styles.statusBadge, { backgroundColor: theme.primaryGlow }]}>
+                      <Text style={[styles.statusText, { color: theme.primary }]}>{entry.status || 'Confirmed'}</Text>
+                    </View>
+                  </View>
                 </View>
               )}
             </TouchableOpacity>
           );
-        })
-      )}
+        })}
+      </View>
     </ScrollView>
   );
 }
 
-const cardStyle = (theme: Record<string, any>) => ({
-  backgroundColor: theme.background,
-  borderColor: theme.unselected,
-  borderWidth: 1,
-  borderRadius: 24,
-  padding: 24,
-  alignItems: 'center' as const,
-  marginBottom: 32,
-});
-
-const buttonStyle = (theme: any) => ({
-  backgroundColor: theme.primary,
-  borderRadius: 32,
-  paddingVertical: 16,
-  paddingHorizontal: 32,
-  flexDirection: 'row' as const,
-  alignItems: 'center' as 'center',
-  gap: 12,
-  marginTop: 32,
-  width: '90%' as unknown as number,
-  alignSelf: 'center' as const,
-});
-
 const styles = StyleSheet.create({
-  title: { fontWeight: 'bold', marginVertical: 16 },
-});
-
-const labelStyle = (theme: Record<string, any>) => ({
-  color: theme.unselected,
-  fontWeight: '600' as const,
-  marginTop: 12,
-});
-
-const valueStyle = (theme: Record<string, any>) => ({
-  color: theme.text,
-  marginBottom: 8,
-});
-
-const etaStyle = (theme: Record<string, any>) => ({
-  color: theme.primary,
-  fontWeight: 'bold' as const,
-  marginBottom: 8,
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+  },
+  header: {
+    marginTop: 100,
+    marginBottom: 30,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  title: { fontSize: 26, fontWeight: '900' },
+  subtitle: { fontSize: 13, fontWeight: '500', marginTop: 4, textAlign: 'center', maxWidth: '85%' },
+  heroCard: {
+    marginHorizontal: 20,
+    padding: 24,
+    borderRadius: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 10,
+    marginBottom: 32,
+  },
+  heroHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  heroType: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+  },
+  pulseDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  heroTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    marginBottom: 20,
+  },
+  heroGrid: {
+    flexDirection: 'row',
+    gap: 32,
+    marginBottom: 20,
+  },
+  heroItem: {
+    flex: 1,
+  },
+  heroLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    marginBottom: 4,
+    letterSpacing: 0.5,
+  },
+  heroValue: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  etaBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 16,
+    gap: 8,
+  },
+  etaText: {
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  emptyHeroText: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 12,
+  },
+  historySection: {
+    paddingHorizontal: 20,
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 20,
+  },
+  historyTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  countBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  countText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#64748b',
+  },
+  timelineCard: {
+    padding: 16,
+    borderRadius: 24,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  timelineMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  timelineIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  timelineName: {
+    fontSize: 14,
+    fontWeight: '800',
+    marginBottom: 2,
+  },
+  timelineDate: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  expandedContent: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+  },
+  detailGrid: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  detailItem: {
+    flex: 1,
+  },
+  detailLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  detailValue: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  descriptionBox: {
+    marginBottom: 16,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 10,
+    borderRadius: 12,
+  },
+  statusLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: '900',
+  }
 });

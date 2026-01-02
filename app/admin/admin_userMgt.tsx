@@ -109,71 +109,80 @@ export default function AdminUserMgt() {
     return (
         <ScrollView
             style={{ flex: 1, backgroundColor: theme.background }}
-            contentContainerStyle={{ padding: 16 }}
+            contentContainerStyle={{ paddingBottom: 60 }}
+            showsVerticalScrollIndicator={false}
         >
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                <Ionicons name="arrow-back" size={28} color={theme.text} left={-15} bottom={15} />
+                <Ionicons name="arrow-back" size={28} color={theme.text} />
             </TouchableOpacity>
-            <Text>  </Text>
-            <Text>  </Text>
-            <Text>  </Text>
-            <Text
-                style={{
-                    fontSize: textSize + 6,
-                    fontWeight: 'bold',
-                    color: theme.text,
-                    marginBottom: 16,
-                }}
-            >
-                User Management
-            </Text>
 
-            {users.map((user) => {
-                const role = user.role || 'user';
+            <View style={styles.header}>
+                <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
+                    <Ionicons name="people-outline" size={32} color={theme.primary} />
+                </View>
+                <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>User Management</Text>
+                <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>
+                    Directory of {users.length} registered accounts
+                </Text>
+            </View>
 
-                return (
-                    <View
-                        key={user.id}
-                        style={[
-                            styles.card,
-                            { backgroundColor: theme.unselectedTab, width: screenWidth - 32 },
-                        ]}
-                    >
-                        <Text style={[styles.name, { color: theme.text, fontSize: textSize + 2 }]}>
-                            {user.username || 'Unnamed User'}
-                        </Text>
-                        <Text style={{ color: theme.text, fontSize: textSize - 2 }}>
-                            Email: {user.email || 'N/A'}
-                        </Text>
-                        <Text style={{ color: theme.text, fontSize: textSize - 2 }}>
-                            Role: {role}
-                        </Text>
+            <View style={styles.listContainer}>
+                {users.map((user) => {
+                    const role = user.role || 'user';
+                    const isAdmin = role === 'admin';
 
-                        <View style={styles.actions}>
-                            <TouchableOpacity
-                                style={[styles.button, { backgroundColor: theme.primary }]}
-                                onPress={() => toggleRole(user.id, role)}
-                            >
-                                <Ionicons name="person-circle" size={20} color="#fff" />
-                                <Text style={[styles.buttonText, { color: '#fff' }]}>
-                                    Toggle Role
-                                </Text>
-                            </TouchableOpacity>
+                    return (
+                        <View
+                            key={user.id}
+                            style={[styles.card, { backgroundColor: theme.surface }]}
+                        >
+                            <View style={styles.cardHeader}>
+                                <View style={[styles.avatarCircle, { backgroundColor: isAdmin ? theme.primaryGlow : '#F1F5F9' }]}>
+                                    <Ionicons
+                                        name={isAdmin ? "shield-checkmark" : "person"}
+                                        size={22}
+                                        color={isAdmin ? theme.primary : theme.textDim}
+                                    />
+                                </View>
+                                <View style={styles.userInfo}>
+                                    <Text style={[styles.userName, { color: theme.text }]}>
+                                        {user.username || 'Unnamed User'}
+                                    </Text>
+                                    <Text style={[styles.userEmail, { color: theme.textDim }]}>
+                                        {user.email || 'No email provided'}
+                                    </Text>
+                                </View>
+                                <View style={[styles.roleBadge, { backgroundColor: isAdmin ? 'rgba(129, 173, 231, 0.15)' : 'rgba(148, 163, 184, 0.1)' }]}>
+                                    <Text style={[styles.roleText, { color: isAdmin ? theme.primary : theme.textDim }]}>
+                                        {role.toUpperCase()}
+                                    </Text>
+                                </View>
+                            </View>
 
-                            <TouchableOpacity
-                                style={[
-                                    styles.button,
-                                    { backgroundColor: role === 'admin' ? theme.unselected : 'red' },
-                                ]}
-                                onPress={() => deleteUser(user.id, role)}
-                            >
-                                <Ionicons name="trash" size={20} color="#fff" />
-                                <Text style={[styles.buttonText, { color: '#fff' }]}>Delete</Text>
-                            </TouchableOpacity>
+                            <View style={styles.cardActions}>
+                                <TouchableOpacity
+                                    style={[styles.actionButton, { backgroundColor: '#F1F5F9' }]}
+                                    onPress={() => toggleRole(user.id, role)}
+                                    activeOpacity={0.7}
+                                >
+                                    <Ionicons name="swap-horizontal" size={18} color={theme.textDim} />
+                                    <Text style={[styles.actionText, { color: theme.text }]}>Change Role</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[styles.actionButton, { backgroundColor: isAdmin ? '#F8FAFC' : '#fee2e2' }]}
+                                    onPress={() => deleteUser(user.id, role)}
+                                    disabled={isAdmin}
+                                    activeOpacity={0.7}
+                                >
+                                    <Ionicons name="trash-outline" size={18} color={isAdmin ? '#94a3b8' : '#ef4444'} />
+                                    <Text style={[styles.actionText, { color: isAdmin ? '#94a3b8' : '#ef4444' }]}>Delete</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
-                );
-            })}
+                    );
+                })}
+            </View>
         </ScrollView>
     );
 }
@@ -184,37 +193,94 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    card: {
+    backButton: {
+        position: "absolute",
+        top: 50,
+        left: 20,
+        zIndex: 10,
+        padding: 8,
         borderRadius: 12,
-        padding: 16,
+        backgroundColor: 'rgba(0,0,0,0.03)',
+    },
+    header: {
+        marginTop: 100,
+        marginBottom: 30,
+        alignItems: 'center',
+        paddingHorizontal: 20,
+    },
+    iconCircle: {
+        width: 64,
+        height: 64,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
         marginBottom: 16,
-        alignSelf: 'center',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
     },
-    name: {
-        fontWeight: 'bold',
-        marginBottom: 6,
+    title: { fontWeight: '800', textAlign: 'center' },
+    subtitle: { fontWeight: '500', marginTop: 4, textAlign: 'center' },
+    listContainer: {
+        paddingHorizontal: 20,
     },
-    actions: {
-        flexDirection: 'row',
-        marginTop: 12,
+    card: {
+        padding: 20,
+        borderRadius: 28,
+        marginBottom: 16,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        elevation: 3,
     },
-    button: {
+    cardHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 10,
-        paddingHorizontal: 14,
+        marginBottom: 20,
+    },
+    avatarCircle: {
+        width: 48,
+        height: 48,
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 14,
+    },
+    userInfo: {
+        flex: 1,
+    },
+    userName: {
+        fontSize: 16,
+        fontWeight: '800',
+        marginBottom: 2,
+    },
+    userEmail: {
+        fontSize: 13,
+        fontWeight: '500',
+    },
+    roleBadge: {
+        paddingHorizontal: 10,
+        paddingVertical: 5,
         borderRadius: 8,
-        marginRight: 12,
     },
-    buttonText: {
-        marginLeft: 8,
-        fontWeight: '600',
-        fontSize: 14,
+    roleText: {
+        fontSize: 10,
+        fontWeight: '900',
+        letterSpacing: 0.5,
     },
-    backButton: { position: "absolute", top: 35, left: 20, zIndex: 1, backgroundColor: "transparent", padding: 6 },
+    cardActions: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    actionButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        borderRadius: 14,
+        gap: 8,
+    },
+    actionText: {
+        fontSize: 13,
+        fontWeight: '700',
+    },
 });

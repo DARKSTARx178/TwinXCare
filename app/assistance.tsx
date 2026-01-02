@@ -58,14 +58,14 @@ export default function Assistance() {
       });
 
       let data: ResponseData = { success: false };
-      
+
       // Check for Vercel security checkpoint (429)
       if (response.status === 429) {
         console.error('Rate limited by Vercel. Retrying in 2 seconds...');
         await new Promise(resolve => setTimeout(resolve, 2000));
         throw new Error('Rate limited. Please try again.');
       }
-      
+
       if (!response.ok && response.status >= 400) {
         const text = await response.text();
         console.error(`API error ${response.status}:`, text.substring(0, 200));
@@ -111,35 +111,142 @@ export default function Assistance() {
         <Ionicons name="arrow-back" size={28} color={theme.text} />
       </TouchableOpacity>
 
-      <Text style={[styles.title, { color: theme.text }]}>Submit Assistance Request</Text>
+      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+        <View style={styles.iconCircle}>
+          <Ionicons name="megaphone-outline" size={32} color={theme.primary} />
+        </View>
 
-      <TextInput
-        style={[styles.input, { borderColor: theme.primary, color: theme.text }]}
-        placeholder="Your request..."
-        value={message}
-        onChangeText={setMessage}
-        multiline
-        numberOfLines={5}
-      />
-
-            <TouchableOpacity
-        style={[styles.submitButton, { backgroundColor: theme.primary }]}
-        onPress={handleSend}
-        disabled={submitting}
-      >
-        <Text style={[styles.submitText, { color: '#fff' }]}>
-          {submitting ? 'Submitting...' : 'Submit Request'}
+        <Text style={[styles.title, { color: theme.text }]}>Request Assistance</Text>
+        <Text style={[styles.subtitle, { color: theme.textDim }]}>
+          Tell us what you need and our team will get back to you as soon as possible.
         </Text>
-      </TouchableOpacity>
+
+        <View style={styles.inputWrapper}>
+          <Text style={[styles.label, { color: theme.textDim }]}>Request Details</Text>
+          <TextInput
+            style={[styles.input, { borderColor: theme.border, color: theme.text }]}
+            placeholder="Describe how we can help you today..."
+            placeholderTextColor="#94a3b8"
+            value={message}
+            onChangeText={setMessage}
+            multiline
+            numberOfLines={6}
+            textAlignVertical="top"
+          />
+        </View>
+
+        <TouchableOpacity
+          style={[styles.submitButton, { backgroundColor: theme.primary }]}
+          onPress={handleSend}
+          disabled={submitting}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.submitText, { color: '#fff' }]}>
+            {submitting ? 'Sending Request...' : 'Send Request'}
+          </Text>
+          {!submitting && <Ionicons name="paper-plane-outline" size={20} color="#fff" style={{ marginLeft: 8 }} />}
+        </TouchableOpacity>
+
+        <View style={styles.infoBox}>
+          <Ionicons name="information-circle-outline" size={18} color={theme.primary} />
+          <Text style={[styles.infoText, { color: theme.textDim }]}>
+            Your request will be sent directly to our support coordinators.
+          </Text>
+        </View>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  backButton: { alignSelf: 'flex-start', marginBottom: 16, backgroundColor: 'transparent' },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 18, color: '#222' },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 10, padding: 14, fontSize: 16, marginBottom: 18, backgroundColor: '#fff', minHeight: 100, textAlignVertical: 'top' },
-  submitButton: { backgroundColor: '#4a90e2', padding: 16, borderRadius: 10, alignItems: 'center', marginBottom: 18 },
-  submitText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
+  container: {
+    flex: 1,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+    paddingTop: 40,
+  },
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+  },
+  card: {
+    padding: 30,
+    borderRadius: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 8,
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: 'rgba(129, 173, 231, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  title: { fontSize: 24, fontWeight: '800', marginBottom: 8, textAlign: 'center' },
+  subtitle: {
+    fontSize: 15,
+    textAlign: 'center',
+    marginBottom: 25,
+    lineHeight: 22,
+    fontWeight: '500',
+  },
+  inputWrapper: {
+    width: '100%',
+    marginBottom: 25,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  input: {
+    borderWidth: 1.5,
+    borderRadius: 20,
+    padding: 16,
+    fontSize: 16,
+    backgroundColor: '#F1F5F9',
+    minHeight: 150,
+    fontWeight: '500',
+  },
+  submitButton: {
+    flexDirection: 'row',
+    width: '100%',
+    padding: 18,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: "#81ade7",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  submitText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+  infoBox: {
+    flexDirection: 'row',
+    marginTop: 25,
+    backgroundColor: 'rgba(129, 173, 231, 0.05)',
+    padding: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  infoText: {
+    fontSize: 12,
+    marginLeft: 8,
+    fontWeight: '500',
+    flex: 1,
+  },
 });

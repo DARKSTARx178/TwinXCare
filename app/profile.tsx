@@ -6,7 +6,7 @@ import { useRouter } from "expo-router";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import React, { useContext, useEffect, useState } from "react";
-import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { auth, db } from "../firebase/firebase";
 
 export default function Profile() {
@@ -107,101 +107,200 @@ export default function Profile() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={28} color={theme.text} />
-      </TouchableOpacity> 
+      </TouchableOpacity>
 
-      {user ? (
-        <>
-          <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-            <Text style={{ color: theme.background, fontWeight: "bold", fontSize: 48 }}>
-              {(username || user.email)?.charAt(0).toUpperCase()}
-            </Text>
-          </View>
-          <Text style={{ color: theme.text, fontWeight: "bold", marginBottom: 6, fontSize: textSize + 8 }}>
-            {username || user.email}
-          </Text>
-          <Text style={{ color: theme.text, marginBottom: 6, fontSize: textSize }}>Signed in</Text>
-          {firestoreId ? (
-            <Text style={{ color: theme.unselected, marginBottom: 14, fontSize: Math.max(12, textSize - 2) }}>User ID: {firestoreId}</Text>
-          ) : null}
+      <View style={styles.header}>
+        {user ? (
+          <>
+            <View style={[styles.avatar, { backgroundColor: theme.primaryGlow, borderColor: theme.primary }]}>
+              <Text style={{ color: theme.primary, fontWeight: "800", fontSize: 40 }}>
+                {(username || user.email || "?").charAt(0).toUpperCase()}
+              </Text>
+            </View>
+            <View style={styles.userInfo}>
+              <Text style={[styles.userName, { color: theme.text, fontSize: textSize + 8 }]}>
+                {username || (user.email ? user.email.split('@')[0] : 'User')}
+              </Text>
+              <View style={[styles.roleBadge, { backgroundColor: role === 'admin' ? '#fee2e2' : 'rgba(129, 173, 231, 0.1)' }]}>
+                <Text style={[styles.roleText, { color: role === 'admin' ? '#ef4444' : theme.primary }]}>
+                  {role.toUpperCase()}
+                </Text>
+              </View>
+            </View>
 
-          {/* ✅ Show Admin button if role is admin */}
-          {role === "admin" && (
-            <TouchableOpacity
-              style={{
-                backgroundColor: "#FF5733",
-                paddingVertical: 10,
-                paddingHorizontal: 30,
-                borderRadius: 8,
-                marginBottom: 10,
-              }}
-              onPress={handleAdminMode}
-            >
-              <Text style={{ color: "#fff", fontWeight: "bold", fontSize: textSize }}>Enter Admin Mode</Text>
-            </TouchableOpacity>
-          )}
-        </>
-      ) : (
-        <>
-          <Image source={require("@/assets/images/noprofile.jpg")} style={styles.avatar} />
-          <Text style={{ color: theme.text, fontWeight: "bold", marginBottom: 6, fontSize: textSize + 8 }}>Guest</Text>
-          <Text style={{ color: theme.text, marginBottom: 20, fontSize: textSize }}>Not logged in!</Text>
-          <TouchableOpacity
-            style={{
-              backgroundColor: theme.primary,
-              paddingVertical: 10,
-              paddingHorizontal: 30,
-              borderRadius: 8,
-              marginBottom: 10,
-            }}
-            onPress={handleLogin}
-          >
-            <Text style={{ color: theme.background, fontWeight: "bold", fontSize: textSize }}>Sign In</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              backgroundColor: theme.primary,
-              paddingVertical: 10,
-              paddingHorizontal: 30,
-              borderRadius: 8,
-              marginBottom: 10,
-            }}
-            onPress={handleRegister}
-          >
-            <Text style={{ color: theme.background, fontWeight: "bold", fontSize: textSize }}>Register</Text>
-          </TouchableOpacity>
-        </>
-      )}
+            {role === "admin" && (
+              <TouchableOpacity
+                style={[styles.adminButton, { backgroundColor: theme.primary }]}
+                onPress={handleAdminMode}
+              >
+                <Ionicons name="shield-half-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={{ color: "#fff", fontWeight: "800", fontSize: textSize - 2 }}>Enter Admin View</Text>
+              </TouchableOpacity>
+            )}
+          </>
+        ) : (
+          <>
+            <View style={[styles.avatar, { backgroundColor: '#f1f5f9' }]}>
+              <Ionicons name="person-outline" size={50} color="#94a3b8" />
+            </View>
+            <Text style={[styles.userName, { color: theme.text, fontSize: textSize + 8 }]}>Guest</Text>
+            <Text style={{ color: theme.textDim, marginBottom: 20 }}>Please sign in to access more features</Text>
 
-      <View style={styles.optionsContainer}>
+            <View style={styles.authRow}>
+              <TouchableOpacity style={[styles.authButton, { backgroundColor: theme.primary }]} onPress={handleLogin}>
+                <Text style={styles.authButtonText}>Sign In</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.authButtonOutline, { borderColor: theme.primary }]} onPress={handleRegister}>
+                <Text style={[styles.authButtonOutlineText, { color: theme.primary }]}>Register</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </View>
+
+      <View style={[styles.menuCard, { backgroundColor: theme.surface }]}>
         {menuItems.map((item, index) => (
-          <TouchableOpacity key={index} style={styles.option} onPress={item.onPress}>
-            <Ionicons
-              name={item.icon as any}
-              size={22}
-              color={item.isLogout ? "#d00" : theme.text}
-              style={{ marginRight: 10 }}
-            />
-            <Text style={{ color: item.isLogout ? "#d00" : theme.text, fontSize: textSize }}>{item.label}</Text>
+          <TouchableOpacity
+            key={index}
+            style={[styles.menuItem, index === menuItems.length - 1 && { borderBottomWidth: 0 }]}
+            onPress={item.onPress}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: item.isLogout ? 'rgba(239, 68, 68, 0.1)' : 'rgba(129, 173, 231, 0.08)' }]}>
+              <Ionicons
+                name={item.icon as any}
+                size={22}
+                color={item.isLogout ? "#ef4444" : theme.primary}
+              />
+            </View>
+            <Text style={[styles.menuLabel, { color: item.isLogout ? "#ef4444" : theme.text, fontSize: textSize }]}>
+              {item.label}
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color={theme.textDim} style={{ marginLeft: 'auto' }} />
           </TouchableOpacity>
         ))}
       </View>
+
+      {user && firestoreId && (
+        <Text style={[styles.footerId, { color: theme.textDim }]}>USER REF: {firestoreId.substring(0, 12).toUpperCase()}...</Text>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", paddingTop: 80 },
-  backButton: { position: "absolute", top: 35, left: 20, zIndex: 1, backgroundColor: "transparent", padding: 6 },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 20,
-    backgroundColor: "#eee",
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
+  container: { flex: 1, paddingHorizontal: 20, paddingTop: 60 },
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.03)',
   },
-  optionsContainer: { marginTop: 30, width: "85%" },
-  option: { flexDirection: "row", alignItems: "center", paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: "#ccc" },
+  header: {
+    alignItems: 'center',
+    marginTop: 40,
+    marginBottom: 40,
+  },
+  avatar: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    borderWidth: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  userInfo: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  userName: {
+    fontWeight: "800",
+    marginBottom: 8,
+  },
+  roleBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 100,
+  },
+  roleText: {
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  adminButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  authRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  authButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    borderRadius: 16,
+  },
+  authButtonText: {
+    color: '#fff',
+    fontWeight: '800',
+  },
+  authButtonOutline: {
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    borderRadius: 16,
+    borderWidth: 2,
+  },
+  authButtonOutlineText: {
+    fontWeight: '800',
+  },
+  menuCard: {
+    padding: 12,
+    borderRadius: 28,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 5,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.03)',
+  },
+  menuIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  menuLabel: {
+    fontWeight: '600',
+  },
+  footerId: {
+    textAlign: 'center',
+    marginTop: 30,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  }
 });

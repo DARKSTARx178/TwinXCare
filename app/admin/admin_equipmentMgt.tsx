@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { addDoc, collection, deleteDoc, doc, getDocs, updateDoc } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
-import { Alert, FlatList, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { db } from '../../firebase/firebase';
 
 export default function AdminEquipmentMgt() {
@@ -23,11 +23,14 @@ export default function AdminEquipmentMgt() {
     const [isEditing, setIsEditing] = useState<Record<string, boolean>>({});
     const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
-    // Fetch all equipment from Firestore
     const fetchEquipment = async () => {
-        const snapshot = await getDocs(collection(db, 'equipment'));
-        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setEquipmentList(items);
+        try {
+            const snapshot = await getDocs(collection(db, 'equipment'));
+            const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setEquipmentList(items);
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     useEffect(() => {
@@ -36,7 +39,6 @@ export default function AdminEquipmentMgt() {
 
     const router = useRouter();
 
-    // Add new equipment
     const handleAddEquipment = async () => {
         if (!name || !brand || !price || !stock) {
             Alert.alert('Error', 'Please fill all required fields.');
@@ -63,7 +65,6 @@ export default function AdminEquipmentMgt() {
         }
     };
 
-    // Update stock
     const handleUpdateStock = async (id: string, newStock: number) => {
         try {
             await updateDoc(doc(db, 'equipment', id), { stock: newStock });
@@ -74,7 +75,6 @@ export default function AdminEquipmentMgt() {
         }
     };
 
-    // Delete equipment
     const handleDeleteEquipment = async (id: string, name: string) => {
         Alert.alert(
             'Delete Equipment',
@@ -98,13 +98,11 @@ export default function AdminEquipmentMgt() {
         );
     };
 
-    // Toggle expand/collapse and initialize editing fields for that item
     const toggleExpand = (item: any) => {
         const id = item.id;
         setExpandedItems(prev => ({ ...prev, [id]: !prev[id] }));
-        // initialize editing values when expanding
         setEditingFields(prev => {
-            if (prev[id]) return prev; // already initialized
+            if (prev[id]) return prev;
             return {
                 ...prev,
                 [id]: {
@@ -120,7 +118,6 @@ export default function AdminEquipmentMgt() {
     };
 
     const toggleEditMode = (id: string, item?: any) => {
-        // ensure fields initialized
         setEditingFields(prev => {
             if (prev[id]) return prev;
             return {
@@ -135,11 +132,9 @@ export default function AdminEquipmentMgt() {
                 }
             };
         });
-
         setIsEditing(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
-    // Update equipment fields
     const handleUpdateEquipment = async (id: string) => {
         const fields = editingFields[id];
         if (!fields) return;
@@ -159,46 +154,127 @@ export default function AdminEquipmentMgt() {
             Alert.alert('Error', 'Failed to update equipment.');
         }
     };
+
     return (
-        <ScrollView style={[styles.container, { backgroundColor: theme.background }]} contentContainerStyle={{ paddingBottom: 40 }}>
+        <ScrollView
+            style={{ flex: 1, backgroundColor: theme.background }}
+            contentContainerStyle={{ paddingBottom: 60 }}
+            showsVerticalScrollIndicator={false}
+        >
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                <Ionicons name="arrow-back" size={28} color={theme.text} left={-30} bottom={25} />
+                <Ionicons name="arrow-back" size={28} color={theme.text} />
             </TouchableOpacity>
-            <Text>  </Text>
-            <Text>  </Text>
-            <Text>  </Text>
-            <Text style={[styles.heading, { color: theme.text, fontSize: textSize + 6 }]}>Manage Equipment</Text>
 
-            {/* Add New Equipment (compact: two-column rows) */}
-            <View style={styles.inputContainer}>
-                <View style={styles.row}>
-                    <TextInput style={[styles.inputHalf, { borderColor: theme.primary, color: theme.text }]} placeholder="Name" placeholderTextColor={theme.unselected} value={name} onChangeText={setName} />
-                    <TextInput style={[styles.inputHalf, { borderColor: theme.primary, color: theme.text }]} placeholder="Brand" placeholderTextColor={theme.unselected} value={brand} onChangeText={setBrand} />   
+            <View style={styles.header}>
+                <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
+                    <Ionicons name="construct-outline" size={32} color={theme.primary} />
                 </View>
-                <View style={styles.row}>
-                    <TextInput style={[styles.inputHalf, { borderColor: theme.primary, color: theme.text }]} placeholder="Price (per day)" placeholderTextColor={theme.unselected} keyboardType="numeric" value={price} onChangeText={setPrice} />
-                    <TextInput style={[styles.inputHalf, { borderColor: theme.primary, color: theme.text }]} placeholder="Stock" placeholderTextColor={theme.unselected} keyboardType="numeric" value={stock} onChangeText={setStock} />
-                </View>
-                <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Description" placeholderTextColor={theme.unselected} value={description} onChangeText={setDescription} />
-                <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} placeholder="Image URL" placeholderTextColor="#aaa" value={image} onChangeText={setImage} />
+                <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>Equipment Inventory</Text>
+                <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>
+                    Management & Stock Control Center
+                </Text>
+            </View>
 
-                <TouchableOpacity style={[styles.button, { backgroundColor: theme.primary }]} onPress={handleAddEquipment}>
-                    <Text style={{ color: theme.background, fontWeight: 'bold', fontSize: textSize }}>Add Equipment</Text>
+            <View style={[styles.card, { backgroundColor: theme.surface }]}>
+                <Text style={[styles.cardHeading, { color: theme.text }]}>Add New Item</Text>
+
+                <View style={styles.formRow}>
+                    <View style={styles.inputWrapper}>
+                        <Text style={[styles.label, { color: theme.textDim }]}>Item Name</Text>
+                        <TextInput
+                            style={[styles.input, { color: theme.text }]}
+                            placeholder="e.g. Wheelchair"
+                            placeholderTextColor="#94a3b8"
+                            value={name}
+                            onChangeText={setName}
+                        />
+                    </View>
+                    <View style={styles.inputWrapper}>
+                        <Text style={[styles.label, { color: theme.textDim }]}>Brand</Text>
+                        <TextInput
+                            style={[styles.input, { color: theme.text }]}
+                            placeholder="e.g. HealthCo"
+                            placeholderTextColor="#94a3b8"
+                            value={brand}
+                            onChangeText={setBrand}
+                        />
+                    </View>
+                </View>
+
+                <View style={styles.formRow}>
+                    <View style={styles.inputWrapper}>
+                        <Text style={[styles.label, { color: theme.textDim }]}>Price/Day</Text>
+                        <TextInput
+                            style={[styles.input, { color: theme.text }]}
+                            placeholder="0.00"
+                            placeholderTextColor="#94a3b8"
+                            keyboardType="numeric"
+                            value={price}
+                            onChangeText={setPrice}
+                        />
+                    </View>
+                    <View style={styles.inputWrapper}>
+                        <Text style={[styles.label, { color: theme.textDim }]}>Initial Stock</Text>
+                        <TextInput
+                            style={[styles.input, { color: theme.text }]}
+                            placeholder="0"
+                            placeholderTextColor="#94a3b8"
+                            keyboardType="numeric"
+                            value={stock}
+                            onChangeText={setStock}
+                        />
+                    </View>
+                </View>
+
+                <View style={styles.inputWrapper}>
+                    <Text style={[styles.label, { color: theme.textDim }]}>Description</Text>
+                    <TextInput
+                        style={[styles.input, { color: theme.text, minHeight: 80, textAlignVertical: 'top' }]}
+                        placeholder="Detailed item description..."
+                        placeholderTextColor="#94a3b8"
+                        multiline
+                        value={description}
+                        onChangeText={setDescription}
+                    />
+                </View>
+
+                <View style={styles.inputWrapper}>
+                    <Text style={[styles.label, { color: theme.textDim }]}>Image URL</Text>
+                    <TextInput
+                        style={[styles.input, { color: theme.text }]}
+                        placeholder="https://example.com/image.jpg"
+                        placeholderTextColor="#94a3b8"
+                        value={image}
+                        onChangeText={setImage}
+                    />
+                </View>
+
+                <TouchableOpacity
+                    style={[styles.addButton, { backgroundColor: theme.primary }]}
+                    onPress={handleAddEquipment}
+                    activeOpacity={0.8}
+                >
+                    <Text style={styles.addButtonText}>Register New Equipment</Text>
+                    <Ionicons name="add-circle-outline" size={20} color="#fff" style={{ marginLeft: 8 }} />
                 </TouchableOpacity>
             </View>
 
-            {/* Existing Equipment List */}
-            <Text style={[styles.subHeading, { color: theme.text, fontSize: textSize + 4 }]}>Existing Equipment</Text>
-            <TextInput
-                placeholder="Search equipment..."
-                placeholderTextColor={theme.unselected}
-                value={searchTerm}
-                onChangeText={setSearchTerm}
-                style={[styles.searchInput, { borderColor: theme.unselected, color: theme.text }]}
-            />
+            <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: theme.text }]}>Current Inventory</Text>
+                <View style={[styles.searchBar, { backgroundColor: theme.surface }]}>
+                    <Ionicons name="search-outline" size={18} color={theme.textDim} />
+                    <TextInput
+                        placeholder="Search items..."
+                        placeholderTextColor="#94a3b8"
+                        value={searchTerm}
+                        onChangeText={setSearchTerm}
+                        style={[styles.searchInput, { color: theme.text }]}
+                    />
+                </View>
+            </View>
 
-            <FlatList
-                data={equipmentList.filter(e => {
+            <View style={styles.inventoryList}>
+                {equipmentList.filter(e => {
                     const term = searchTerm.trim().toLowerCase();
                     if (!term) return true;
                     return (
@@ -206,103 +282,377 @@ export default function AdminEquipmentMgt() {
                         (e.brand || '').toLowerCase().includes(term) ||
                         (e.description || '').toLowerCase().includes(term)
                     );
-                })}
-                keyExtractor={item => item.id}
-                renderItem={({ item }) => {
+                }).map((item) => {
                     const isExpanded = !!expandedItems[item.id];
                     const editing = editingFields[item.id] || {};
+                    const isManaging = isEditing[item.id];
+
                     return (
-                        <TouchableOpacity
-                            onPress={() => toggleExpand(item)}
-                            activeOpacity={0.95}
-                            style={[styles.itemContainer, { borderColor: theme.unselected }]}
-                        >
-                            <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: textSize }}>
-                                {item.name} ({item.brand})
-                            </Text>
-
-                            {isExpanded && (
-                                <View style={{ marginTop: 10 }}>
-                                    {/* Title and brand as bold lines */}
-                                    <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: textSize + 2 }}>{item.name}</Text>
-                                    <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: textSize }}>{item.brand}</Text>
-
-                                    {/* Price, Stock, Description stacked */}
-                                    {!isEditing[item.id] && (
-                                        <View style={{ marginTop: 8 }}>
-                                            <Text style={{ color: theme.text, fontSize: textSize }}>Price: ${item.price}</Text>
-                                            <Text style={{ color: theme.text, fontSize: textSize, marginTop: 6 }}>Stock: {item.stock}</Text>
-                                            {item.description ? <Text style={{ color: theme.text, fontSize: textSize, marginTop: 6 }}>Description: {item.description}</Text> : null}
-                                        </View>
-                                    )}
-
-                                    {/* Edit mode: inputs stacked similarly */}
-                                    {isEditing[item.id] && (
-                                        <View style={{ marginTop: 8 }}>
-                                            <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} value={editing.name} onChangeText={(v) => setEditingFields(prev => ({ ...prev, [item.id]: { ...prev[item.id], name: v } }))} />
-                                            <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} value={editing.brand} onChangeText={(v) => setEditingFields(prev => ({ ...prev, [item.id]: { ...prev[item.id], brand: v } }))} />
-                                            <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} value={editing.price} keyboardType="numeric" onChangeText={(v) => setEditingFields(prev => ({ ...prev, [item.id]: { ...prev[item.id], price: v } }))} />
-                                            <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} value={editing.stock} keyboardType="numeric" onChangeText={(v) => setEditingFields(prev => ({ ...prev, [item.id]: { ...prev[item.id], stock: v } }))} />
-                                            <TextInput style={[styles.input, { borderColor: theme.primary, color: theme.text }]} value={editing.description} onChangeText={(v) => setEditingFields(prev => ({ ...prev, [item.id]: { ...prev[item.id], description: v } }))} />
-                                        </View>
-                                    )}
-
-                                    {/* Single row of 4 buttons at bottom */}
-                                    <View style={{ flexDirection: 'row', marginTop: 12, justifyContent: 'space-between' }}>
-                                        {!isEditing[item.id] ? (
-                                            <>
-                                                <TouchableOpacity style={[styles.smallButton, { backgroundColor: theme.primary }]} onPress={() => handleUpdateStock(item.id, item.stock + 1)}>
-                                                    <Text style={{ color: theme.background }}>+1</Text>
-                                                </TouchableOpacity>
-                                                <TouchableOpacity style={[styles.smallButton, { backgroundColor: '#d32f2f' }]} onPress={() => handleUpdateStock(item.id, Math.max(0, item.stock - 1))}>
-                                                    <Text style={{ color: '#fff' }}>-1</Text>
-                                                </TouchableOpacity>
-                                                <TouchableOpacity style={[styles.smallButton, { backgroundColor: '#1976d2' }]} onPress={() => toggleEditMode(item.id, item)}>
-                                                    <Text style={{ color: '#fff' }}>Edit</Text>
-                                                </TouchableOpacity>
-                                                <TouchableOpacity style={[styles.smallButton, { backgroundColor: '#e53935' }]} onPress={() => handleDeleteEquipment(item.id, item.name)}>
-                                                    <Text style={{ color: '#fff' }}>Delete</Text>
-                                                </TouchableOpacity>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <TouchableOpacity style={[styles.smallButton, { backgroundColor: theme.primary }]} onPress={async () => { await handleUpdateEquipment(item.id); setIsEditing(prev => ({ ...prev, [item.id]: false })); }}>
-                                                    <Text style={{ color: theme.background }}>Save</Text>
-                                                </TouchableOpacity>
-                                                <TouchableOpacity style={[styles.smallButton, { backgroundColor: '#9e9e9e' }]} onPress={() => { setEditingFields(prev => ({ ...prev, [item.id]: { name: item.name ?? '', brand: item.brand ?? '', price: String(item.price ?? ''), stock: String(item.stock ?? ''), description: item.description ?? '', image: item.image ?? '' } })); setIsEditing(prev => ({ ...prev, [item.id]: false })); }}>
-                                                    <Text style={{ color: '#fff' }}>Cancel</Text>
-                                                </TouchableOpacity>
-                                                <TouchableOpacity style={[styles.smallButton, { backgroundColor: theme.primary }]} onPress={() => setEditingFields(prev => ({ ...prev, [item.id]: { ...prev[item.id], stock: String(Number(prev[item.id]?.stock || item.stock) + 1) } }))}>
-                                                    <Text style={{ color: theme.background }}>+1</Text>
-                                                </TouchableOpacity>
-                                                <TouchableOpacity style={[styles.smallButton, { backgroundColor: '#e53935' }]} onPress={() => handleDeleteEquipment(item.id, item.name)}>
-                                                    <Text style={{ color: '#fff' }}>Delete</Text>
-                                                </TouchableOpacity>
-                                            </>
-                                        )}
+                        <View key={item.id} style={[styles.itemCard, { backgroundColor: theme.surface }]}>
+                            <TouchableOpacity
+                                onPress={() => toggleExpand(item)}
+                                activeOpacity={0.7}
+                                style={styles.cardMain}
+                            >
+                                <View style={styles.itemIconContainer}>
+                                    <Ionicons name="cube-outline" size={24} color={theme.primary} />
+                                </View>
+                                <View style={styles.itemMainInfo}>
+                                    <Text style={[styles.itemName, { color: theme.text }]}>{item.name}</Text>
+                                    <View style={styles.itemMeta}>
+                                        <Text style={[styles.itemBrand, { color: theme.textDim }]}>{item.brand}</Text>
+                                        <View style={styles.dot} />
+                                        <Text style={[styles.itemPrice, { color: theme.primary }]}>${item.price}/day</Text>
                                     </View>
                                 </View>
+                                <View style={styles.stockStatus}>
+                                    <Text style={[styles.stockCount, { color: theme.text }]}>{item.stock}</Text>
+                                    <Text style={[styles.stockLabel, { color: theme.textDim }]}>STOCK</Text>
+                                </View>
+                                <Ionicons
+                                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                                    size={20}
+                                    color={theme.textDim}
+                                    style={{ marginLeft: 10 }}
+                                />
+                            </TouchableOpacity>
+
+                            {isExpanded && (
+                                <View style={styles.expandedContent}>
+                                    <View style={styles.divider} />
+
+                                    {!isManaging ? (
+                                        <View style={styles.detailsView}>
+                                            <Text style={[styles.detailDesc, { color: theme.textDim }]}>
+                                                {item.description || 'No description provided.'}
+                                            </Text>
+                                            <View style={styles.manageRow}>
+                                                <TouchableOpacity
+                                                    style={[styles.manageBtn, { backgroundColor: '#F1F5F9' }]}
+                                                    onPress={() => handleUpdateStock(item.id, item.stock + 1)}
+                                                >
+                                                    <Ionicons name="add" size={18} color={theme.text} />
+                                                    <Text style={[styles.manageBtnText, { color: theme.text }]}>Add Stock</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    style={[styles.manageBtn, { backgroundColor: '#F1F5F9' }]}
+                                                    onPress={() => handleUpdateStock(item.id, Math.max(0, item.stock - 1))}
+                                                >
+                                                    <Ionicons name="remove" size={18} color={theme.text} />
+                                                    <Text style={[styles.manageBtnText, { color: theme.text }]}>Remove</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    style={[styles.manageBtn, { backgroundColor: theme.primaryGlow }]}
+                                                    onPress={() => toggleEditMode(item.id, item)}
+                                                >
+                                                    <Ionicons name="create-outline" size={18} color={theme.primary} />
+                                                </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    style={[styles.manageBtn, { backgroundColor: '#fee2e2' }]}
+                                                    onPress={() => handleDeleteEquipment(item.id, item.name)}
+                                                >
+                                                    <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                    ) : (
+                                        <View style={styles.editForm}>
+                                            <TextInput
+                                                style={[styles.inlineInput, { color: theme.text }]}
+                                                value={editing.name}
+                                                onChangeText={(v) => setEditingFields(prev => ({ ...prev, [item.id]: { ...prev[item.id], name: v } }))}
+                                            />
+                                            <TextInput
+                                                style={[styles.inlineInput, { color: theme.text }]}
+                                                value={editing.brand}
+                                                onChangeText={(v) => setEditingFields(prev => ({ ...prev, [item.id]: { ...prev[item.id], brand: v } }))}
+                                            />
+                                            <View style={styles.editRow}>
+                                                <TextInput
+                                                    style={[styles.inlineInput, { flex: 1, color: theme.text, marginRight: 8 }]}
+                                                    value={editing.price}
+                                                    keyboardType="numeric"
+                                                    onChangeText={(v) => setEditingFields(prev => ({ ...prev, [item.id]: { ...prev[item.id], price: v } }))}
+                                                />
+                                                <TextInput
+                                                    style={[styles.inlineInput, { flex: 1, color: theme.text }]}
+                                                    value={editing.stock}
+                                                    keyboardType="numeric"
+                                                    onChangeText={(v) => setEditingFields(prev => ({ ...prev, [item.id]: { ...prev[item.id], stock: v } }))}
+                                                />
+                                            </View>
+                                            <View style={styles.saveRow}>
+                                                <TouchableOpacity
+                                                    style={[styles.saveBtn, { backgroundColor: theme.primary }]}
+                                                    onPress={async () => { await handleUpdateEquipment(item.id); setIsEditing(prev => ({ ...prev, [item.id]: false })); }}
+                                                >
+                                                    <Text style={styles.saveBtnText}>Save Changes</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    style={[styles.cancelBtn, { backgroundColor: '#F1F5F9' }]}
+                                                    onPress={() => toggleEditMode(item.id)}
+                                                >
+                                                    <Text style={[styles.cancelBtnText, { color: theme.text }]}>Cancel</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                    )}
+                                </View>
                             )}
-                        </TouchableOpacity>
+                        </View>
                     );
-                }}
-            />
+                })}
+            </View>
         </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 24 },
-    heading: { fontWeight: 'bold', marginBottom: 20 },
-    subHeading: { fontWeight: 'bold', marginTop: 20, marginBottom: 12 },
-    inputContainer: { marginBottom: 24 },
-    input: { borderWidth: 1, borderRadius: 8, padding: 10, marginBottom: 10, backgroundColor: 'rgba(0,0,0,0.03)' },
-    inputHalf: { flex: 1, borderWidth: 1, borderRadius: 8, padding: 10, marginBottom: 10, backgroundColor: 'rgba(0,0,0,0.03)', marginRight: 8 },
-    row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    stockControl: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    searchInput: { borderWidth: 1, borderRadius: 8, padding: 10, marginBottom: 12 },
-    button: { padding: 14, borderRadius: 8, alignItems: 'center', marginTop: 8 },
-    itemContainer: { borderWidth: 1, borderRadius: 8, padding: 12, marginBottom: 12 },
-    smallButton: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 6, alignItems: 'center' },
-    backButton: { position: "absolute", top: 35, left: 20, zIndex: 1, backgroundColor: "transparent", padding: 6 },
+    backButton: {
+        position: "absolute",
+        top: 50,
+        left: 20,
+        zIndex: 10,
+        padding: 8,
+        borderRadius: 12,
+        backgroundColor: 'rgba(0,0,0,0.03)',
+    },
+    header: {
+        marginTop: 100,
+        marginBottom: 30,
+        alignItems: 'center',
+        paddingHorizontal: 20,
+    },
+    iconCircle: {
+        width: 64,
+        height: 64,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    title: { fontWeight: '800', textAlign: 'center' },
+    subtitle: { fontWeight: '500', marginTop: 4, textAlign: 'center' },
+    card: {
+        marginHorizontal: 20,
+        padding: 24,
+        borderRadius: 32,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.05,
+        shadowRadius: 15,
+        elevation: 6,
+        marginBottom: 30,
+    },
+    cardHeading: {
+        fontSize: 18,
+        fontWeight: '800',
+        marginBottom: 20,
+    },
+    formRow: {
+        flexDirection: 'row',
+        gap: 12,
+        marginBottom: 16,
+    },
+    inputWrapper: {
+        flex: 1,
+        marginBottom: 16,
+    },
+    label: {
+        fontSize: 11,
+        fontWeight: '800',
+        marginBottom: 8,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+    },
+    input: {
+        backgroundColor: '#F1F5F9',
+        borderRadius: 16,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    addButton: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 16,
+        borderRadius: 16,
+        marginTop: 8,
+    },
+    addButtonText: {
+        color: '#fff',
+        fontWeight: '800',
+        fontSize: 15,
+    },
+    sectionHeader: {
+        paddingHorizontal: 20,
+        marginBottom: 20,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: '900',
+        marginBottom: 15,
+    },
+    searchBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        borderRadius: 20,
+        height: 54,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 5,
+        elevation: 2,
+    },
+    searchInput: {
+        flex: 1,
+        marginLeft: 10,
+        fontSize: 15,
+        fontWeight: '500',
+    },
+    inventoryList: {
+        paddingHorizontal: 20,
+    },
+    itemCard: {
+        borderRadius: 24,
+        marginBottom: 12,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.03,
+        shadowRadius: 5,
+        elevation: 1,
+        overflow: 'hidden',
+    },
+    cardMain: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+    },
+    itemIconContainer: {
+        width: 48,
+        height: 48,
+        borderRadius: 16,
+        backgroundColor: 'rgba(129, 173, 231, 0.1)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 14,
+    },
+    itemMainInfo: {
+        flex: 1,
+    },
+    itemName: {
+        fontSize: 15,
+        fontWeight: '800',
+        marginBottom: 2,
+    },
+    itemMeta: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    itemBrand: {
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    dot: {
+        width: 3,
+        height: 3,
+        borderRadius: 1.5,
+        backgroundColor: '#CBD5E1',
+        marginHorizontal: 8,
+    },
+    itemPrice: {
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    stockStatus: {
+        alignItems: 'center',
+        paddingHorizontal: 12,
+        borderLeftWidth: 1,
+        borderLeftColor: 'rgba(0,0,0,0.05)',
+    },
+    stockCount: {
+        fontSize: 16,
+        fontWeight: '900',
+    },
+    stockLabel: {
+        fontSize: 8,
+        fontWeight: '800',
+        letterSpacing: 1,
+    },
+    expandedContent: {
+        padding: 16,
+        paddingTop: 0,
+    },
+    divider: {
+        height: 1,
+        backgroundColor: 'rgba(0,0,0,0.05)',
+        marginBottom: 16,
+    },
+    detailsView: {
+    },
+    detailDesc: {
+        fontSize: 13,
+        lineHeight: 20,
+        marginBottom: 16,
+    },
+    manageRow: {
+        flexDirection: 'row',
+        gap: 8,
+    },
+    manageBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+        borderRadius: 12,
+        gap: 6,
+    },
+    manageBtnText: {
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    editForm: {
+        gap: 10,
+    },
+    inlineInput: {
+        backgroundColor: '#F1F5F9',
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    editRow: {
+        flexDirection: 'row',
+    },
+    saveRow: {
+        flexDirection: 'row',
+        gap: 10,
+        marginTop: 10,
+    },
+    saveBtn: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    saveBtnText: {
+        color: '#fff',
+        fontWeight: '800',
+        fontSize: 14,
+    },
+    cancelBtn: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    cancelBtnText: {
+        fontWeight: '800',
+        fontSize: 14,
+    },
 });

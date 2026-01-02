@@ -111,49 +111,150 @@ export default function Feedback() {
         <Ionicons name="arrow-back" size={28} color={theme.text} />
       </TouchableOpacity>
 
-      <Text style={[styles.title, { color: theme.text }]}>Submit Feedback</Text>
+      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+        <View style={styles.iconCircle}>
+          <Ionicons name="chatbubble-ellipses-outline" size={32} color={theme.primary} />
+        </View>
 
-      <TextInput
-        style={[styles.input, { borderColor: theme.primary, color: theme.text }]}
-        placeholder="Your feedback..."
-        value={message}
-        onChangeText={setMessage}
-        multiline
-        numberOfLines={5}
-      />
-
-      <View style={styles.ratingRow}>
-        {[1, 2, 3, 4, 5].map((star) => (
-          <TouchableOpacity key={star} onPress={() => setRating(star)}>
-            <Ionicons
-              name={star <= rating ? 'star' : 'star-outline'}
-              size={32}
-              color={star <= rating ? theme.primary : '#bbb'}
-              style={{ marginHorizontal: 2 }}
-            />
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <TouchableOpacity
-        style={[styles.submitButton, { backgroundColor: theme.primary }, submitting && { opacity: 0.6 }]}
-        onPress={handleSend}
-        disabled={submitting}
-      >
-        <Text style={[styles.submitText, { color: '#fff' }]}>
-          {submitting ? 'Submitting...' : 'Submit'}
+        <Text style={[styles.title, { color: theme.text }]}>Share Your Feedback</Text>
+        <Text style={[styles.subtitle, { color: theme.textDim }]}>
+          Your experience matters. Tell us how we're doing and help us improve our care.
         </Text>
-      </TouchableOpacity>
+
+        <View style={styles.ratingSection}>
+          <Text style={[styles.label, { color: theme.textDim, textAlign: 'center' }]}>Overall Rating</Text>
+          <View style={styles.ratingRow}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <TouchableOpacity
+                key={star}
+                onPress={() => setRating(star)}
+                activeOpacity={0.7}
+                style={styles.starButton}
+              >
+                <Ionicons
+                  name={star <= rating ? 'star' : 'star-outline'}
+                  size={38}
+                  color={star <= rating ? "#f59e0b" : "#e2e8f0"}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.inputWrapper}>
+          <Text style={[styles.label, { color: theme.textDim }]}>Your Comments</Text>
+          <TextInput
+            style={[styles.input, { borderColor: theme.border, color: theme.text }]}
+            placeholder="Tell us what's on your mind..."
+            placeholderTextColor="#94a3b8"
+            value={message}
+            onChangeText={setMessage}
+            multiline
+            numberOfLines={5}
+            textAlignVertical="top"
+          />
+        </View>
+
+        <TouchableOpacity
+          style={[styles.submitButton, { backgroundColor: theme.primary }, submitting && { opacity: 0.6 }]}
+          onPress={handleSend}
+          disabled={submitting}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.submitText, { color: '#fff' }]}>
+            {submitting ? 'Submitting...' : 'Submit Feedback'}
+          </Text>
+          {!submitting && <Ionicons name="send-outline" size={18} color="#fff" style={{ marginLeft: 8 }} />}
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24 },
-  backButton: { alignSelf: 'flex-start', marginBottom: 16, backgroundColor: 'transparent' },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 18 },
-  input: { borderWidth: 1, borderRadius: 10, padding: 14, fontSize: 16, marginBottom: 18, minHeight: 100, textAlignVertical: 'top' },
-  ratingRow: { flexDirection: 'row', justifyContent: 'center', marginBottom: 18 },
-  submitButton: { padding: 16, borderRadius: 10, alignItems: 'center', marginBottom: 18 },
-  submitText: { fontWeight: 'bold', fontSize: 18 },
+  container: {
+    flex: 1,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+    paddingTop: 40,
+  },
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+  },
+  card: {
+    padding: 30,
+    borderRadius: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 8,
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: 'rgba(129, 173, 231, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  title: { fontSize: 24, fontWeight: '800', marginBottom: 8, textAlign: 'center' },
+  subtitle: {
+    fontSize: 15,
+    textAlign: 'center',
+    marginBottom: 25,
+    lineHeight: 22,
+    fontWeight: '500',
+  },
+  ratingSection: {
+    width: '100%',
+    marginBottom: 30,
+    backgroundColor: 'rgba(129, 173, 231, 0.03)',
+    padding: 18,
+    borderRadius: 20,
+  },
+  ratingRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 12 },
+  starButton: { marginHorizontal: 6 },
+  inputWrapper: {
+    width: '100%',
+    marginBottom: 30,
+  },
+  label: {
+    fontSize: 11,
+    fontWeight: '800',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  input: {
+    borderWidth: 1.5,
+    borderRadius: 20,
+    padding: 16,
+    fontSize: 15,
+    backgroundColor: '#F1F5F9',
+    minHeight: 120,
+    fontWeight: '500',
+  },
+  submitButton: {
+    flexDirection: 'row',
+    width: '100%',
+    padding: 18,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: "#81ade7",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  submitText: { color: '#fff', fontWeight: '800', fontSize: 16 },
 });

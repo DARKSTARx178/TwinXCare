@@ -135,148 +135,315 @@ const PwMgt: React.FC = () => {
     };
 
     return (
-        <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                 <Ionicons name="arrow-back" size={28} color={theme.text} />
             </TouchableOpacity>
 
-            <Text style={[styles.title, { color: theme.text, fontSize: textSize + 8 }]}>
-                Admin Controls
-            </Text>
-
-            <TextInput
-                style={[styles.input, { color: theme.text, borderColor: theme.primary }]}
-                placeholder="Admin Username"
-                placeholderTextColor="#aaa"
-                value={adminUser}
-                onChangeText={setAdminUser}
-                autoCapitalize="none"
-            />
-
-            <TextInput
-                style={[styles.input, { color: theme.text, borderColor: theme.primary }]}
-                placeholder="Admin Password"
-                placeholderTextColor="#aaa"
-                value={adminPass}
-                onChangeText={setAdminPass}
-                secureTextEntry
-            />
-
-            <TouchableOpacity
-                style={[styles.button, { backgroundColor: theme.primary }]}
-                onPress={handleGetUsers}
-            >
-                <Text style={{ color: theme.background, fontWeight: 'bold', fontSize: textSize }}>
-                    Load Users
+            <View style={styles.header}>
+                <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
+                    <Ionicons name="finger-print-outline" size={32} color={theme.primary} />
+                </View>
+                <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>Account Security</Text>
+                <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>
+                    Administrative User & Password Management
                 </Text>
-            </TouchableOpacity>
+            </View>
 
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
-            {success ? <Text style={styles.successText}>{success}</Text> : null}
+            <View style={[styles.card, { backgroundColor: theme.surface }]}>
+                <Text style={[styles.cardHeading, { color: theme.text }]}>Admin Authorization</Text>
 
-            <ScrollView style={styles.scrollView}>
-                {users.map((username) => (
-                    <TouchableOpacity
-                        key={username}
-                        style={[
-                            styles.userRow,
-                            selectedUser === username && { backgroundColor: '#eee' },
-                        ]}
-                        onPress={() => setSelectedUser(username)}
-                    >
-                        <Text style={[styles.userText, { color: theme.text }]}>{username}</Text>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
+                <View style={styles.inputWrapper}>
+                    <Text style={[styles.label, { color: theme.textDim }]}>Admin Username</Text>
+                    <View style={[styles.inputContainer, { borderColor: theme.border }]}>
+                        <Ionicons name="person-outline" size={20} color={theme.textDim} style={styles.inputIcon} />
+                        <TextInput
+                            style={[styles.input, { color: theme.text }]}
+                            placeholder="Enter username"
+                            placeholderTextColor="#94a3b8"
+                            value={adminUser}
+                            onChangeText={setAdminUser}
+                            autoCapitalize="none"
+                        />
+                    </View>
+                </View>
 
-            <Text style={[styles.label, { color: theme.text }]}>New Password:</Text>
-            <TextInput
-                style={[styles.input, { color: theme.text, borderColor: theme.primary }]}
-                placeholder="Enter new password"
-                placeholderTextColor="#aaa"
-                secureTextEntry
-                value={newPassword}
-                onChangeText={setNewPassword}
-            />
+                <View style={styles.inputWrapper}>
+                    <Text style={[styles.label, { color: theme.textDim }]}>Admin Password</Text>
+                    <View style={[styles.inputContainer, { borderColor: theme.border }]}>
+                        <Ionicons name="lock-closed-outline" size={20} color={theme.textDim} style={styles.inputIcon} />
+                        <TextInput
+                            style={[styles.input, { color: theme.text }]}
+                            placeholder="••••••••"
+                            placeholderTextColor="#94a3b8"
+                            value={adminPass}
+                            onChangeText={setAdminPass}
+                            secureTextEntry
+                        />
+                    </View>
+                </View>
 
-            <TouchableOpacity
-                style={[styles.button, { backgroundColor: theme.primary }]}
-                onPress={handleResetPassword}
-            >
-                <Text style={{ color: theme.background, fontWeight: 'bold', fontSize: textSize }}>
-                    Reset Password
-                </Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.loadButton, { backgroundColor: theme.primaryGlow }]}
+                    onPress={handleGetUsers}
+                    activeOpacity={0.7}
+                >
+                    <Text style={[styles.loadButtonText, { color: theme.primary }]}>Authorize & Load Users</Text>
+                    <Ionicons name="sync-outline" size={18} color={theme.primary} style={{ marginLeft: 8 }} />
+                </TouchableOpacity>
 
-            <TouchableOpacity
-                style={[styles.button, { backgroundColor: 'red' }]}
-                onPress={handleDeleteUser}
-            >
-                <Text style={{ color: 'white', fontWeight: 'bold', fontSize: textSize }}>
-                    Delete User
-                </Text>
-            </TouchableOpacity>
-        </View>
+                {error ? (
+                    <View style={styles.errorContainer}>
+                        <Ionicons name="alert-circle" size={16} color="#ef4444" />
+                        <Text style={styles.errorText}>{error}</Text>
+                    </View>
+                ) : null}
+
+                {success ? (
+                    <View style={styles.successContainer}>
+                        <Ionicons name="checkmark-circle" size={16} color="#10b981" />
+                        <Text style={styles.successText}>{success}</Text>
+                    </View>
+                ) : null}
+            </View>
+
+            {users.length > 0 && (
+                <View style={[styles.card, { backgroundColor: theme.surface, marginTop: 20 }]}>
+                    <Text style={[styles.cardHeading, { color: theme.text }]}>User Directory</Text>
+                    <View style={styles.userListContainer}>
+                        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                            {users.map((username) => (
+                                <TouchableOpacity
+                                    key={username}
+                                    style={[
+                                        styles.userRow,
+                                        selectedUser === username && { backgroundColor: theme.primaryGlow, borderColor: theme.primary },
+                                    ]}
+                                    onPress={() => setSelectedUser(username)}
+                                    activeOpacity={0.7}
+                                >
+                                    <Ionicons
+                                        name="person"
+                                        size={18}
+                                        color={selectedUser === username ? theme.primary : theme.textDim}
+                                        style={{ marginRight: 12 }}
+                                    />
+                                    <Text style={[
+                                        styles.userText,
+                                        { color: selectedUser === username ? theme.primary : theme.text }
+                                    ]}>
+                                        {username}
+                                    </Text>
+                                    {selectedUser === username && (
+                                        <Ionicons name="checkmark" size={18} color={theme.primary} style={{ marginLeft: 'auto' }} />
+                                    )}
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+
+                    {selectedUser ? (
+                        <View style={{ marginTop: 20 }}>
+                            <Text style={[styles.label, { color: theme.textDim }]}>Modify Password for @{selectedUser}</Text>
+                            <View style={[styles.inputContainer, { borderColor: theme.border, marginTop: 8 }]}>
+                                <Ionicons name="shield-outline" size={20} color={theme.textDim} style={styles.inputIcon} />
+                                <TextInput
+                                    style={[styles.input, { color: theme.text }]}
+                                    placeholder="Enter new password"
+                                    placeholderTextColor="#94a3b8"
+                                    secureTextEntry
+                                    value={newPassword}
+                                    onChangeText={setNewPassword}
+                                />
+                            </View>
+
+                            <View style={styles.actionRow}>
+                                <TouchableOpacity
+                                    style={[styles.actionButton, { backgroundColor: theme.primary }]}
+                                    onPress={handleResetPassword}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.actionButtonText}>Reset Password</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[styles.actionButton, { backgroundColor: '#fee2e2' }]}
+                                    onPress={handleDeleteUser}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={[styles.actionButtonText, { color: '#ef4444' }]}>Delete User</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    ) : (
+                        <View style={styles.emptyState}>
+                            <Text style={[styles.emptyStateText, { color: theme.textDim }]}>Select a user from the directory to manage their account</Text>
+                        </View>
+                    )}
+                </View>
+            )}
+            <View style={{ height: 60 }} />
+        </ScrollView>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 80,
         paddingHorizontal: 20,
     },
     backButton: {
         position: 'absolute',
-        top: 35,
-        left: 20,
-        zIndex: 1,
-        padding: 6,
+        top: 50,
+        left: 0,
+        zIndex: 10,
+        padding: 8,
+        borderRadius: 12,
+        backgroundColor: 'rgba(0,0,0,0.03)',
     },
-    title: {
-        fontWeight: 'bold',
+    header: {
+        marginTop: 100,
+        marginBottom: 30,
+        alignItems: 'center',
+    },
+    iconCircle: {
+        width: 64,
+        height: 64,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    title: { fontWeight: '800', textAlign: 'center' },
+    subtitle: { fontWeight: '500', marginTop: 4, textAlign: 'center' },
+    card: {
+        padding: 24,
+        borderRadius: 32,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.05,
+        shadowRadius: 15,
+        elevation: 6,
+    },
+    cardHeading: {
+        fontSize: 18,
+        fontWeight: '800',
         marginBottom: 20,
-        textAlign: 'center',
+    },
+    inputWrapper: {
+        width: '100%',
+        marginBottom: 16,
     },
     label: {
-        marginTop: 10,
-        fontWeight: 'bold',
+        fontSize: 11,
+        fontWeight: '800',
+        marginBottom: 8,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
     },
-    input: {
-        width: '100%',
-        borderWidth: 1,
-        borderRadius: 8,
-        padding: 12,
-        marginBottom: 16,
-        fontSize: 16,
-        backgroundColor: 'rgba(0,0,0,0.04)',
-    },
-    button: {
-        paddingVertical: 12,
-        borderRadius: 8,
+    inputContainer: {
+        flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 20,
+        borderWidth: 1.5,
+        borderRadius: 16,
+        paddingHorizontal: 16,
+        backgroundColor: '#F1F5F9',
+    },
+    inputIcon: { marginRight: 10 },
+    input: {
+        flex: 1,
+        paddingVertical: 14,
+        fontSize: 15,
+        fontWeight: '500',
+    },
+    loadButton: {
+        flexDirection: 'row',
+        paddingVertical: 16,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 8,
+    },
+    loadButtonText: {
+        fontWeight: '800',
+        fontSize: 15,
+    },
+    errorContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fee2e2',
+        padding: 12,
+        borderRadius: 12,
+        marginTop: 16,
     },
     errorText: {
-        color: 'red',
-        marginBottom: 10,
+        color: '#ef4444',
+        fontSize: 13,
+        fontWeight: '600',
+        marginLeft: 8,
+    },
+    successContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#dcfce7',
+        padding: 12,
+        borderRadius: 12,
+        marginTop: 16,
     },
     successText: {
-        color: 'green',
-        marginBottom: 10,
+        color: '#10b981',
+        fontSize: 13,
+        fontWeight: '600',
+        marginLeft: 8,
+    },
+    userListContainer: {
+        backgroundColor: '#F8FAFC',
+        borderRadius: 20,
+        padding: 8,
     },
     scrollView: {
-        maxHeight: 180,
-        marginBottom: 10,
+        maxHeight: 250,
     },
     userRow: {
-        paddingVertical: 10,
+        flexDirection: 'row',
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        borderRadius: 14,
         borderBottomWidth: 1,
-        borderColor: '#ccc',
-        paddingHorizontal: 10,
+        borderBottomColor: 'rgba(0,0,0,0.02)',
+        alignItems: 'center',
+        marginBottom: 4,
     },
     userText: {
+        fontSize: 15,
+        fontWeight: '600',
+    },
+    actionRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 24,
+    },
+    actionButton: {
+        width: '48%',
+        paddingVertical: 16,
+        borderRadius: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    actionButtonText: {
+        color: '#fff',
+        fontWeight: '800',
         fontSize: 14,
+    },
+    emptyState: {
+        padding: 40,
+        alignItems: 'center',
+    },
+    emptyStateText: {
+        textAlign: 'center',
+        fontSize: 13,
+        fontWeight: '500',
+        lineHeight: 20,
     },
 });
 

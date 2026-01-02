@@ -32,25 +32,37 @@ export default function HomeScreen() {
   }, []);
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ alignItems: 'center', justifyContent: 'flex-start', paddingBottom: 40 }}>
-      <Image source={require('@/assets/images/logo_all-white.png')} style={{ height: 130, marginTop: 0, marginBottom: - 10, width: screenWidth - 295 }} resizeMode='stretch' />
-      <Text style={[styles.logo, { fontSize: responsiveText(textSize + 10), color: theme.text }]}>{t.home}</Text>
+    <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ alignItems: 'center', justifyContent: 'flex-start', paddingBottom: 40, paddingHorizontal: 20 }}>
+      <Image source={require('@/assets/images/logo_all-white.png')} style={{ height: 120, marginTop: 40, marginBottom: 10, width: 140 }} resizeMode='contain' />
+
+      <View style={styles.headerContainer}>
+        <Text style={[styles.title, { fontSize: responsiveText(textSize + 14), color: theme.text }]}>{t.home}</Text>
+        <Text style={[styles.subtitle, { fontSize: responsiveText(textSize - 2), color: theme.textDim }]}>Premium Care Services</Text>
+      </View>
+
       <View style={styles.row}>
-        <TouchableOpacity onPress={() => router.push('/explore')} style={[styles.card, { backgroundColor: theme.unselectedTab, width: screenWidth / 2 - 30 }]}>
-          <MaterialCommunityIcons name="hospital-box" size={32} color={theme.icon} />
-          <Text style={[styles.cardText, { fontSize: responsiveText(textSize), color: theme.text }]}>{t.bookEquipment}</Text>
+        <TouchableOpacity onPress={() => router.push('/explore')} style={[styles.card, { backgroundColor: theme.surface, width: screenWidth / 2 - 30 }]}>
+          <View style={[styles.iconContainer, { backgroundColor: theme.primaryGlow }]}>
+            <MaterialCommunityIcons name="hospital-box" size={32} color={theme.primary} />
+          </View>
+          <Text style={[styles.cardText, { fontSize: responsiveText(textSize - 2), color: theme.text, fontWeight: '600' }]}>{t.bookEquipment}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push('/services')} style={[styles.card, { backgroundColor: theme.unselectedTab, width: screenWidth / 2 - 30 }]}>
-          <MaterialCommunityIcons name="car-side" size={32} color={theme.icon} />
-          <Text style={[styles.cardText, { fontSize: responsiveText(textSize), color: theme.text }]}>{t.services}</Text>
+        <TouchableOpacity onPress={() => router.push('/services')} style={[styles.card, { backgroundColor: theme.surface, width: screenWidth / 2 - 30 }]}>
+          <View style={[styles.iconContainer, { backgroundColor: theme.primaryGlow }]}>
+            <MaterialCommunityIcons name="car-side" size={32} color={theme.primary} />
+          </View>
+          <Text style={[styles.cardText, { fontSize: responsiveText(textSize - 2), color: theme.text, fontWeight: '600' }]}>{t.services}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.row}>
-        <TouchableOpacity onPress={() => router.push('/assistance')} style={[styles.card, { backgroundColor: theme.unselectedTab, width: screenWidth - 40 }]}>
-          <MaterialCommunityIcons name="hand-heart" size={32} color={theme.icon} />
-          <Text style={[styles.cardText, { fontSize: responsiveText(textSize), color: theme.text }]}>Assistance</Text>
+        <TouchableOpacity onPress={() => router.push('/assistance')} style={[styles.card, { backgroundColor: theme.surface, width: screenWidth - 40, flexDirection: 'row', justifyContent: 'flex-start', paddingHorizontal: 25 }]}>
+          <View style={[styles.iconContainer, { backgroundColor: theme.primaryGlow, marginRight: 20 }]}>
+            <MaterialCommunityIcons name="hand-heart" size={32} color={theme.primary} />
+          </View>
+          <Text style={[styles.cardText, { fontSize: responsiveText(textSize), color: theme.text, fontWeight: '600', marginTop: 0 }]}>Assistance</Text>
+          <MaterialCommunityIcons name="chevron-right" size={24} color={theme.textDim} style={{ marginLeft: 'auto' }} />
         </TouchableOpacity>
       </View>
 
@@ -59,84 +71,113 @@ export default function HomeScreen() {
       </TouchableOpacity>
 
       {!user ? (
-        <>
-          <Text style={[styles.welcome, { fontSize: responsiveText(textSize + 6), color: theme.text }]}>{t.welcome}</Text>
+        <View style={styles.authSection}>
+          <Text style={[styles.welcome, { fontSize: responsiveText(textSize + 4), color: theme.text }]}>{t.welcome}</Text>
           <View style={styles.row}>
-            <TouchableOpacity onPress={() => router.push('/register' as any)} style={[styles.button, { backgroundColor: theme.primary, width: screenWidth / 2 - 20 }]}>
-              <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: '#fff' }]}>{t.createAccount}</Text>
+            <TouchableOpacity onPress={() => router.push('/register' as any)} style={[styles.outlineButton, { borderColor: theme.primary, width: screenWidth / 2 - 30 }]}>
+              <Text style={[styles.outlineButtonText, { fontSize: responsiveText(textSize - 2), color: theme.primary }]}>{t.createAccount}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/login' as any)} style={[styles.button, { backgroundColor: theme.primary, width: screenWidth / 2 - 20 }]}>
-              <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: '#fff' }]}>{t.login}</Text>
+            <TouchableOpacity onPress={() => router.push('/login' as any)} style={[styles.button, { backgroundColor: theme.primary, width: screenWidth / 2 - 30 }]}>
+              <Text style={[styles.buttonText, { fontSize: responsiveText(textSize - 2), color: '#fff' }]}>{t.login}</Text>
             </TouchableOpacity>
           </View>
-        </>
+        </View>
       ) : (
         <View style={styles.row}>
-          <TouchableOpacity onPress={() => router.push('/feedback' as any)} style={[styles.button, { backgroundColor: theme.primary, width: screenWidth - 40 }]}>
+          <TouchableOpacity onPress={() => router.push('/feedback' as any)} style={[styles.button, { backgroundColor: theme.primary, width: screenWidth - 40, marginTop: 20 }]}>
             <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: '#fff' }]}>{t.submitFeedback}</Text>
           </TouchableOpacity>
         </View>
       )}
-      {/* Order History Widget */}
-      <OrderHistoryWidget />
+
+      <View style={{ width: screenWidth - 40, marginTop: 30 }}>
+        <OrderHistoryWidget />
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
+  headerContainer: {
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    marginBottom: 25,
   },
-  logo: {
-    fontWeight: 'bold',
-    marginVertical: 20,
+  title: {
+    fontWeight: '800',
+    textAlign: 'center',
   },
-  logoPart: {
-    fontWeight: 'bold',
+  subtitle: {
+    fontWeight: '500',
+    marginTop: 4,
   },
   row: {
     flexDirection: 'row',
-    marginVertical: 10,
+    marginVertical: 8,
     justifyContent: 'center',
     flexWrap: 'wrap',
   },
   card: {
-    padding: 20,
-    margin: 10,
-    borderRadius: 12,
+    padding: 24,
+    margin: 8,
+    borderRadius: 24,
     alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  iconContainer: {
+    padding: 12,
+    borderRadius: 16,
+    marginBottom: 12,
   },
   fullButton: {
     padding: 18,
-    borderRadius: 12,
+    borderRadius: 16,
     marginVertical: 16,
     alignItems: 'center',
+    shadowColor: "#81ade7",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   cardText: {
-    marginTop: 10,
+    marginTop: 8,
     textAlign: 'center',
+  },
+  authSection: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 20,
+    backgroundColor: 'rgba(129, 173, 231, 0.05)',
+    padding: 25,
+    borderRadius: 30,
   },
   welcome: {
-    fontWeight: 'bold',
-    marginTop: 30,
-    marginBottom: 20,
+    fontWeight: '700',
+    marginBottom: 15,
   },
   button: {
-    padding: 15,
-    borderRadius: 10,
-    margin: 10,
+    padding: 16,
+    borderRadius: 14,
+    margin: 8,
+    alignItems: 'center',
+  },
+  outlineButton: {
+    padding: 14,
+    borderRadius: 14,
+    margin: 8,
+    borderWidth: 2,
+    alignItems: 'center',
   },
   buttonText: {
-    fontWeight: '600',
+    fontWeight: '700',
     textAlign: 'center',
   },
-  tempNotifButton: {
-    padding: 12,
-    borderRadius: 10,
-    marginVertical: 12,
-    alignItems: 'center',
+  outlineButtonText: {
+    fontWeight: '700',
+    textAlign: 'center',
   },
 });

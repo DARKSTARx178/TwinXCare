@@ -11,69 +11,137 @@ export default function HelpDocs() {
   const responsiveText = (base: number) => Math.max(base * (screenWidth / 400), base * 0.85);
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}> 
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <Ionicons name="arrow-back" size={28} color={theme.text} />
+      </TouchableOpacity>
+
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={28} color={theme.text} />
-        </TouchableOpacity>
-        <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(24) }]}>Help & Documentation</Text>
+        <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
+          <Ionicons name="help-circle-outline" size={32} color={theme.primary} />
+        </View>
+        <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(28) }]}>Support Center</Text>
+        <Text style={[styles.subtitle, { color: theme.textDim, fontSize: responsiveText(14) }]}>How can we assist you today?</Text>
       </View>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={[styles.sectionTitle, { color: theme.primary, fontSize: responsiveText(20) }]}>Getting Started</Text>
-        <Text style={[styles.text, { color: theme.text, fontSize: responsiveText(16) }]}>Welcome! This app helps you rent medical equipment, request caregivers, and manage your orders with ease.</Text>
-        <Text style={[styles.sectionTitle, { color: theme.primary, fontSize: responsiveText(20), marginTop: 24 }]}>How to Navigate the App</Text>
-        <Text style={[styles.text, { color: theme.text, fontSize: responsiveText(16) }]}>- <Text style={{fontWeight:'bold'}}>Home:</Text> View quick actions, your order history, and access all main features.</Text>
-        <Text style={[styles.text, { color: theme.text, fontSize: responsiveText(16) }]}>- <Text style={{fontWeight:'bold'}}>Book Equipment:</Text> Browse and rent medical equipment. Tap on an item for details and to place an order.</Text>
-        <Text style={[styles.text, { color: theme.text, fontSize: responsiveText(16) }]}>- <Text style={{fontWeight:'bold'}}>Request a Caregiver:</Text> Submit a request for a professional caregiver to assist you or your loved one.</Text>
-        <Text style={[styles.text, { color: theme.text, fontSize: responsiveText(16) }]}>- <Text style={{fontWeight:'bold'}}>Require Assistance:</Text> Quickly get help or support from our team.</Text>
-        <Text style={[styles.text, { color: theme.text, fontSize: responsiveText(16) }]}>- <Text style={{fontWeight:'bold'}}>My Rentals:</Text> View and manage your current and past rentals. Renew or return equipment easily.</Text>
-        <Text style={[styles.text, { color: theme.text, fontSize: responsiveText(16) }]}>- <Text style={{fontWeight:'bold'}}>Profile:</Text> Tap your profile picture in the top right to view or edit your details, change your password, or log out.</Text>
-        <Text style={[styles.text, { color: theme.text, fontSize: responsiveText(16) }]}>- <Text style={{fontWeight:'bold'}}>Help:</Text> Use the floating help button (right side) to access this help page from anywhere in the app.</Text>
-        <Text style={[styles.text, { color: theme.text, fontSize: responsiveText(16) }]}>- <Text style={{fontWeight:'bold'}}>AI Chatbot:</Text> Swipe the top of your screen to activate an AI assistant for instant help and answers.</Text>
-        <Text style={[styles.sectionTitle, { color: theme.primary, marginTop: 24, fontSize: responsiveText(20) }]}>Frequently Asked Questions</Text>
-        <Text style={[styles.text, { color: theme.text, fontSize: responsiveText(16) }]}>Q: How do I reset my password?</Text>
-        <Text style={[styles.text, { color: theme.text, marginBottom: 12, fontSize: responsiveText(16) }]}>A: Go to your profile, tap "Change Password" and follow the instructions.</Text>
-        <Text style={[styles.text, { color: theme.text, fontSize: responsiveText(16) }]}>Q: How do I contact support?</Text>
-        <Text style={[styles.text, { color: theme.text, marginBottom: 12, fontSize: responsiveText(16) }]}>A: Use the help button or email support@example.com.</Text>
-        <Text style={[styles.text, { color: theme.text, fontSize: responsiveText(16) }]}>Q: What is AI Mode?</Text>
-        <Text style={[styles.text, { color: theme.text, fontSize: responsiveText(16) }]}>A: AI Mode adds a colorful animated border and a floating "island" for a unique experience. Swipe the header to toggle it.</Text>
+
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={[styles.card, { backgroundColor: theme.surface }]}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="planet-outline" size={22} color={theme.primary} style={{ marginRight: 10 }} />
+            <Text style={[styles.sectionTitle, { color: theme.text, fontSize: responsiveText(18) }]}>Getting Started</Text>
+          </View>
+          <Text style={[styles.text, { color: theme.textDim, fontSize: responsiveText(14) }]}>
+            Welcome to TwinXCare! Our platform is designed to provide seamless care coordination, medical equipment rentals, and professional caregiving services.
+          </Text>
+        </View>
+
+        <View style={[styles.card, { backgroundColor: theme.surface }]}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="map-outline" size={22} color={theme.primary} style={{ marginRight: 10 }} />
+            <Text style={[styles.sectionTitle, { color: theme.text, fontSize: responsiveText(18) }]}>Navigation Guide</Text>
+          </View>
+
+          <View style={styles.navItem}>
+            <Text style={[styles.navLabel, { color: theme.text }]}>🏠 Home</Text>
+            <Text style={[styles.navText, { color: theme.textDim }]}>Quick access to all main features and history.</Text>
+          </View>
+
+          <View style={styles.navItem}>
+            <Text style={[styles.navLabel, { color: theme.text }]}>🛠 Book Equipment</Text>
+            <Text style={[styles.navText, { color: theme.textDim }]}>Browse and rent medical items available for order.</Text>
+          </View>
+
+          <View style={styles.navItem}>
+            <Text style={[styles.navLabel, { color: theme.text }]}>🤝 Services</Text>
+            <Text style={[styles.navText, { color: theme.textDim }]}>Request caregivers or tailored professional assistance.</Text>
+          </View>
+
+          <View style={styles.navItem}>
+            <Text style={[styles.navLabel, { color: theme.text }]}>📋 My Rentals</Text>
+            <Text style={[styles.navText, { color: theme.textDim }]}>Manage active bookings and return equipment.</Text>
+          </View>
+        </View>
+
+        <View style={[styles.card, { backgroundColor: theme.surface }]}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="chatbubbles-outline" size={22} color={theme.primary} style={{ marginRight: 10 }} />
+            <Text style={[styles.sectionTitle, { color: theme.text, fontSize: responsiveText(18) }]}>Common Questions</Text>
+          </View>
+
+          <View style={styles.faqItem}>
+            <Text style={[styles.question, { color: theme.text }]}>How do I reset my password?</Text>
+            <Text style={[styles.answer, { color: theme.textDim }]}>Navigate to your profile and select "Change Password" to update credentials.</Text>
+          </View>
+
+          <View style={styles.faqItem}>
+            <Text style={[styles.question, { color: theme.text }]}>How do I contact support?</Text>
+            <Text style={[styles.answer, { color: theme.textDim }]}>Submit an assistance request via the Assistance page or use the floating help button.</Text>
+          </View>
+
+          <View style={[styles.faqItem, { borderBottomWidth: 0 }]}>
+            <Text style={[styles.question, { color: theme.text }]}>What is Escort Mode?</Text>
+            <Text style={[styles.answer, { color: theme.textDim }]}>A specialized view for volunteers to manage their availability and matches.</Text>
+          </View>
+        </View>
+
+        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1, paddingHorizontal: 20 },
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.03)',
   },
   header: {
+    marginTop: 100,
+    marginBottom: 30,
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  title: { fontWeight: '800', textAlign: 'center' },
+  subtitle: { fontWeight: '500', marginTop: 4, textAlign: 'center' },
+  content: { paddingBottom: 20 },
+  card: {
+    padding: 24,
+    borderRadius: 28,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 48,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
-    backgroundColor: 'transparent',
+    marginBottom: 16,
   },
-  backButton: {
-    marginRight: 12,
-    padding: 4,
+  sectionTitle: { fontWeight: '800' },
+  text: { lineHeight: 22, fontWeight: '500' },
+  navItem: { marginBottom: 16 },
+  navLabel: { fontWeight: '700', fontSize: 15, marginBottom: 4 },
+  navText: { fontSize: 13, fontWeight: '500' },
+  faqItem: {
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.03)',
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    flex: 1,
-  },
-  content: {
-    padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  text: {
-    fontSize: 15,
-    marginBottom: 6,
-    lineHeight: 22,
-  },
+  question: { fontWeight: '700', fontSize: 15, marginBottom: 6 },
+  answer: { fontSize: 13, fontWeight: '500', lineHeight: 18 },
 });

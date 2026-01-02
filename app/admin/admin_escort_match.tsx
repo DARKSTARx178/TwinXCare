@@ -22,13 +22,11 @@ export default function AdminEscortMatch() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            // Fetch Pending Requests
             const reqQ = query(collection(db, 'escort', 'request', 'entries'), where('status', '==', 'pending'));
             const reqSnap = await getDocs(reqQ);
             const reqList = reqSnap.docs.map(d => ({ id: d.id, ...d.data() }));
             setRequests(reqList);
 
-            // Fetch Available Escorts
             const availQ = query(collection(db, 'escort', 'availability', 'entries'), where('status', '==', 'available'));
             const availSnap = await getDocs(availQ);
             const availList = availSnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -78,27 +76,48 @@ export default function AdminEscortMatch() {
 
     const renderRequestItem = ({ item }: { item: any }) => (
         <TouchableOpacity
-            style={[styles.card, { backgroundColor: theme.unselectedTab, borderColor: selectedRequest?.id === item.id ? theme.primary : 'transparent', borderWidth: 2 }]}
+            style={[
+                styles.itemCard,
+                {
+                    backgroundColor: theme.surface,
+                    borderColor: selectedRequest?.id === item.id ? theme.primary : 'transparent',
+                    borderWidth: selectedRequest?.id === item.id ? 2 : 0
+                }
+            ]}
             onPress={() => setSelectedRequest(item)}
+            activeOpacity={0.7}
         >
-            <Text style={[styles.cardTitle, { color: theme.text }]}>{item.hospital}</Text>
-            <Text style={{ color: theme.text }}>📅 {item.date} at {item.time}</Text>
-            <Text style={{ color: theme.unselected }}>Reason: {item.appointmentReason}</Text>
+            <View style={styles.cardHeader}>
+                <Ionicons name="medical" size={18} color="#ef4444" />
+                <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>{item.hospital}</Text>
+            </View>
+            <View style={styles.cardDetail}>
+                <Ionicons name="calendar-outline" size={14} color={theme.textDim} />
+                <Text style={[styles.detailText, { color: theme.text }]}>{item.date} • {item.time}</Text>
+            </View>
+            <Text style={[styles.reasonText, { color: theme.textDim }]} numberOfLines={2}>{item.appointmentReason}</Text>
         </TouchableOpacity>
     );
 
     const renderAvailabilityItem = ({ item }: { item: any }) => (
-        <View style={[styles.card, { backgroundColor: theme.unselectedTab }]}>
-            <Text style={[styles.cardTitle, { color: theme.text }]}>{item.location}</Text>
-            <Text style={{ color: theme.text }}>📅 {item.date} ({item.fromTime} - {item.toTime})</Text>
-            <Text style={{ color: theme.unselected }}>Provider: {item.providerEmail}</Text>
+        <View style={[styles.itemCard, { backgroundColor: theme.surface }]}>
+            <View style={styles.cardHeader}>
+                <Ionicons name="person-circle" size={18} color={theme.primary} />
+                <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>{item.providerEmail.split('@')[0]}</Text>
+            </View>
+            <View style={styles.cardDetail}>
+                <Ionicons name="time-outline" size={14} color={theme.textDim} />
+                <Text style={[styles.detailText, { color: theme.text }]}>{item.date} • {item.fromTime}-{item.toTime}</Text>
+            </View>
+            <Text style={[styles.locationText, { color: theme.textDim }]}>Loc: {item.location}</Text>
 
             {selectedRequest && (
                 <TouchableOpacity
-                    style={[styles.actionButton, { backgroundColor: theme.primary }]}
+                    style={[styles.matchBtn, { backgroundColor: theme.primaryGlow }]}
                     onPress={() => handleCompromise(item.providerId, item.providerEmail, selectedRequest)}
                 >
-                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>Request Compromise</Text>
+                    <Ionicons name="hand-left" size={14} color={theme.primary} />
+                    <Text style={[styles.matchBtnText, { color: theme.primary }]}>Ask for Help</Text>
                 </TouchableOpacity>
             )}
         </View>
@@ -106,52 +125,147 @@ export default function AdminEscortMatch() {
 
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Ionicons name="arrow-back" size={28} color={theme.text} />
+            </TouchableOpacity>
+
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={{ padding: 8 }}>
-                    <Ionicons name="arrow-back" size={24} color={theme.text} />
-                </TouchableOpacity>
-                <Text style={[styles.title, { color: theme.text }]}>Escort Matching Admin</Text>
-                <TouchableOpacity onPress={fetchData} style={{ padding: 8 }}>
-                    <Ionicons name="refresh" size={24} color={theme.primary} />
-                </TouchableOpacity>
+                <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
+                    <Ionicons name="git-pull-request-outline" size={32} color={theme.primary} />
+                </View>
+                <Text style={[styles.title, { color: theme.text }]}>Escort Matcher</Text>
+                <Text style={[styles.subtitle, { color: theme.textDim }]}>
+                    Connect volunteers with medical requests
+                </Text>
             </View>
 
             <View style={styles.content}>
                 <View style={styles.column}>
-                    <Text style={[styles.sectionTitle, { color: theme.text }]}>Pending Requests ({requests.length})</Text>
+                    <View style={styles.columnHeader}>
+                        <Text style={[styles.sectionTitle, { color: theme.text }]}>Requests</Text>
+                        <View style={styles.countBadge}><Text style={styles.countText}>{requests.length}</Text></View>
+                    </View>
                     <FlatList
                         data={requests}
                         renderItem={renderRequestItem}
                         keyExtractor={item => item.id}
+                        showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ paddingBottom: 20 }}
                     />
                 </View>
 
                 <View style={styles.column}>
-                    <Text style={[styles.sectionTitle, { color: theme.text }]}>Available Escorts ({availabilities.length})</Text>
-                    <Text style={{ color: theme.unselected, marginBottom: 8, fontSize: 12 }}>
-                        {selectedRequest ? `Select an escort to ask for compromise for request: ${selectedRequest.hospital}` : 'Select a request on the left to enable actions'}
-                    </Text>
+                    <View style={styles.columnHeader}>
+                        <Text style={[styles.sectionTitle, { color: theme.text }]}>Volunteers</Text>
+                        <View style={[styles.countBadge, { backgroundColor: theme.primaryGlow }]}><Text style={[styles.countText, { color: theme.primary }]}>{availabilities.length}</Text></View>
+                    </View>
                     <FlatList
                         data={availabilities}
                         renderItem={renderAvailabilityItem}
                         keyExtractor={item => item.id}
+                        showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ paddingBottom: 20 }}
                     />
                 </View>
             </View>
+
+            {!selectedRequest && (
+                <View style={[styles.hintBox, { backgroundColor: theme.surface }]}>
+                    <Ionicons name="information-circle-outline" size={20} color={theme.primary} />
+                    <Text style={[styles.hintText, { color: theme.textDim }]}>Select a request on the left to start matching.</Text>
+                </View>
+            )}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, paddingTop: 50 },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 16 },
-    title: { fontSize: 20, fontWeight: 'bold' },
-    content: { flex: 1, flexDirection: 'row' },
-    column: { flex: 1, paddingHorizontal: 8 },
-    sectionTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 8 },
-    card: { padding: 12, borderRadius: 8, marginBottom: 12 },
-    cardTitle: { fontWeight: 'bold', fontSize: 14, marginBottom: 4 },
-    actionButton: { marginTop: 8, padding: 8, borderRadius: 6, alignItems: 'center' }
+    container: { flex: 1 },
+    backButton: {
+        position: "absolute",
+        top: 50,
+        left: 20,
+        zIndex: 10,
+        padding: 8,
+        borderRadius: 12,
+        backgroundColor: 'rgba(0,0,0,0.03)',
+    },
+    header: {
+        marginTop: 100,
+        marginBottom: 20,
+        alignItems: 'center',
+        paddingHorizontal: 20,
+    },
+    iconCircle: {
+        width: 64,
+        height: 64,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    title: { fontSize: 24, fontWeight: '900' },
+    subtitle: { fontSize: 13, fontWeight: '500', marginTop: 2 },
+    content: { flex: 1, flexDirection: 'row', paddingHorizontal: 12 },
+    column: { flex: 1, paddingHorizontal: 6 },
+    columnHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+        gap: 8,
+        paddingHorizontal: 4,
+    },
+    sectionTitle: { fontSize: 15, fontWeight: '800' },
+    countBadge: {
+        backgroundColor: '#F1F5F9',
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 8,
+    },
+    countText: { fontSize: 11, fontWeight: '700', color: '#64748b' },
+    itemCard: {
+        padding: 14,
+        borderRadius: 20,
+        marginBottom: 12,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.03,
+        shadowRadius: 5,
+        elevation: 1,
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 8,
+    },
+    cardTitle: { fontSize: 13, fontWeight: '800', flex: 1 },
+    cardDetail: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginBottom: 6,
+    },
+    detailText: { fontSize: 11, fontWeight: '600' },
+    reasonText: { fontSize: 10, lineHeight: 14, fontWeight: '500' },
+    locationText: { fontSize: 10, fontWeight: '600' },
+    matchBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 8,
+        borderRadius: 10,
+        marginTop: 10,
+        gap: 6,
+    },
+    matchBtnText: { fontSize: 11, fontWeight: '800' },
+    hintBox: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        margin: 20,
+        padding: 16,
+        borderRadius: 20,
+        gap: 12,
+    },
+    hintText: { fontSize: 12, fontWeight: '500' },
 });

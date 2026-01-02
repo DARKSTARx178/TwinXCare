@@ -45,12 +45,17 @@ export default function SplashScreen({ message }: Props) {
   }, [scale, fadeIn, dotAnims]);
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}> 
-      <Animated.View style={[styles.logoWrap, { transform: [{ scale }], opacity: fadeIn }]}> 
-        <Image source={require('@/assets/images/logo_all-white.png')} style={[styles.logo, { tintColor: theme.primary }]} />
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Animated.View style={[styles.logoWrap, { transform: [{ scale }], opacity: fadeIn }]}>
+        <View style={[styles.logoCircle, { backgroundColor: theme.primaryGlow }]}>
+          <Image source={require('@/assets/images/logo_all-white.png')} style={[styles.logo, { tintColor: theme.primary }]} />
+        </View>
       </Animated.View>
 
-      <Animated.Text style={[styles.title, { color: theme.text, opacity: fadeIn }]}>{message || 'Done'}</Animated.Text>
+      <View style={styles.textContainer}>
+        <Animated.Text style={[styles.title, { color: theme.text, opacity: fadeIn }]}>TwinXCare</Animated.Text>
+        <Animated.Text style={[styles.message, { color: theme.textDim, opacity: fadeIn }]}>{message || 'Authenticating secure session...'}</Animated.Text>
+      </View>
 
       <View style={styles.loaderWrap} pointerEvents="none">
         <View style={styles.dotsRow}>
@@ -62,7 +67,7 @@ export default function SplashScreen({ message }: Props) {
                 { backgroundColor: theme.primary },
                 {
                   opacity: a.interpolate({ inputRange: [0, 1], outputRange: [0.35, 1] }),
-                  transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [0, -8] }) }],
+                  transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [0, -6] }) }],
                 },
               ]}
             />
@@ -81,22 +86,39 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   logoWrap: {
-    width: 180,
-    height: 90,
-    alignItems: 'center',
+    marginBottom: 32,
+  },
+  logoCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 34,
     justifyContent: 'center',
-    marginBottom: 12,
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 15,
+    elevation: 5,
   },
   logo: {
-    width: 180,
-    height: 90,
+    width: 60,
+    height: 60,
     resizeMode: 'contain',
   },
+  textContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
   title: {
-    fontSize: 16,
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+  },
+  message: {
+    fontSize: 14,
     fontWeight: '600',
     marginTop: 6,
-    marginBottom: 18,
+    opacity: 0.7,
   },
   loaderWrap: {
     justifyContent: 'center',
@@ -109,9 +131,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginHorizontal: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 5,
   },
 });

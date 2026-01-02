@@ -6,16 +6,16 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
-    Dimensions,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import app from '../../firebase/firebase';
@@ -158,57 +158,147 @@ export default function BookingScreen() {
   const isBookingDisabled = !phoneRef.current?.trim() || !selectedSlot || (selectedSlot && scheduleRef.current.find(s => `${s.from} - ${s.to}` === selectedSlot)?.pax === 0);
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: theme.background }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 140 }} keyboardShouldPersistTaps="always">
-        <View style={{ height: 32 }} />
-        <View style={styles.container}>
-          <BackButton />
-          {params.image && <Image source={{ uri: params.image }} style={styles.image} />}
-          <Text style={[styles.title, { fontSize: responsiveText(textSize + 8), color: theme.text }]}>{params.name}</Text>
-          {params.description && <Text style={[styles.description, { fontSize: responsiveText(textSize - 1), color: theme.text }]}>{params.description}</Text>}
-          <Text style={[styles.modeBtnText, { color: theme.primary, fontSize: responsiveText(textSize) }]}>Book <Text style={[styles.modePrice, { fontSize: responsiveText(textSize - 2) }]}>${bookPrice}</Text></Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: theme.background }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView contentContainerStyle={{ paddingBottom: 140 }} showsVerticalScrollIndicator={false}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={28} color={theme.text} />
+        </TouchableOpacity>
 
-          <BookingCalendar />
-          <TimeSlotSelector />
-          <UserDetailsForm />
+        <View style={styles.content}>
+          <View style={[styles.imageCard, { backgroundColor: theme.surface }]}>
+            {params.image && <Image source={{ uri: params.image }} style={styles.image} resizeMode="cover" />}
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>${bookPrice}</Text>
+            </View>
+          </View>
+
+          <View style={styles.headerInfo}>
+            <Text style={[styles.title, { fontSize: responsiveText(textSize + 12), color: theme.text }]}>{params.name}</Text>
+            {params.description && (
+              <Text style={[styles.description, { fontSize: responsiveText(textSize - 1), color: theme.textDim }]}>
+                {params.description}
+              </Text>
+            )}
+          </View>
+
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="calendar-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Booking Date</Text>
+            </View>
+            <View style={[styles.pickerContainer, { backgroundColor: '#F1F5F9' }]}>
+              <RNPickerSelect
+                onValueChange={(value) => {
+                  setBookingDate(value);
+                  const slots = scheduleRef.current.filter((s: any) => s.date === value);
+                  setTimeSlots(slots);
+                  setSelectedSlot(null);
+                }}
+                items={availableDates.map((d) => ({ label: d, value: d }))}
+                value={bookingDate}
+                style={{
+                  inputAndroid: { color: theme.text, fontSize: responsiveText(textSize), padding: 12 },
+                  inputIOS: { color: theme.text, fontSize: responsiveText(textSize), padding: 12 },
+                }}
+              />
+            </View>
+          </View>
+
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="time-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Time Slot</Text>
+            </View>
+            <View style={styles.slotGrid}>
+              {timeSlots.length === 0 ? (
+                <Text style={{ color: theme.textDim }}>No slots available for this date</Text>
+              ) : (
+                timeSlots.map((slot) => {
+                  const slotText = `${slot.from} - ${slot.to}`;
+                  const active = selectedSlot === slotText;
+                  const isFull = slot.pax === 0;
+                  return (
+                    <TouchableOpacity
+                      key={slotText}
+                      disabled={isFull}
+                      style={[
+                        styles.slotBtn,
+                        { borderColor: theme.border },
+                        active && { backgroundColor: theme.primary, borderColor: theme.primary },
+                        isFull && { opacity: 0.4, backgroundColor: '#f1f5f9' }
+                      ]}
+                      onPress={() => setSelectedSlot(slotText)}
+                    >
+                      <Text style={[
+                        styles.slotText,
+                        { color: active ? '#fff' : theme.text },
+                        isFull && { color: theme.textDim }
+                      ]}>
+                        {slotText}{isFull ? ' (Full)' : ''}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })
+              )}
+            </View>
+          </View>
+
+          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="call-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Contact & Notes</Text>
+            </View>
+            <TextInput
+              placeholder="Your Phone Number"
+              placeholderTextColor="#94a3b8"
+              defaultValue={phoneRef.current}
+              onChangeText={(t) => (phoneRef.current = t)}
+              keyboardType="phone-pad"
+              style={[styles.input, { backgroundColor: '#F1F5F9', color: theme.text }]}
+            />
+            <TextInput
+              placeholder="Special instructions or notes..."
+              placeholderTextColor="#94a3b8"
+              defaultValue={notesRef.current}
+              onChangeText={(t) => (notesRef.current = t)}
+              multiline
+              numberOfLines={3}
+              style={[styles.input, { backgroundColor: '#F1F5F9', color: theme.text, minHeight: 100, textAlignVertical: 'top' }]}
+            />
+          </View>
         </View>
       </ScrollView>
 
-      {/* Bottom Button */}
-      <View style={[styles.bottomBar, { borderColor: theme.unselected, backgroundColor: theme.background }]}>
-        <View style={styles.totalPriceBox}>
-          <Text style={[styles.totalPriceLabel, { color: responsiveText(theme.unselected, textSize - 4) }]}>Total</Text>
-          <Text style={[{ fontWeight: 'bold' }, { color: theme.text, fontSize: responsiveText(textSize + 4) }]}>
-            ${bookPrice.toFixed(2)}
-          </Text>
+      <View style={[styles.bottomBar, { backgroundColor: theme.surface }]}>
+        <View style={styles.priceSection}>
+          <Text style={[styles.totalLabel, { color: theme.textDim }]}>Total Price</Text>
+          <Text style={[styles.totalValue, { color: theme.text }]}>${bookPrice.toFixed(2)}</Text>
         </View>
 
         <TouchableOpacity
-          style={{
-            flex: 2,
-            height: 64,
-            borderRadius: 32,
-            backgroundColor: isBookingDisabled ? '#ccc' : theme.primary,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-          //@ts-ignore
+          style={[
+            styles.bookButton,
+            { backgroundColor: isBookingDisabled ? '#E2E8F0' : theme.primary }
+          ]}
           disabled={isBookingDisabled}
+          activeOpacity={0.8}
           onPress={() => {
             const slotObj = scheduleRef.current.find(
               s => s.date === bookingDate && `${s.from} - ${s.to}` === selectedSlot
             );
-
             router.replace({
               pathname: '/rental/payment',
               params: {
                 ...params,
-                docId: params.id,           // <-- PASS DOC ID
+                docId: params.id,
                 price: bookPrice.toString(),
                 fromBooking: 'true',
                 bookingDate,
                 timeSlot: selectedSlot,
-                slotPax: slotObj?.pax ?? 0, // pass pax
+                slotPax: slotObj?.pax ?? 0,
                 fullName: fixedName,
                 phone: phoneRef.current,
                 address: fixedAddress,
@@ -218,9 +308,10 @@ export default function BookingScreen() {
             });
           }}
         >
-          <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: responsiveText(textSize + 2) }}>
-            Book Now
+          <Text style={[styles.bookButtonText, { color: isBookingDisabled ? '#94B3B8' : '#fff' }]}>
+            Complete Booking
           </Text>
+          <Ionicons name="chevron-forward" size={18} color="#fff" style={{ marginLeft: 6 }} />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -228,16 +319,103 @@ export default function BookingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { paddingHorizontal: 24, paddingBottom: 16 },
-  box: { marginVertical: 8, borderRadius: 12, padding: 16 },
-  image: { width: 240, height: 240, borderRadius: 16, marginVertical: 16, alignSelf: 'center' },
-  title: { fontWeight: 'bold', textAlign: 'center' },
-  description: { marginVertical: 12, textAlign: 'left', lineHeight: 20, alignSelf: 'stretch', flexShrink: 1 },
-  modeBtnText: { marginBottom: 16, textAlign: 'center' },
-  modePrice: { fontWeight: 'bold' },
-  bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', paddingHorizontal: 24, paddingTop: 8, paddingBottom: 24, borderTopWidth: 1, alignItems: 'center' },
-  totalPriceBox: { flex: 1, justifyContent: 'flex-end' },
-  totalPriceLabel: { fontWeight: '500' },
-  input: { borderWidth: 1, borderRadius: 8, padding: 12, marginBottom: 12 },
-  slotBtn: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8, marginRight: 8, marginBottom: 8 },
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.8)',
+  },
+  content: { paddingHorizontal: 20, paddingTop: 60 },
+  imageCard: {
+    width: '100%',
+    height: 300,
+    borderRadius: 32,
+    overflow: 'hidden',
+    marginBottom: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  image: { width: '100%', height: '100%' },
+  badge: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#81ade7',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 100,
+  },
+  badgeText: { color: '#fff', fontWeight: '900', fontSize: 18 },
+  headerInfo: { marginBottom: 25, alignItems: 'center' },
+  title: { fontWeight: '800', textAlign: 'center', marginBottom: 8 },
+  description: { textAlign: 'center', lineHeight: 22, paddingHorizontal: 10 },
+  card: {
+    padding: 24,
+    borderRadius: 28,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  sectionTitle: { fontWeight: '800', fontSize: 16 },
+  pickerContainer: { borderRadius: 16, overflow: 'hidden' },
+  slotGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  slotBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    borderWidth: 1.5,
+  },
+  slotText: { fontWeight: '700', fontSize: 13 },
+  input: {
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  bottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 40,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 20,
+  },
+  priceSection: { flex: 1 },
+  totalLabel: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
+  totalValue: { fontSize: 24, fontWeight: '900' },
+  bookButton: {
+    flex: 1.5,
+    height: 60,
+    borderRadius: 20,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: "#81ade7",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  bookButtonText: { fontWeight: '800', fontSize: 16 },
 });

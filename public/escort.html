@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volunteer Escort Availability | TwinXCare</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --error: #ef4444;
+            --success: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.1) 0, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, #60a5fa, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-dim);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dim);
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 15px 12px 45px;
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        }
+
+        textarea {
+            padding-left: 15px;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .row .form-group {
+            flex: 1;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-logout {
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .btn-logout:hover {
+            color: var(--error);
+            border-color: var(--error);
+        }
+
+        #auth-section,
+        #form-section {
+            display: none;
+        }
+
+        .status-msg {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .status-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Date/Time picker consistency */
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Auth Section -->
+        <div id="auth-section">
+            <div class="header">
+                <h1>Volunteer Login</h1>
+                <p>Welcome back! Please login to start serving.</p>
+            </div>
+
+            <div id="auth-error" class="status-msg status-error"></div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" placeholder="email@example.com" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" id="login-btn">
+                    <span>Login</span>
+                    <div class="loading-spinner"></div>
+                </button>
+            </form>
+        </div>
+
+        <!-- Form Section -->
+        <div id="form-section">
+            <div class="header">
+                <h1>Escort Availability</h1>
+                <p>Post your availability to help patients in need.</p>
+            </div>
+
+            <div id="submit-status" class="status-msg"></div>
+
+            <form id="availability-form">
+                <div class="form-group">
+                    <label>Date</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-calendar"></i>
+                        <input type="date" id="date" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label>From</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-clock"></i>
+                            <input type="time" id="fromTime" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>To</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-clock"></i>
+                            <input type="time" id="toTime" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Location</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-hospital"></i>
+                        <input type="text" id="location" placeholder="e.g. Tan Tock Seng Hospital" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label>Max Pax</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-users"></i>
+                            <input type="number" id="maxPax" value="1" min="1" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Phone</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-phone"></i>
+                            <input type="tel" id="contactPhone" placeholder="Phone Number" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="notes" placeholder="Any special notes or constraints..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="submit-btn">
+                    <span>Post Availability</span>
+                    <div class="loading-spinner"></div>
+                </button>
+            </form>
+
+            <button class="btn btn-logout" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLq5KEYwGoODg-IhX-KD_wq7glWW719d0",
+            authDomain: "twinxcarebackend.firebaseapp.com",
+            projectId: "twinxcarebackend",
+            storageBucket: "twinxcarebackend.firebasestorage.app",
+            messagingSenderId: "791637368111",
+            appId: "1:791637368111:web:2110bb059b6427ca3295da"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const authSection = document.getElementById('auth-section');
+        const formSection = document.getElementById('form-section');
+        const loginForm = document.getElementById('login-form');
+        const availabilityForm = document.getElementById('availability-form');
+        const loginBtn = document.getElementById('login-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        // Set min date to today
+        const dateInput = document.getElementById('date');
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today;
+        dateInput.value = today;
+
+        // Auth State Listener
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                authSection.style.display = 'none';
+                formSection.style.display = 'block';
+            } else {
+                authSection.style.display = 'block';
+                formSection.style.display = 'none';
+            }
+        });
+
+        // Login Logic
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('auth-error');
+
+            setLoading(loginBtn, true);
+            errorMsg.style.display = 'none';
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                errorMsg.innerText = error.message;
+                errorMsg.style.display = 'block';
+            } finally {
+                setLoading(loginBtn, false);
+            }
+        });
+
+        // Submit Logic
+        availabilityForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusMsg = document.getElementById('submit-status');
+
+            setLoading(submitBtn, true);
+            statusMsg.style.display = 'none';
+
+            try {
+                const user = auth.currentUser;
+                await addDoc(collection(db, 'escort', 'availability', 'entries'), {
+                    providerId: user.uid,
+                    providerEmail: user.email,
+                    date: dateInput.value,
+                    fromTime: document.getElementById('fromTime').value,
+                    toTime: document.getElementById('toTime').value,
+                    location: document.getElementById('location').value,
+                    maxPax: Number(document.getElementById('maxPax').value) || 1,
+                    contactPhone: document.getElementById('contactPhone').value,
+                    notes: document.getElementById('notes').value,
+                    createdAt: serverTimestamp(),
+                    status: 'available'
+                });
+
+                statusMsg.innerText = "Availability successfully posted!";
+                statusMsg.className = "status-msg status-success";
+                statusMsg.style.display = 'block';
+                availabilityForm.reset();
+                dateInput.value = today; // Reset with current date
+
+                // Scroll to top to see message
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            } catch (error) {
+                statusMsg.innerText = "Error: " + error.message;
+                statusMsg.className = "status-msg status-error";
+                statusMsg.style.display = 'block';
+            } finally {
+                setLoading(submitBtn, false);
+            }
+        });
+
+        // Logout
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth);
+        });
+
+        function setLoading(btn, isLoading) {
+            const span = btn.querySelector('span');
+            const spinner = btn.querySelector('.loading-spinner');
+            if (isLoading) {
+                btn.disabled = true;
+                if (span) span.style.display = 'none';
+                spinner.style.display = 'block';
+            } else {
+                btn.disabled = false;
+                if (span) span.style.display = 'block';
+                spinner.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+
+</html>

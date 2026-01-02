@@ -77,13 +77,6 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       )}
-      <Text>    </Text>
-      <Text></Text>
-      {/* Temporary: Notifications test button for quick access during development */}
-      <TouchableOpacity onPress={() => router.push('/notifs/notifs' as any)} style={[styles.tempNotifButton, { backgroundColor: theme.primary, width: screenWidth - 40 }]}>
-        <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: '#fff' }]}>temporary: notifs test</Text>
-      </TouchableOpacity>
-
       {/* Order History Widget */}
       <OrderHistoryWidget />
     </ScrollView>

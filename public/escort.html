@@ -1,352 +1,636 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Volunteer Escort Availability | TwinXCare</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>TwinXCare | Admin Escort Management</title>
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #3b82f6;
-            --primary-dark: #2563eb;
-            --bg-dark: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
-            --error: #ef4444;
+            /* App Theme Colors - Dark Mode */
+            --bg-base: #1a1a1a;
+            --bg-card: #2c2c2c;
+            --primary: #81ade7;
+            --primary-glow: rgba(129, 173, 231, 0.4);
+            --text-main: #ffffff;
+            --text-dim: #b1b1b1;
+            --accent: #62b8ea;
             --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --border: rgba(255, 255, 255, 0.08);
+            --glass: rgba(44, 44, 44, 0.7);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Outfit', sans-serif;
         }
 
         body {
-            background-color: var(--bg-dark);
-            background-image:
-                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.1) 0, transparent 50%);
+            background-color: var(--bg-base);
             color: var(--text-main);
             min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(129, 173, 231, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(98, 184, 234, 0.05) 0%, transparent 40%);
+        }
+
+        /* Loading Overlay */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-base);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            z-index: 1000;
+            transition: opacity 0.5s ease, visibility 0.5s;
         }
 
-        .container {
-            width: 100%;
-            max-width: 500px;
-            background: var(--card-bg);
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(129, 173, 231, 0.1);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Navigation */
+        nav {
+            background: var(--glass);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.6s ease-out;
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 28px;
+        .logo h1 {
+            font-size: 1.5rem;
             font-weight: 700;
-            margin-bottom: 8px;
-            background: linear-gradient(to right, #60a5fa, #3b82f6);
+            background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
             -webkit-background-clip: text;
-            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .header p {
-            color: var(--text-dim);
-            font-size: 14px;
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 14px;
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            cursor: pointer;
             font-weight: 600;
-            margin-bottom: 8px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Auth Section */
+        #auth-view {
+            display: none;
+            min-height: 80vh;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 3rem;
+            border-radius: 28px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .login-card i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .login-card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-card p {
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.25rem;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.85rem;
             color: var(--text-dim);
         }
 
-        .input-wrapper {
+        .input-field {
             position: relative;
         }
 
-        .input-wrapper i {
+        .input-field i {
             position: absolute;
-            left: 15px;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+            color: var(--text-dim);
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 0.9rem 1rem 0.9rem 2.8rem;
+            background: #121212;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .input-field input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary);
+            color: #1a1a1a;
+            border: none;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            background: #9cc1ed;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Dashboard Section */
+        #dashboard-view {
+            display: none;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .header-left h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-left p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 1.75rem;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.75rem;
+        }
+
+        .stat-info .label {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .stat-info .value {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        /* Filter Controls */
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 0.5rem;
+            background: #121212;
+            padding: 0.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .filter-btn {
+            background: transparent;
+            color: var(--text-dim);
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: #1a1a1a;
+            box-shadow: 0 4px 12px rgba(129, 173, 231, 0.2);
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-wrapper i {
+            position: absolute;
+            left: 1.25rem;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-dim);
         }
 
-        input,
-        textarea,
-        select {
+        .search-wrapper input {
             width: 100%;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 12px 15px 12px 45px;
+            padding: 0.8rem 1.25rem 0.8rem 3rem;
+            background: #121212;
+            border: 1px solid var(--border);
+            border-radius: 16px;
             color: white;
-            font-size: 15px;
-            transition: all 0.3s ease;
+            font-size: 0.95rem;
         }
 
-        input:focus,
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        /* Escort Grid */
+        .escort-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            gap: 2rem;
         }
 
-        textarea {
-            padding-left: 15px;
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .row {
+        .escort-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 2rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
             display: flex;
+            flex-direction: column;
+        }
+
+        .escort-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+        }
+
+        .card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
             gap: 15px;
         }
 
-        .row .form-group {
-            flex: 1;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            border: none;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .avatar {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-glow);
+            color: var(--primary);
+            border-radius: 14px;
             display: flex;
             justify-content: center;
+            align-items: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .user-meta h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+            color: white;
+        }
+
+        .user-meta p {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1.1rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .badge-available { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .badge-matched { background: rgba(129, 173, 231, 0.1); color: var(--primary); border: 1px solid rgba(129, 173, 231, 0.2); }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .data-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .data-item .label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .data-item .value {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .card-notes {
+            background: rgba(0,0,0,0.15);
+            padding: 1.25rem;
+            border-radius: 18px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            border-left: 4px solid var(--accent);
+            margin-bottom: 2rem;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+
+        .match-footer {
+            background: linear-gradient(135deg, rgba(129, 173, 231, 0.08) 0%, transparent 100%);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid rgba(129, 173, 231, 0.15);
+        }
+
+        .match-footer h4 {
+            font-size: 0.85rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .btn-primary {
-            background: var(--primary);
-            color: white;
+        .match-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
         }
 
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
+        .match-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-family: 'Inter', sans-serif;
         }
 
-        .btn-logout {
-            background: transparent;
-            color: var(--text-dim);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-top: 20px;
-            font-size: 14px;
-        }
+        .match-row span:first-child { color: var(--text-dim); }
+        .match-row span:last-child { font-weight: 600; color: white; }
 
-        .btn-logout:hover {
-            color: var(--error);
-            border-color: var(--error);
-        }
-
-        #auth-section,
-        #form-section {
-            display: none;
-        }
-
-        .status-msg {
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: none;
-        }
-
-        .status-error {
+        .error-msg {
             background: rgba(239, 68, 68, 0.1);
-            color: var(--error);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-
-        .status-success {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .loading-spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 1rem;
+            border-radius: 14px;
+            margin-bottom: 1.5rem;
             display: none;
+            font-size: 0.9rem;
+            text-align: center;
         }
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Date/Time picker consistency */
-        input[type="date"]::-webkit-calendar-picker-indicator,
-        input[type="time"]::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-            cursor: pointer;
+        @media (max-width: 900px) {
+            .escort-grid { grid-template-columns: 1fr; }
+            .card-grid { gap: 1rem; }
         }
     </style>
 </head>
-
 <body>
+    <!-- Full-page Loader -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <p style="margin-top: 1.5rem; color: var(--text-dim); font-weight: 500;">Authenticating...</p>
+    </div>
 
-    <div class="container">
-        <!-- Auth Section -->
-        <div id="auth-section">
-            <div class="header">
-                <h1>Volunteer Login</h1>
-                <p>Welcome back! Please login to start serving.</p>
-            </div>
-
-            <div id="auth-error" class="status-msg status-error"></div>
-
-            <form id="login-form">
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" id="email" placeholder="email@example.com" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="password" placeholder="••••••••" required>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary" id="login-btn">
-                    <span>Login</span>
-                    <div class="loading-spinner"></div>
-                </button>
-            </form>
-        </div>
-
-        <!-- Form Section -->
-        <div id="form-section">
-            <div class="header">
-                <h1>Escort Availability</h1>
-                <p>Post your availability to help patients in need.</p>
-            </div>
-
-            <div id="submit-status" class="status-msg"></div>
-
-            <form id="availability-form">
-                <div class="form-group">
-                    <label>Date</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-calendar"></i>
-                        <input type="date" id="date" required>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="form-group">
-                        <label>From</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-clock"></i>
-                            <input type="time" id="fromTime" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>To</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-clock"></i>
-                            <input type="time" id="toTime" required>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Location</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-hospital"></i>
-                        <input type="text" id="location" placeholder="e.g. Tan Tock Seng Hospital" required>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="form-group">
-                        <label>Max Pax</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-users"></i>
-                            <input type="number" id="maxPax" value="1" min="1" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Contact Phone</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-phone"></i>
-                            <input type="tel" id="contactPhone" placeholder="Phone Number" required>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Notes</label>
-                    <textarea id="notes" placeholder="Any special notes or constraints..."></textarea>
-                </div>
-
-                <button type="submit" class="btn btn-primary" id="submit-btn">
-                    <span>Post Availability</span>
-                    <div class="loading-spinner"></div>
-                </button>
-            </form>
-
-            <button class="btn btn-logout" id="logout-btn">
+    <!-- Top Bar -->
+    <nav>
+        <a href="#" class="logo">
+            <i class="fas fa-hand-holding-heart" style="color: var(--primary);"></i>
+            <h1>TwinXCare Admin</h1>
+        </a>
+        <div class="nav-user" id="nav-actions" style="display: none;">
+            <span id="admin-email" style="font-size: 0.9rem; color: var(--text-dim); font-weight: 500;"></span>
+            <button class="logout-btn" id="logout-btn">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </button>
         </div>
+    </nav>
+
+    <div class="container">
+        <!-- Login View -->
+        <section id="auth-view">
+            <div class="login-card">
+                <i class="fas fa-shield-halved"></i>
+                <h2>Admin Access</h2>
+                <p>Please sign in with your administrative credentials to manage escort activity.</p>
+                <div id="login-error" class="error-msg"></div>
+                <form id="login-form">
+                    <div class="input-group">
+                        <label>Email Address</label>
+                        <div class="input-field">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="email" placeholder="admin@twinxcare.com" required>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <div class="input-field">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="password" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit" id="login-btn">
+                        <span>Enter Dashboard</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Main Dashboard View -->
+        <section id="dashboard-view">
+            <div class="dashboard-header">
+                <div class="header-left">
+                    <h2>Escort Oversight</h2>
+                    <p>Live view of all volunteer availability and matching status.</p>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(129, 173, 231, 0.1); color: var(--primary);">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="label">Total Entries</div>
+                        <div class="value" id="stat-total">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="label">Available</div>
+                        <div class="value" id="stat-available">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(98, 184, 234, 0.1); color: var(--accent);">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="label">Matched</div>
+                        <div class="value" id="stat-matched">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-row">
+                <div class="filter-bar">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="available">Available</button>
+                    <button class="filter-btn" data-filter="matched">Matched</button>
+                </div>
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Search by email or hospital...">
+                </div>
+            </div>
+
+            <div id="escort-list" class="escort-grid">
+                <!-- Dynamic cards -->
+            </div>
+        </section>
     </div>
 
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDK (Module) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBLq5KEYwGoODg-IhX-KD_wq7glWW719d0",
@@ -361,112 +645,198 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const authSection = document.getElementById('auth-section');
-        const formSection = document.getElementById('form-section');
-        const loginForm = document.getElementById('login-form');
-        const availabilityForm = document.getElementById('availability-form');
-        const loginBtn = document.getElementById('login-btn');
-        const submitBtn = document.getElementById('submit-btn');
-        const logoutBtn = document.getElementById('logout-btn');
+        const loader = document.getElementById('loader');
+        const authView = document.getElementById('auth-view');
+        const dashboardView = document.getElementById('dashboard-view');
+        const escortList = document.getElementById('escort-list');
+        const navActions = document.getElementById('nav-actions');
+        const adminEmailSpan = document.getElementById('admin-email');
+        const searchInput = document.getElementById('search-input');
 
-        // Set min date to today
-        const dateInput = document.getElementById('date');
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.min = today;
-        dateInput.value = today;
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let allData = [];
+        let unsubscribe = null;
 
-        // Auth State Listener
-        onAuthStateChanged(auth, (user) => {
+        // Auth Listener
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                authSection.style.display = 'none';
-                formSection.style.display = 'block';
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists() && userDoc.data().role === 'admin') {
+                        adminEmailSpan.innerText = user.email;
+                        switchView('dashboard');
+                        syncData();
+                    } else {
+                        alert('Access Denied: You do not have administrator privileges.');
+                        await signOut(auth);
+                        switchView('auth');
+                    }
+                } catch (e) {
+                    console.error("Auth verification error:", e);
+                    switchView('auth');
+                }
             } else {
-                authSection.style.display = 'block';
-                formSection.style.display = 'none';
+                switchView('auth');
             }
+            hideLoader();
         });
 
-        // Login Logic
-        loginForm.addEventListener('submit', async (e) => {
+        // Search & Filter Events
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase();
+            renderDashboard();
+        });
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                renderDashboard();
+            });
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const errorMsg = document.getElementById('auth-error');
+            const btn = document.getElementById('login-btn');
+            const error = document.getElementById('login-error');
 
-            setLoading(loginBtn, true);
-            errorMsg.style.display = 'none';
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Authenticating...';
+            error.style.display = 'none';
 
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-            } catch (error) {
-                errorMsg.innerText = error.message;
-                errorMsg.style.display = 'block';
-            } finally {
-                setLoading(loginBtn, false);
-            }
-        });
-
-        // Submit Logic
-        availabilityForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const statusMsg = document.getElementById('submit-status');
-
-            setLoading(submitBtn, true);
-            statusMsg.style.display = 'none';
-
-            try {
-                const user = auth.currentUser;
-                await addDoc(collection(db, 'escort', 'availability', 'entries'), {
-                    providerId: user.uid,
-                    providerEmail: user.email,
-                    date: dateInput.value,
-                    fromTime: document.getElementById('fromTime').value,
-                    toTime: document.getElementById('toTime').value,
-                    location: document.getElementById('location').value,
-                    maxPax: Number(document.getElementById('maxPax').value) || 1,
-                    contactPhone: document.getElementById('contactPhone').value,
-                    notes: document.getElementById('notes').value,
-                    createdAt: serverTimestamp(),
-                    status: 'available'
-                });
-
-                statusMsg.innerText = "Availability successfully posted!";
-                statusMsg.className = "status-msg status-success";
-                statusMsg.style.display = 'block';
-                availabilityForm.reset();
-                dateInput.value = today; // Reset with current date
-
-                // Scroll to top to see message
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-
-            } catch (error) {
-                statusMsg.innerText = "Error: " + error.message;
-                statusMsg.className = "status-msg status-error";
-                statusMsg.style.display = 'block';
-            } finally {
-                setLoading(submitBtn, false);
-            }
-        });
-
-        // Logout
-        logoutBtn.addEventListener('click', () => {
-            signOut(auth);
-        });
-
-        function setLoading(btn, isLoading) {
-            const span = btn.querySelector('span');
-            const spinner = btn.querySelector('.loading-spinner');
-            if (isLoading) {
-                btn.disabled = true;
-                if (span) span.style.display = 'none';
-                spinner.style.display = 'block';
-            } else {
+            } catch (err) {
+                error.innerText = "Validation failed. Please check your credentials.";
+                error.style.display = 'block';
                 btn.disabled = false;
-                if (span) span.style.display = 'block';
-                spinner.style.display = 'none';
+                btn.innerText = 'Enter Dashboard';
             }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+
+        // State Helpers
+        function switchView(view) {
+            if (view === 'dashboard') {
+                authView.style.display = 'none';
+                dashboardView.style.display = 'block';
+                navActions.style.display = 'flex';
+            } else {
+                authView.style.display = 'flex';
+                dashboardView.style.display = 'none';
+                navActions.style.display = 'none';
+                if (unsubscribe) unsubscribe();
+            }
+        }
+
+        function hideLoader() {
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.visibility = 'hidden', 500);
+        }
+
+        function syncData() {
+            const q = query(collection(db, 'escort', 'availability', 'entries'), orderBy('createdAt', 'desc'));
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                
+                // Update stats
+                document.getElementById('stat-total').innerText = allData.length;
+                document.getElementById('stat-available').innerText = allData.filter(d => d.status === 'available').length;
+                document.getElementById('stat-matched').innerText = allData.filter(d => d.status === 'matched').length;
+
+                renderDashboard();
+            });
+        }
+
+        function renderDashboard() {
+            let filtered = allData;
+            
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(d => d.status === currentFilter);
+            }
+
+            if (searchQuery) {
+                filtered = filtered.filter(d => 
+                    d.providerEmail?.toLowerCase().includes(searchQuery) || 
+                    d.location?.toLowerCase().includes(searchQuery)
+                );
+            }
+
+            if (filtered.length === 0) {
+                escortList.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 5rem 0; color: var(--text-dim);">
+                        <i class="fas fa-search-minus" style="font-size: 4rem; opacity: 0.2; margin-bottom: 1.5rem;"></i>
+                        <p style="font-size: 1.1rem;">No matching escort records found.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            escortList.innerHTML = filtered.map(item => {
+                const initial = item.providerEmail ? item.providerEmail[0].toUpperCase() : '?';
+                return `
+                    <div class="escort-card">
+                        <div class="card-head">
+                            <div class="user-info">
+                                <div class="avatar">${initial}</div>
+                                <div class="user-meta">
+                                    <h3>${item.providerEmail || 'Unknown Volunteer'}</h3>
+                                    <p>ID: ${item.providerId?.substring(0, 12)}...</p>
+                                </div>
+                            </div>
+                            <span class="status-badge badge-${item.status}">${item.status}</span>
+                        </div>
+
+                        <div class="card-grid">
+                            <div class="data-item">
+                                <span class="label"><i class="fas fa-calendar-day"></i> Date</span>
+                                <span class="value">${item.date || 'N/A'}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="label"><i class="fas fa-clock"></i> Window</span>
+                                <span class="value">${item.fromTime} - ${item.toTime}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="label"><i class="fas fa-hospital"></i> Location</span>
+                                <span class="value">${item.location || 'Anywhere'}</span>
+                            </div>
+                            <div class="data-item">
+                                <span class="label"><i class="fas fa-phone"></i> Contact</span>
+                                <span class="value">${item.contactPhone || 'N/A'}</span>
+                            </div>
+                        </div>
+
+                        ${item.notes ? `
+                            <div class="card-notes">
+                                <i class="fas fa-comment-dots" style="margin-right: 8px; color: var(--accent);"></i>
+                                ${item.notes}
+                            </div>
+                        ` : ''}
+
+                        ${item.status === 'matched' ? `
+                            <div class="match-footer">
+                                <h4><i class="fas fa-link"></i> Linked Match</h4>
+                                <div class="match-details">
+                                    <div class="match-row">
+                                        <span>Requester Uid</span>
+                                        <span>${item.matchedUserId?.substring(0, 10)}...</span>
+                                    </div>
+                                    <div class="match-row">
+                                        <span>Request ID</span>
+                                        <span>#${item.matchedRequestId?.substring(0, 8)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
         }
     </script>
 </body>
-
 </html>

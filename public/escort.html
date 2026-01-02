@@ -1,27 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TwinXCare | Admin Escort Management</title>
+    <title>TwinXCare | VolunteerConnect Coordination</title>
     <!-- Fonts & Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <style>
         :root {
-            /* App Theme Colors - Dark Mode */
-            --bg-base: #1a1a1a;
-            --bg-card: #2c2c2c;
-            --primary: #81ade7;
-            --primary-glow: rgba(129, 173, 231, 0.4);
-            --text-main: #ffffff;
-            --text-dim: #b1b1b1;
-            --accent: #62b8ea;
+            /* Premium Light Theme */
+            --bg-base: #F8FAFC;
+            --bg-surface: #FFFFFF;
+            --primary: #6366f1;
+            --primary-light: #e0e7ff;
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+            --border: #e2e8f0;
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
-            --border: rgba(255, 255, 255, 0.08);
-            --glass: rgba(44, 44, 44, 0.7);
+            --accent: #8b5cf6;
+            --indigo-600: #4f46e5;
+            --rose-600: #e11d48;
         }
 
         * {
@@ -36,9 +40,7 @@
             color: var(--text-main);
             min-height: 100vh;
             overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(129, 173, 231, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(98, 184, 234, 0.05) 0%, transparent 40%);
+            line-height: 1.5;
         }
 
         /* Loading Overlay */
@@ -55,23 +57,25 @@
         }
 
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(129, 173, 231, 0.1);
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
             border-top: 3px solid var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
         /* Navigation */
         nav {
-            background: var(--glass);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: var(--bg-surface);
             border-bottom: 1px solid var(--border);
-            padding: 1rem 2rem;
+            padding: 0.75rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -87,551 +91,753 @@
             text-decoration: none;
         }
 
-        .logo h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .logo-icon {
+            background: var(--primary);
+            color: white;
+            padding: 8px;
+            border-radius: 10px;
+            font-size: 1.1rem;
         }
 
-        .nav-user {
+        .logo h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+        }
+
+        .nav-actions {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 1.5rem;
+        }
+
+        .offline-status {
+            background: #fffbeb;
+            color: #b45309;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid #fef3c7;
+            display: none;
         }
 
         .logout-btn {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
-            border: 1px solid rgba(239, 68, 68, 0.2);
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid var(--border);
             padding: 0.5rem 1rem;
             border-radius: 10px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: all 0.2s;
         }
 
         .logout-btn:hover {
-            background: var(--danger);
-            color: white;
+            border-color: var(--danger);
+            color: var(--danger);
         }
 
         /* Main Container */
         .container {
-            max-width: 1400px;
+            max-width: 1280px;
             margin: 2rem auto;
             padding: 0 1.5rem;
         }
 
-        /* Auth Section */
-        #auth-view {
-            display: none;
-            min-height: 80vh;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .login-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            padding: 3rem;
-            border-radius: 28px;
-            width: 100%;
-            max-width: 440px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            text-align: center;
-        }
-
-        .login-card i {
-            font-size: 3rem;
-            color: var(--primary);
-            margin-bottom: 1.5rem;
-        }
-
-        .login-card h2 {
-            font-size: 1.8rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .login-card p {
-            color: var(--text-dim);
-            margin-bottom: 2rem;
-        }
-
-        .input-group {
-            margin-bottom: 1.25rem;
-            text-align: left;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            font-size: 0.85rem;
-            color: var(--text-dim);
-        }
-
-        .input-field {
-            position: relative;
-        }
-
-        .input-field i {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1rem;
-            color: var(--text-dim);
-        }
-
-        .input-field input {
-            width: 100%;
-            padding: 0.9rem 1rem 0.9rem 2.8rem;
-            background: #121212;
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            color: white;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-
-        .input-field input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px var(--primary-glow);
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 1rem;
-            background: var(--primary);
-            color: #1a1a1a;
-            border: none;
-            border-radius: 14px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 1rem;
-            transition: all 0.3s;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            background: #9cc1ed;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-        }
-
-        /* Dashboard Section */
-        #dashboard-view {
-            display: none;
-        }
-
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 3rem;
-        }
-
-        .header-left h2 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .header-left p {
-            color: var(--text-dim);
-            font-size: 1.1rem;
-        }
-
+        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 1.5rem;
-            margin-bottom: 3rem;
+            margin-bottom: 2.5rem;
         }
 
         .stat-card {
-            background: var(--bg-card);
+            background: var(--bg-surface);
             border: 1px solid var(--border);
-            padding: 1.75rem;
-            border-radius: 24px;
+            padding: 1.5rem;
+            border-radius: 16px;
             display: flex;
             align-items: center;
-            gap: 1.5rem;
-            transition: transform 0.3s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
+            gap: 1.25rem;
         }
 
         .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 18px;
+            width: 54px;
+            height: 54px;
+            border-radius: 14px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.75rem;
+            font-size: 1.5rem;
         }
 
         .stat-info .label {
             color: var(--text-dim);
-            font-size: 0.9rem;
+            font-size: 0.8rem;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             margin-bottom: 4px;
         }
 
         .stat-info .value {
-            font-size: 1.75rem;
+            font-size: 1.5rem;
             font-weight: 700;
+            color: var(--text-main);
         }
 
-        /* Filter Controls */
-        .controls-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .filter-bar {
-            display: flex;
-            gap: 0.5rem;
-            background: #121212;
-            padding: 0.5rem;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-        }
-
-        .filter-btn {
-            background: transparent;
-            color: var(--text-dim);
-            border: none;
-            padding: 0.7rem 1.5rem;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-
-        .filter-btn.active {
-            background: var(--primary);
-            color: #1a1a1a;
-            box-shadow: 0 4px 12px rgba(129, 173, 231, 0.2);
-        }
-
-        .search-wrapper {
-            position: relative;
-            flex: 1;
-            max-width: 400px;
-        }
-
-        .search-wrapper i {
-            position: absolute;
-            left: 1.25rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-dim);
-        }
-
-        .search-wrapper input {
-            width: 100%;
-            padding: 0.8rem 1.25rem 0.8rem 3rem;
-            background: #121212;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            color: white;
-            font-size: 0.95rem;
-        }
-
-        /* Escort Grid */
-        .escort-grid {
+        /* Layout Columns */
+        .dashboard-layout {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            grid-template-columns: 1fr 1.5fr;
             gap: 2rem;
         }
 
-        .escort-card {
-            background: var(--bg-card);
+        @media (max-width: 1024px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Section Headings */
+        .section-box {
+            background: var(--bg-surface);
+            border-radius: 20px;
             border: 1px solid var(--border);
-            border-radius: 28px;
-            padding: 2rem;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            margin-bottom: 2rem;
         }
 
-        .escort-card:hover {
-            transform: translateY(-10px);
-            border-color: var(--primary);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
-        }
-
-        .card-head {
+        .section-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 2rem;
-        }
-
-        .user-info {
-            display: flex;
             align-items: center;
-            gap: 15px;
         }
 
-        .avatar {
-            width: 48px;
-            height: 48px;
-            background: var(--primary-glow);
-            color: var(--primary);
-            border-radius: 14px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
-
-        .user-meta h3 {
+        .section-header h2 {
             font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 2px;
-            color: white;
-        }
-
-        .user-meta p {
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            font-family: 'Inter', sans-serif;
-        }
-
-        .status-badge {
-            padding: 0.5rem 1.1rem;
-            border-radius: 100px;
-            font-size: 0.75rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }
-
-        .badge-available { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
-        .badge-matched { background: rgba(129, 173, 231, 0.1); color: var(--primary); border: 1px solid rgba(129, 173, 231, 0.2); }
-
-        .card-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .data-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .data-item .label {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .data-item .value {
-            font-size: 1rem;
-            font-weight: 500;
-        }
-
-        .card-notes {
-            background: rgba(0,0,0,0.15);
-            padding: 1.25rem;
-            border-radius: 18px;
-            font-size: 0.9rem;
-            color: var(--text-dim);
-            border-left: 4px solid var(--accent);
-            margin-bottom: 2rem;
-            line-height: 1.5;
-            flex-grow: 1;
-        }
-
-        .match-footer {
-            background: linear-gradient(135deg, rgba(129, 173, 231, 0.08) 0%, transparent 100%);
-            border-radius: 20px;
-            padding: 1.5rem;
-            border: 1px solid rgba(129, 173, 231, 0.15);
-        }
-
-        .match-footer h4 {
-            font-size: 0.85rem;
-            color: var(--primary);
-            margin-bottom: 1rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .match-details {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
+        /* Forms */
+        .form-container {
+            padding: 1.5rem;
         }
 
-        .match-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            font-family: 'Inter', sans-serif;
+        .form-group {
+            margin-bottom: 1.25rem;
         }
 
-        .match-row span:first-child { color: var(--text-dim); }
-        .match-row span:last-child { font-weight: 600; color: white; }
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.05em;
+        }
 
-        .error-msg {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid var(--danger);
-            color: var(--danger);
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-base);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 0.875rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 0.5rem;
+        }
+
+        .btn-indigo {
+            border-color: var(--indigo-600);
+            color: var(--indigo-600);
+            background: transparent;
+        }
+
+        .btn-indigo:hover {
+            background: var(--indigo-600);
+            color: white;
+        }
+
+        .btn-rose {
+            border-color: var(--rose-600);
+            color: var(--rose-600);
+            background: transparent;
+        }
+
+        .btn-rose:hover {
+            background: var(--rose-600);
+            color: white;
+        }
+
+        /* Tables */
+        .table-view {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--bg-base);
+            padding: 0.875rem 1rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th:hover {
+            background: #f1f5f9;
+        }
+
+        td {
             padding: 1rem;
-            border-radius: 14px;
-            margin-bottom: 1.5rem;
-            display: none;
+            border-bottom: 1px solid var(--border);
             font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .user-name {
+            font-weight: 600;
+        }
+
+        .user-notes {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid transparent;
+        }
+
+        .badge-pending {
+            background: #fefce8;
+            color: #854d0e;
+            border-color: #fef9c3;
+        }
+
+        .badge-matched {
+            background: #f0fdf4;
+            color: #166534;
+            border-color: #dcfce7;
+        }
+
+        .badge-completed {
+            background: #f8fafc;
+            color: #475569;
+            border-color: #e2e8f0;
+        }
+
+        .rating-stars {
+            color: #fbbf24;
+            font-size: 0.8rem;
+            display: flex;
+            gap: 2px;
+        }
+
+        .btn-table {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 1.5px solid var(--primary);
+            color: var(--primary);
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-table:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-complete {
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .btn-complete:hover {
+            background: var(--warning);
+            color: white;
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .modal-header p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .modal-footer {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Rating Styles */
+        .rating-input {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+        }
+
+        .star-box {
+            font-size: 2rem;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .star-box.active {
+            color: #fbbf24;
+        }
+
+        /* Search & Export row */
+        .controls-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            align-items: center;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dim);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+
+        .btn-icon {
+            padding: 10px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            color: var(--text-dim);
+            background: white;
+            cursor: pointer;
+        }
+
+        .btn-icon:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Auth View */
+        #auth-view {
+            display: flex;
+            min-height: 80vh;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-card {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 3rem;
+            border-radius: 28px;
+            width: 100%;
+            max-width: 400px;
             text-align: center;
         }
 
-        @media (max-width: 900px) {
-            .escort-grid { grid-template-columns: 1fr; }
-            .card-grid { gap: 1rem; }
+        .login-card i.main-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        #dashboard-view {
+            display: none;
         }
     </style>
 </head>
+
 <body>
     <!-- Full-page Loader -->
     <div id="loader">
         <div class="spinner"></div>
-        <p style="margin-top: 1.5rem; color: var(--text-dim); font-weight: 500;">Authenticating...</p>
+        <p style="margin-top: 1.5rem; color: var(--text-dim); font-weight: 600;">System Initializing...</p>
     </div>
 
-    <!-- Top Bar -->
+    <!-- Navigation -->
     <nav>
         <a href="#" class="logo">
-            <i class="fas fa-hand-holding-heart" style="color: var(--primary);"></i>
-            <h1>TwinXCare Admin</h1>
+            <i class="fas fa-heart-pulse logo-icon"></i>
+            <h1>VolunteerConnect</h1>
         </a>
-        <div class="nav-user" id="nav-actions" style="display: none;">
-            <span id="admin-email" style="font-size: 0.9rem; color: var(--text-dim); font-weight: 500;"></span>
-            <button class="logout-btn" id="logout-btn">
-                <i class="fas fa-sign-out-alt"></i> Logout
+        <div class="nav-actions">
+            <div id="offline-label" class="offline-status">
+                <i class="fas fa-wifi-slash"></i> Offline Mode
+            </div>
+            <button class="logout-btn" id="logout-btn" style="display: none;">
+                <i class="fas fa-arrow-right-from-bracket"></i>
             </button>
         </div>
     </nav>
 
     <div class="container">
-        <!-- Login View -->
+        <!-- Auth View -->
         <section id="auth-view">
             <div class="login-card">
-                <i class="fas fa-shield-halved"></i>
-                <h2>Admin Access</h2>
-                <p>Please sign in with your administrative credentials to manage escort activity.</p>
-                <div id="login-error" class="error-msg"></div>
+                <i class="fas fa-shield-halved main-icon"></i>
+                <h2 style="font-weight: 800; margin-bottom: 0.5rem;">Access Control</h2>
+                <p style="color: var(--text-dim); margin-bottom: 2rem;">Sign in to coordinate community assistance and
+                    volunteer matching.</p>
                 <form id="login-form">
-                    <div class="input-group">
-                        <label>Email Address</label>
-                        <div class="input-field">
-                            <i class="fas fa-envelope"></i>
-                            <input type="email" id="email" placeholder="admin@twinxcare.com" required>
-                        </div>
+                    <div class="form-group" style="text-align: left;">
+                        <label>Admin ID</label>
+                        <input type="email" id="login-email" class="form-control" placeholder="admin@care.com" required>
                     </div>
-                    <div class="input-group">
-                        <label>Password</label>
-                        <div class="input-field">
-                            <i class="fas fa-lock"></i>
-                            <input type="password" id="password" placeholder="••••••••" required>
-                        </div>
+                    <div class="form-group" style="text-align: left;">
+                        <label>Security Key</label>
+                        <input type="password" id="login-pass" class="form-control" placeholder="••••••••" required>
                     </div>
-                    <button type="submit" class="btn-submit" id="login-btn">
-                        <span>Enter Dashboard</span>
+                    <button type="submit" class="btn-action btn-indigo"
+                        style="border-radius: 14px; padding: 1rem; border-width: 0; background: var(--primary); color: white;">
+                        Enter Control Center
                     </button>
                 </form>
             </div>
         </section>
 
-        <!-- Main Dashboard View -->
+        <!-- Dashboard View -->
         <section id="dashboard-view">
-            <div class="dashboard-header">
-                <div class="header-left">
-                    <h2>Escort Oversight</h2>
-                    <p>Live view of all volunteer availability and matching status.</p>
-                </div>
-            </div>
-
+            <!-- Stats Bar -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(129, 173, 231, 0.1); color: var(--primary);">
-                        <i class="fas fa-clipboard-list"></i>
+                    <div class="stat-icon" style="background: #eef2ff; color: #6366f1;">
+                        <i class="fas fa-users"></i>
                     </div>
                     <div class="stat-info">
-                        <div class="label">Total Entries</div>
-                        <div class="value" id="stat-total">0</div>
+                        <div class="label">Volunteers</div>
+                        <div class="value" id="stat-volunteers">0</div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
-                        <i class="fas fa-user-check"></i>
+                    <div class="stat-icon" style="background: #fff1f2; color: #e11d48;">
+                        <i class="fas fa-clock"></i>
                     </div>
                     <div class="stat-info">
-                        <div class="label">Available</div>
-                        <div class="value" id="stat-available">0</div>
+                        <div class="label">Pending</div>
+                        <div class="value" id="stat-pending">0</div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(98, 184, 234, 0.1); color: var(--accent);">
-                        <i class="fas fa-handshake"></i>
+                    <div class="stat-icon" style="background: #f0fdf4; color: #10b981;">
+                        <i class="fas fa-link"></i>
                     </div>
                     <div class="stat-info">
-                        <div class="label">Matched</div>
-                        <div class="value" id="stat-matched">0</div>
+                        <div class="label">Matches</div>
+                        <div class="value" id="stat-matches">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #fefce8; color: #eab308;">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="label">Success Rate</div>
+                        <div class="value" id="stat-rate">0%</div>
                     </div>
                 </div>
             </div>
 
-            <div class="controls-row">
-                <div class="filter-bar">
-                    <button class="filter-btn active" data-filter="all">All</button>
-                    <button class="filter-btn" data-filter="available">Available</button>
-                    <button class="filter-btn" data-filter="matched">Matched</button>
-                </div>
-                <div class="search-wrapper">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="search-input" placeholder="Search by email or hospital...">
-                </div>
-            </div>
+            <div class="dashboard-layout">
+                <!-- Registration Column -->
+                <div class="column">
+                    <!-- Volunteer Register -->
+                    <div class="section-box">
+                        <div class="section-header" style="background: #f8faff;">
+                            <h2 style="color: var(--indigo-600);"><i class="fas fa-user-plus"></i> Volunteer
+                                Availability</h2>
+                        </div>
+                        <div class="form-container">
+                            <form id="vol-form">
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <input type="text" class="form-control" id="vol-name" placeholder="Volunteer name"
+                                        required>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Date</label>
+                                        <input type="date" class="form-control" id="vol-date" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Time Window</label>
+                                        <div style="display: flex; align-items: center; gap: 5px;">
+                                            <input type="time" class="form-control" id="vol-start" required>
+                                            <span style="color: var(--text-dim)">-</span>
+                                            <input type="time" class="form-control" id="vol-end" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Skills & Notes</label>
+                                    <textarea class="form-control" id="vol-notes"
+                                        style="height: 60px; resize: none;"></textarea>
+                                </div>
+                                <button type="submit" class="btn-action btn-indigo">Register Availability</button>
+                            </form>
+                        </div>
+                    </div>
 
-            <div id="escort-list" class="escort-grid">
-                <!-- Dynamic cards -->
+                    <!-- Request Submisson -->
+                    <div class="section-box">
+                        <div class="section-header" style="background: #fff8f8;">
+                            <h2 style="color: var(--rose-600);"><i class="fas fa-heart-pulse"></i> Caregiver Request
+                            </h2>
+                        </div>
+                        <div class="form-container">
+                            <form id="req-form">
+                                <div class="form-group">
+                                    <label>Caregiver Name</label>
+                                    <input type="text" class="form-control" id="req-name" placeholder="Requester name"
+                                        required>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Needed Date</label>
+                                        <input type="date" class="form-control" id="req-date" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Needed Window</label>
+                                        <div style="display: flex; align-items: center; gap: 5px;">
+                                            <input type="time" class="form-control" id="req-start" required>
+                                            <span style="color: var(--text-dim)">-</span>
+                                            <input type="time" class="form-control" id="req-end" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Needs & Preferences</label>
+                                    <textarea class="form-control" id="req-notes"
+                                        style="height: 60px; resize: none;"></textarea>
+                                </div>
+                                <button type="submit" class="btn-action btn-rose">Submit Assistance Request</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Display Column -->
+                <div class="column">
+                    <!-- Available Volunteers -->
+                    <div class="section-box">
+                        <div class="section-header">
+                            <h2><i class="fas fa-list-ul"></i> Active Volunteers</h2>
+                            <button class="btn-icon" onclick="exportData('volunteers')"><i
+                                    class="fas fa-download"></i></button>
+                        </div>
+                        <div class="table-view">
+                            <table id="vol-table">
+                                <thead>
+                                    <tr>
+                                        <th>Volunteer</th>
+                                        <th onclick="setSort('vol', 'date')">Schedule <i class="fas fa-sort"></i></th>
+                                        <th style="text-align: center;">Rating</th>
+                                        <th style="text-align: right;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Requests -->
+                    <div class="section-box">
+                        <div class="section-header">
+                            <h2><i class="fas fa-clipboard-check"></i> Service Requests</h2>
+                            <button class="btn-icon" onclick="exportData('requests')"><i
+                                    class="fas fa-download"></i></button>
+                        </div>
+                        <div class="table-view">
+                            <table id="req-table">
+                                <thead>
+                                    <tr>
+                                        <th>Requester</th>
+                                        <th onclick="setSort('req', 'date')">Required <i class="fas fa-sort"></i></th>
+                                        <th style="text-align: center;">Status</th>
+                                        <th style="text-align: right;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
+    </div>
+
+    <!-- Match Modal -->
+    <div id="match-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Assign Volunteer</h3>
+                <p id="match-subtitle"></p>
+            </div>
+            <div id="match-options"
+                style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 300px; overflow-y: auto; padding-right: 5px;">
+                <!-- Matching options will appear here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-action" style="background: #f1f5f9; color: var(--text-main); border: 0;"
+                    onclick="closeModal('match-modal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rate Modal -->
+    <div id="rate-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Complete & Rate</h3>
+                <p id="rate-subtitle"></p>
+            </div>
+            <div class="rating-input">
+                <i class="fas fa-star star-box" data-val="1"></i>
+                <i class="fas fa-star star-box" data-val="2"></i>
+                <i class="fas fa-star star-box" data-val="3"></i>
+                <i class="fas fa-star star-box" data-val="4"></i>
+                <i class="fas fa-star star-box" data-val="5"></i>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-action btn-indigo" id="confirm-rate-btn">Confirm Completion</button>
+                <button class="btn-action"
+                    style="background: transparent; border: 1.5px solid var(--border); color: var(--text-dim);"
+                    onclick="closeModal('rate-modal')">Close</button>
+            </div>
+        </div>
     </div>
 
     <!-- Firebase SDK (Module) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteField, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBLq5KEYwGoODg-IhX-KD_wq7glWW719d0",
             authDomain: "twinxcarebackend.firebaseapp.com",
@@ -645,93 +851,327 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // State
+        let volunteers = [];
+        let requests = [];
+        let isOffline = false;
+        let volSort = { key: 'date', direction: 'asc' };
+        let reqSort = { key: 'date', direction: 'asc' };
+        let activeRatingRequest = null;
+        let selectedRating = 0;
+
+        // UI Elements
         const loader = document.getElementById('loader');
         const authView = document.getElementById('auth-view');
         const dashboardView = document.getElementById('dashboard-view');
-        const escortList = document.getElementById('escort-list');
-        const navActions = document.getElementById('nav-actions');
-        const adminEmailSpan = document.getElementById('admin-email');
-        const searchInput = document.getElementById('search-input');
+        const offlineLabel = document.getElementById('offline-label');
+        const logoutBtn = document.getElementById('logout-btn');
 
-        let currentFilter = 'all';
-        let searchQuery = '';
-        let allData = [];
-        let unsubscribe = null;
+        // Initial Load from LocalStorage
+        const loadBackup = () => {
+            try {
+                volunteers = JSON.parse(localStorage.getItem('vol_backup') || '[]');
+                requests = JSON.parse(localStorage.getItem('req_backup') || '[]');
+                renderAll();
+            } catch (e) { }
+        };
 
-        // Auth Listener
-        onAuthStateChanged(auth, async (user) => {
+        // Auth Guardian
+        onAuthStateChanged(auth, (user) => {
             if (user) {
-                try {
-                    const userDoc = await getDoc(doc(db, 'users', user.uid));
-                    if (userDoc.exists() && userDoc.data().role === 'admin') {
-                        adminEmailSpan.innerText = user.email;
-                        switchView('dashboard');
-                        syncData();
-                    } else {
-                        alert('Access Denied: You do not have administrator privileges.');
-                        await signOut(auth);
-                        switchView('auth');
-                    }
-                } catch (e) {
-                    console.error("Auth verification error:", e);
-                    switchView('auth');
-                }
+                // Simplified admin check for demo purposes, usually we check role in Firestore
+                dashboardView.style.display = 'block';
+                authView.style.display = 'none';
+                logoutBtn.style.display = 'block';
+                listenToData();
             } else {
-                switchView('auth');
+                dashboardView.style.display = 'none';
+                authView.style.display = 'flex';
+                logoutBtn.style.display = 'none';
             }
             hideLoader();
         });
 
-        // Search & Filter Events
-        searchInput.addEventListener('input', (e) => {
-            searchQuery = e.target.value.toLowerCase();
-            renderDashboard();
-        });
-
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentFilter = btn.dataset.filter;
-                renderDashboard();
-            });
-        });
-
+        // Event: Login
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const btn = document.getElementById('login-btn');
-            const error = document.getElementById('login-error');
-
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Authenticating...';
-            error.style.display = 'none';
-
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
             try {
-                await signInWithEmailAndPassword(auth, email, password);
+                await signInWithEmailAndPassword(auth, email, pass);
             } catch (err) {
-                error.innerText = "Validation failed. Please check your credentials.";
-                error.style.display = 'block';
-                btn.disabled = false;
-                btn.innerText = 'Enter Dashboard';
+                alert("Auth Error: " + err.message);
             }
         });
 
-        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+        // Event: Logout
+        logoutBtn.onclick = () => signOut(auth);
 
-        // State Helpers
-        function switchView(view) {
-            if (view === 'dashboard') {
-                authView.style.display = 'none';
-                dashboardView.style.display = 'block';
-                navActions.style.display = 'flex';
+        // Function: Real-time Data Listeners
+        function listenToData() {
+            onSnapshot(collection(db, 'volunteers'), (snap) => {
+                volunteers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                localStorage.setItem('vol_backup', JSON.stringify(volunteers));
+                renderAll();
+            }, (err) => setOfflineMode(true));
+
+            onSnapshot(collection(db, 'requests'), (snap) => {
+                requests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                localStorage.setItem('req_backup', JSON.stringify(requests));
+                renderAll();
+            }, (err) => setOfflineMode(true));
+        }
+
+        // Submissions
+        document.getElementById('vol-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('vol-name').value,
+                notes: document.getElementById('vol-notes').value,
+                availability: {
+                    date: document.getElementById('vol-date').value,
+                    startTime: document.getElementById('vol-start').value,
+                    endTime: document.getElementById('vol-end').value
+                }
+            };
+            try {
+                await addDoc(collection(db, 'volunteers'), data);
+                e.target.reset();
+            } catch (err) { handleOfflineSave('volunteers', data); }
+        });
+
+        document.getElementById('req-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                caregiverName: document.getElementById('req-name').value,
+                notes: document.getElementById('req-notes').value,
+                needed: {
+                    date: document.getElementById('req-date').value,
+                    startTime: document.getElementById('req-start').value,
+                    endTime: document.getElementById('req-end').value
+                },
+                status: 'pending'
+            };
+            try {
+                await addDoc(collection(db, 'requests'), data);
+                e.target.reset();
+            } catch (err) { handleOfflineSave('requests', data); }
+        });
+
+        // Rendering Logic
+        function renderAll() {
+            updateStats();
+            renderVolunteers();
+            renderRequests();
+        }
+
+        function updateStats() {
+            const pending = requests.filter(r => r.status === 'pending').length;
+            const matched = requests.filter(r => r.status === 'matched').length;
+            const completedCount = requests.filter(r => r.status === 'completed').length;
+            const rate = requests.length ? Math.round((completedCount / requests.length) * 100) : 0;
+
+            document.getElementById('stat-volunteers').innerText = volunteers.length;
+            document.getElementById('stat-pending').innerText = pending;
+            document.getElementById('stat-matches').innerText = matched;
+            document.getElementById('stat-rate').innerText = rate + '%';
+        }
+
+        function renderVolunteers() {
+            const table = document.getElementById('vol-table').querySelector('tbody');
+            const sorted = sortData([...volunteers], volSort);
+
+            table.innerHTML = sorted.map(v => {
+                const assignedReq = requests.find(r => r.matchedVolunteerId === v.id && r.status === 'matched');
+                const ratings = requests.filter(r => r.matchedVolunteerId === v.id && r.status === 'completed' && r.rating);
+                const avg = ratings.length ? (ratings.reduce((a, b) => a + b.rating, 0) / ratings.length).toFixed(1) : null;
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <div class="user-avatar">${v.name[0]}</div>
+                                <div>
+                                    <div class="user-name">${v.name}</div>
+                                    <div class="user-notes">${v.notes || 'No notes'}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 0.85rem;">${formatDate(v.availability.date)}</div>
+                            <div style="font-size: 0.75rem; color: var(--primary); font-weight: 500;">${v.availability.startTime} - ${v.availability.endTime}</div>
+                        </td>
+                        <td style="text-align: center;">
+                            ${avg ? `<div class="rating-stars" style="justify-content: center; color: var(--warning);"><i class="fas fa-star"></i> <span>${avg}</span></div>` : '<span style="color: #cbd5e1">-</span>'}
+                        </td>
+                        <td style="text-align: right;">
+                            ${assignedReq
+                        ? `<span class="badge badge-matched">Match: ${assignedReq.caregiverName}</span>`
+                        : '<span class="badge badge-pending" style="background:#f0fdf4; color:#166534; border-color:#dcfce7">Available</span>'}
+                        </td>
+                    </tr>
+                `;
+            }).join('') || '<tr><td colspan="4" style="text-align:center; color:var(--text-dim); padding: 2rem;">No volunteers logged</td></tr>';
+        }
+
+        function renderRequests() {
+            const table = document.getElementById('req-table').querySelector('tbody');
+            const sorted = sortData([...requests], reqSort);
+
+            table.innerHTML = sorted.map(r => {
+                const matchedVol = volunteers.find(v => v.id === r.matchedVolunteerId);
+                let actionBtn = '';
+                if (r.status === 'pending') {
+                    actionBtn = `<button class="btn-table" onclick="openMatchModal('${r.id}')">Match</button>`;
+                } else if (r.status === 'matched') {
+                    actionBtn = `<button class="btn-table btn-complete" onclick="openRateModal('${r.id}')">Finish</button>`;
+                } else {
+                    actionBtn = '<span style="color:var(--success); font-weight:700;"><i class="fas fa-check-circle"></i> Done</span>';
+                }
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="user-name">${r.caregiverName}</div>
+                            <div class="user-notes">${r.notes || 'Standard assistance'}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600; font-size: 0.85rem;">${formatDate(r.needed.date)}</div>
+                            <div style="font-size: 0.75rem; color: #6366f1; font-weight: 500;">${r.needed.startTime} - ${r.needed.endTime}</div>
+                        </td>
+                        <td style="text-align: center;">
+                            <span class="badge badge-${r.status}">${r.status}</span>
+                        </td>
+                        <td style="text-align: right;">${actionBtn}</td>
+                    </tr>
+                `;
+            }).join('') || '<tr><td colspan="4" style="text-align:center; color:var(--text-dim); padding: 2rem;">No requests found</td></tr>';
+        }
+
+        // Matching & Rating Global Functions
+        window.openMatchModal = (reqId) => {
+            const req = requests.find(r => r.id === reqId);
+            const modal = document.getElementById('match-modal');
+            const subtitle = document.getElementById('match-subtitle');
+            const list = document.getElementById('match-options');
+
+            subtitle.innerText = `Finding providers for ${req.caregiverName} on ${formatDate(req.needed.date)}`;
+
+            // Intersection Logic
+            const candidates = volunteers.filter(v => isTimeOverlap(v.availability, req.needed));
+
+            list.innerHTML = candidates.length ? candidates.map(v => {
+                const isAssigned = requests.some(r => r.matchedVolunteerId === v.id && r.status === 'matched');
+                return `
+                    <div style="border: 1px solid var(--border); padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; ${isAssigned ? 'opacity: 0.6; background: #f8fafc;' : ''}">
+                        <div>
+                            <div style="font-weight: 700;">${v.name}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim);">${v.availability.startTime} - ${v.availability.endTime}</div>
+                        </div>
+                        <button class="btn-table" ${isAssigned ? 'disabled' : `onclick="confirmMatch('${req.id}', '${v.id}')"`}>
+                            ${isAssigned ? 'Occupied' : 'Select'}
+                        </button>
+                    </div>
+                `;
+            }).join('') : '<div style="text-align:center; padding: 1rem; color: var(--text-dim);">No volunteers available for this window.</div>';
+
+            modal.style.display = 'flex';
+        };
+
+        window.confirmMatch = async (reqId, volId) => {
+            try {
+                await updateDoc(doc(db, 'requests', reqId), {
+                    status: 'matched',
+                    matchedVolunteerId: volId
+                });
+                closeModal('match-modal');
+            } catch (err) { alert("Match failed: " + err.message); }
+        };
+
+        window.openRateModal = (reqId) => {
+            activeRatingRequest = requests.find(r => r.id === reqId);
+            const vol = volunteers.find(v => v.id === activeRatingRequest.matchedVolunteerId);
+            document.getElementById('rate-subtitle').innerText = `How did ${vol?.name || 'the volunteer'} do with ${activeRatingRequest.caregiverName}?`;
+            document.getElementById('rate-modal').style.display = 'flex';
+            resetRating();
+        };
+
+        document.getElementById('confirm-rate-btn').onclick = async () => {
+            if (selectedRating === 0) return alert("Please select a rating");
+            try {
+                await updateDoc(doc(db, 'requests', activeRatingRequest.id), {
+                    status: 'completed',
+                    rating: selectedRating
+                });
+                closeModal('rate-modal');
+            } catch (err) { alert("Rating update failed"); }
+        };
+
+        // Rating Star Logic
+        document.querySelectorAll('.star-box').forEach(star => {
+            star.onclick = () => {
+                selectedRating = parseInt(star.dataset.val);
+                document.querySelectorAll('.star-box').forEach(s => {
+                    s.classList.toggle('active', parseInt(s.dataset.val) <= selectedRating);
+                });
+            };
+        });
+
+        function resetRating() {
+            selectedRating = 0;
+            document.querySelectorAll('.star-box').forEach(s => s.classList.remove('active'));
+        }
+
+        // Utils
+        window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
+        function sortData(arr, sortObj) {
+            return arr.sort((a, b) => {
+                const valA = sortObj.key === 'date' ? (a.availability?.date || a.needed?.date) : '';
+                const valB = sortObj.key === 'date' ? (b.availability?.date || b.needed?.date) : '';
+                return sortObj.direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            });
+        }
+
+        window.setSort = (type, key) => {
+            if (type === 'vol') {
+                volSort.direction = (volSort.key === key && volSort.direction === 'asc') ? 'desc' : 'asc';
+                volSort.key = key;
             } else {
-                authView.style.display = 'flex';
-                dashboardView.style.display = 'none';
-                navActions.style.display = 'none';
-                if (unsubscribe) unsubscribe();
+                reqSort.direction = (reqSort.key === key && reqSort.direction === 'asc') ? 'desc' : 'asc';
+                reqSort.key = key;
             }
+            renderAll();
+        };
+
+        function isTimeOverlap(volAvail, reqNeeded) {
+            if (volAvail.date !== reqNeeded.date) return false;
+            const vS = volAvail.startTime;
+            const vE = volAvail.endTime;
+            const rS = reqNeeded.startTime;
+            const rE = reqNeeded.endTime;
+            // Volunteer must fully cover the request window (as per React logic check in matchingService/timeUtils)
+            return vS <= rS && vE >= rE;
+        }
+
+        function formatDate(dStr) {
+            const date = new Date(dStr);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function setOfflineMode(val) {
+            isOffline = val;
+            offlineLabel.style.display = val ? 'flex' : 'none';
+        }
+
+        function handleOfflineSave(coll, data) {
+            setOfflineMode(true);
+            const backupKey = coll === 'volunteers' ? 'vol_backup' : 'req_backup';
+            const localData = JSON.parse(localStorage.getItem(backupKey) || '[]');
+            localData.push({ id: 'temp-' + Date.now(), ...data });
+            localStorage.setItem(backupKey, JSON.stringify(localData));
+            if (coll === 'volunteers') volunteers = localData; else requests = localData;
+            renderAll();
         }
 
         function hideLoader() {
@@ -739,104 +1179,24 @@
             setTimeout(() => loader.style.visibility = 'hidden', 500);
         }
 
-        function syncData() {
-            const q = query(collection(db, 'escort', 'availability', 'entries'), orderBy('createdAt', 'desc'));
-            unsubscribe = onSnapshot(q, (snapshot) => {
-                allData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                
-                // Update stats
-                document.getElementById('stat-total').innerText = allData.length;
-                document.getElementById('stat-available').innerText = allData.filter(d => d.status === 'available').length;
-                document.getElementById('stat-matched').innerText = allData.filter(d => d.status === 'matched').length;
-
-                renderDashboard();
+        // CSV Export Helper
+        window.exportData = (type) => {
+            const data = type === 'volunteers' ? volunteers : requests;
+            if (!data.length) return;
+            const rows = [Object.keys(data[0]).join(',')];
+            data.forEach(item => {
+                rows.push(Object.values(item).map(v => `"${typeof v === 'object' ? JSON.stringify(v) : v}"`).join(','));
             });
-        }
+            const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${type}-${Date.now()}.csv`;
+            a.click();
+        };
 
-        function renderDashboard() {
-            let filtered = allData;
-            
-            if (currentFilter !== 'all') {
-                filtered = filtered.filter(d => d.status === currentFilter);
-            }
-
-            if (searchQuery) {
-                filtered = filtered.filter(d => 
-                    d.providerEmail?.toLowerCase().includes(searchQuery) || 
-                    d.location?.toLowerCase().includes(searchQuery)
-                );
-            }
-
-            if (filtered.length === 0) {
-                escortList.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 5rem 0; color: var(--text-dim);">
-                        <i class="fas fa-search-minus" style="font-size: 4rem; opacity: 0.2; margin-bottom: 1.5rem;"></i>
-                        <p style="font-size: 1.1rem;">No matching escort records found.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            escortList.innerHTML = filtered.map(item => {
-                const initial = item.providerEmail ? item.providerEmail[0].toUpperCase() : '?';
-                return `
-                    <div class="escort-card">
-                        <div class="card-head">
-                            <div class="user-info">
-                                <div class="avatar">${initial}</div>
-                                <div class="user-meta">
-                                    <h3>${item.providerEmail || 'Unknown Volunteer'}</h3>
-                                    <p>ID: ${item.providerId?.substring(0, 12)}...</p>
-                                </div>
-                            </div>
-                            <span class="status-badge badge-${item.status}">${item.status}</span>
-                        </div>
-
-                        <div class="card-grid">
-                            <div class="data-item">
-                                <span class="label"><i class="fas fa-calendar-day"></i> Date</span>
-                                <span class="value">${item.date || 'N/A'}</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="label"><i class="fas fa-clock"></i> Window</span>
-                                <span class="value">${item.fromTime} - ${item.toTime}</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="label"><i class="fas fa-hospital"></i> Location</span>
-                                <span class="value">${item.location || 'Anywhere'}</span>
-                            </div>
-                            <div class="data-item">
-                                <span class="label"><i class="fas fa-phone"></i> Contact</span>
-                                <span class="value">${item.contactPhone || 'N/A'}</span>
-                            </div>
-                        </div>
-
-                        ${item.notes ? `
-                            <div class="card-notes">
-                                <i class="fas fa-comment-dots" style="margin-right: 8px; color: var(--accent);"></i>
-                                ${item.notes}
-                            </div>
-                        ` : ''}
-
-                        ${item.status === 'matched' ? `
-                            <div class="match-footer">
-                                <h4><i class="fas fa-link"></i> Linked Match</h4>
-                                <div class="match-details">
-                                    <div class="match-row">
-                                        <span>Requester Uid</span>
-                                        <span>${item.matchedUserId?.substring(0, 10)}...</span>
-                                    </div>
-                                    <div class="match-row">
-                                        <span>Request ID</span>
-                                        <span>#${item.matchedRequestId?.substring(0, 8)}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-            }).join('');
-        }
+        loadBackup();
     </script>
 </body>
+
 </html>

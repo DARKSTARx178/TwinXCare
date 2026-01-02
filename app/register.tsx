@@ -65,7 +65,7 @@ export default function Register() {
         <Ionicons name="arrow-back" size={28} color={theme.text} />
       </TouchableOpacity>
 
-      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+      <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
         <View style={styles.logoCircle}>
           <Ionicons name="person-add-outline" size={40} color={theme.primary} />
         </View>
@@ -135,20 +135,27 @@ export default function Register() {
               onPress={() => setUserType(opt.value)}
               style={[
                 styles.userTypeButton,
-                userType === opt.value && { borderColor: theme.primary, backgroundColor: 'rgba(129, 173, 231, 0.1)' }
+                userType === opt.value
+                  ? { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }
+                  : { borderColor: theme.border, borderWidth: 2, backgroundColor: theme.surface }
               ]}
             >
-              <Text style={{ color: userType === opt.value ? theme.primary : theme.text, fontWeight: userType === opt.value ? '700' : '500' }}>{opt.label}</Text>
+              <Text style={{
+                color: userType === opt.value ? theme.primary : theme.textDim,
+                fontWeight: userType === opt.value ? '800' : '600'
+              }}>
+                {opt.label}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
 
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: theme.primary }]}
+          style={[styles.button, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
           onPress={handleRegister}
           activeOpacity={0.8}
         >
-          <Text style={[styles.buttonText, { fontSize: textSize }]}>Create Account</Text>
+          <Text style={[styles.buttonText, { fontSize: textSize, color: theme.primary }]}>Create Account</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.replace('/login')} style={styles.footerLink}>
@@ -182,11 +189,6 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     width: '100%',
     alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 8,
   },
   logoCircle: {
     width: 80,
@@ -240,11 +242,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: "center",
     marginTop: 8,
-    shadowColor: "#81ade7",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
   },
   buttonText: {
     color: "#FFFFFF",

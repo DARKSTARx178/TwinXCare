@@ -47,7 +47,7 @@ export default function SplashScreen({ message }: Props) {
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Animated.View style={[styles.logoWrap, { transform: [{ scale }], opacity: fadeIn }]}>
-        <View style={[styles.logoCircle, { backgroundColor: theme.primaryGlow }]}>
+        <View style={[styles.logoCircle, { backgroundColor: theme.primaryGlow, borderWidth: 1, borderColor: theme.border }]}>
           <Image source={require('@/assets/images/logo_all-white.png')} style={[styles.logo, { tintColor: theme.primary }]} />
         </View>
       </Animated.View>
@@ -94,11 +94,6 @@ const styles = StyleSheet.create({
     borderRadius: 34,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 15,
-    elevation: 5,
   },
   logo: {
     width: 60,

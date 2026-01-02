@@ -106,7 +106,7 @@ export default function OrderHistoryWidget() {
                     <TouchableOpacity
                         key={idx}
                         activeOpacity={0.8}
-                        style={[styles.card, { backgroundColor: theme.unselectedTab }]}
+                        style={[styles.card, { backgroundColor: theme.surface || theme.unselectedTab, borderWidth: 1, borderColor: theme.border }]}
                         onPress={() => router.push('/delivery')}
                     >
                         <View style={styles.cardHeader}>
@@ -154,11 +154,6 @@ const styles = StyleSheet.create({
         padding: 16,
         marginRight: 16,
         width: 240,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 4,
     },
     cardHeader: {
         flexDirection: 'row',

@@ -21,13 +21,23 @@ const A11Y_PRESETS = [
     description: 'Balanced for general use',
     icon: 'apps-outline',
     theme: {
-      background: '#ffffff',
-      text: '#000000',
-      primary: '#81ade7ff',
-      unselected: '#b1b1b1ff',
-      unselectedTab: '#f3f6faff',
-      icon: '#62b8eaff',
+      background: '#F8FAFC',
+      surface: '#FFFFFF',
+      text: '#1E293B',
+      textDim: '#64748B',
+      primary: '#81ade7',
+      primaryGlow: 'rgba(129, 173, 231, 0.4)',
+      accent: '#62b8ea',
+      unselected: '#b1b1b1',
+      unselectedTab: '#FFFFFF',
+      icon: '#62b8ea',
+      border: 'rgba(0, 0, 0, 0.05)',
+      success: '#10b981',
+      danger: '#ef4444',
+      warning: '#f59e0b',
       fontSize: 18,
+      shadow: { shadowColor: "transparent", shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
+      shadowSm: { shadowColor: "transparent", shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 }
     },
   },
   {
@@ -36,12 +46,22 @@ const A11Y_PRESETS = [
     icon: 'contrast-outline',
     theme: {
       background: '#000000',
+      surface: '#121212',
       text: '#ffff00',
+      textDim: '#cccccc',
       primary: '#cc2936',
+      primaryGlow: 'rgba(204, 41, 54, 0.4)',
+      accent: '#ffffff',
       unselected: '#cccccc',
       unselectedTab: '#333333',
       icon: '#ffffff',
+      border: 'rgba(255, 255, 255, 0.2)',
+      success: '#00ff00',
+      danger: '#ff0000',
+      warning: '#ffaa00',
       fontSize: 18,
+      shadow: { shadowColor: "transparent", shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
+      shadowSm: { shadowColor: "transparent", shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 }
     },
   },
   {
@@ -50,12 +70,22 @@ const A11Y_PRESETS = [
     icon: 'sunny-outline',
     theme: {
       background: '#fffbf0',
+      surface: '#fffdf9',
       text: '#3e2723',
+      textDim: '#8d6e63',
       primary: '#d84315',
+      primaryGlow: 'rgba(216, 67, 21, 0.4)',
+      accent: '#fb8c00',
       unselected: '#a1887f',
       unselectedTab: '#efebe9',
       icon: '#8d6e63',
+      border: 'rgba(62, 39, 35, 0.05)',
+      success: '#2e7d32',
+      danger: '#c62828',
+      warning: '#ef6c00',
       fontSize: 18,
+      shadow: { shadowColor: "transparent", shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
+      shadowSm: { shadowColor: "transparent", shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 }
     },
   },
 ];
@@ -178,9 +208,9 @@ const SettingsScreen = () => {
                   <TouchableOpacity
                     key={s}
                     onPress={() => setFontSizeState(val as any)}
-                    style={[styles.sizeBtn, active && { backgroundColor: colors.primary }]}
+                    style={[styles.sizeBtn, active && { borderColor: colors.primary, borderWidth: 2, backgroundColor: colors.surface }]}
                   >
-                    <Text style={[styles.sizeBtnText, { color: active ? '#fff' : colors.text }]}>{s}</Text>
+                    <Text style={[styles.sizeBtnText, { color: active ? colors.primary : colors.text }]}>{s}</Text>
                   </TouchableOpacity>
                 )
               })}
@@ -219,10 +249,10 @@ const SettingsScreen = () => {
               </View>
             ))}
             <TouchableOpacity
-              style={[styles.resetBtn, { backgroundColor: colors.primary }]}
+              style={[styles.resetBtn, { borderColor: colors.primary, borderWidth: 2, backgroundColor: colors.surface }]}
               onPress={() => setTheme(getDefaultTheme())}
             >
-              <Text style={styles.resetBtnText}>Restore Default Tokens</Text>
+              <Text style={[styles.resetBtnText, { color: colors.primary }]}>Restore Default Tokens</Text>
             </TouchableOpacity>
           </View>
         )}

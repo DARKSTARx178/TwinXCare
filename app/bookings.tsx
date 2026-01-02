@@ -82,7 +82,7 @@ export default function BookingsPage() {
                     keyExtractor={(item, index) => `${item.serviceId}-${index}`}
                     contentContainerStyle={{ paddingHorizontal: 4, paddingBottom: 40 }}
                     renderItem={({ item }) => (
-                        <View style={[styles.card, { backgroundColor: theme.surface }]}>
+                        <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
                             <View style={styles.cardHeader}>
                                 <Text style={[styles.title, { color: theme.text, fontSize: textSize + 4 }]}>{item.title}</Text>
                                 <View style={[styles.statusBadge, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
@@ -141,11 +141,6 @@ const styles = StyleSheet.create({
         padding: 24,
         borderRadius: 24,
         marginBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.05,
-        shadowRadius: 15,
-        elevation: 6,
     },
     cardHeader: {
         flexDirection: 'row',

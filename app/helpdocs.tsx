@@ -25,7 +25,7 @@ export default function HelpDocs() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={[styles.card, { backgroundColor: theme.surface }]}>
+        <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
           <View style={styles.sectionHeader}>
             <Ionicons name="planet-outline" size={22} color={theme.primary} style={{ marginRight: 10 }} />
             <Text style={[styles.sectionTitle, { color: theme.text, fontSize: responsiveText(18) }]}>Getting Started</Text>
@@ -35,7 +35,7 @@ export default function HelpDocs() {
           </Text>
         </View>
 
-        <View style={[styles.card, { backgroundColor: theme.surface }]}>
+        <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
           <View style={styles.sectionHeader}>
             <Ionicons name="map-outline" size={22} color={theme.primary} style={{ marginRight: 10 }} />
             <Text style={[styles.sectionTitle, { color: theme.text, fontSize: responsiveText(18) }]}>Navigation Guide</Text>
@@ -62,7 +62,7 @@ export default function HelpDocs() {
           </View>
         </View>
 
-        <View style={[styles.card, { backgroundColor: theme.surface }]}>
+        <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
           <View style={styles.sectionHeader}>
             <Ionicons name="chatbubbles-outline" size={22} color={theme.primary} style={{ marginRight: 10 }} />
             <Text style={[styles.sectionTitle, { color: theme.text, fontSize: responsiveText(18) }]}>Common Questions</Text>
@@ -121,11 +121,6 @@ const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 28,
     marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
   },
   sectionHeader: {
     flexDirection: 'row',

@@ -38,7 +38,7 @@ export default function Admin() {
                 {menuItems.map((item, index) => (
                     <TouchableOpacity
                         key={index}
-                        style={[styles.card, { backgroundColor: theme.surface }]}
+                        style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}
                         onPress={() => router.push(item.route as any)}
                         activeOpacity={0.7}
                     >
@@ -101,11 +101,6 @@ const styles = StyleSheet.create({
         borderRadius: 28,
         marginBottom: 16,
         alignItems: 'center',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 3,
     },
     cardIconContainer: {
         width: 56,

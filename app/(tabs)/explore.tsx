@@ -129,7 +129,7 @@ export default function Explore() {
           }
         }}
         activeOpacity={0.9}
-        style={[styles.gridCard, { width: itemWidth, backgroundColor: theme.surface }]}
+        style={[styles.gridCard, { width: itemWidth, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}
       >
         <View style={styles.imageWrap}>
           <Image source={{ uri: item.image }} style={styles.cardImage} />
@@ -182,18 +182,18 @@ export default function Explore() {
 
             <View style={[styles.tabContainer, { backgroundColor: theme.unselectedTab }]}>
               <TouchableOpacity
-                style={[styles.tab, viewMode === 'equipment' && { backgroundColor: theme.primary }]}
+                style={[styles.tab, viewMode === 'equipment' && { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
                 onPress={() => setViewMode('equipment')}
               >
-                <Ionicons name="medkit-outline" size={18} color={viewMode === 'equipment' ? '#fff' : theme.text} />
-                <Text style={[styles.tabText, { color: viewMode === 'equipment' ? '#fff' : theme.text }]}>Equipment</Text>
+                <Ionicons name="medkit-outline" size={18} color={viewMode === 'equipment' ? theme.primary : theme.text} />
+                <Text style={[styles.tabText, { color: viewMode === 'equipment' ? theme.primary : theme.text }]}>Equipment</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.tab, viewMode === 'services' && { backgroundColor: theme.primary }]}
+                style={[styles.tab, viewMode === 'services' && { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
                 onPress={() => setViewMode('services')}
               >
-                <Ionicons name="sparkles-outline" size={18} color={viewMode === 'services' ? '#fff' : theme.text} />
-                <Text style={[styles.tabText, { color: viewMode === 'services' ? '#fff' : theme.text }]}>Services</Text>
+                <Ionicons name="sparkles-outline" size={18} color={viewMode === 'services' ? theme.primary : theme.text} />
+                <Text style={[styles.tabText, { color: viewMode === 'services' ? theme.primary : theme.text }]}>Services</Text>
               </TouchableOpacity>
             </View>
 
@@ -201,7 +201,7 @@ export default function Explore() {
               <Text style={[styles.resultsCount, { color: theme.text }]}>
                 {filteredItems.length} {viewMode} available
               </Text>
-              <TouchableOpacity style={styles.filterBtn}>
+              <TouchableOpacity style={[styles.filterBtn, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}>
                 <Ionicons name="options-outline" size={20} color={theme.primary} />
               </TouchableOpacity>
             </View>
@@ -266,11 +266,6 @@ const styles = StyleSheet.create({
     margin: 6,
     borderRadius: 28,
     overflow: 'hidden',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 3,
   },
   imageWrap: {
     width: '100%',

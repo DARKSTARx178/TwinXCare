@@ -111,13 +111,13 @@ export default function Services() {
             <Ionicons name="lock-closed-outline" size={16} color={theme.primary} />
           </View>
           <TouchableOpacity
-            style={[styles.adminCard, { backgroundColor: theme.primary }]}
+            style={[styles.adminCard, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
             onPress={() => router.push('/admin/admin_escort_match')}
             activeOpacity={0.8}
           >
-            <Ionicons name="git-network-outline" size={24} color="#fff" />
-            <Text style={styles.adminCardText}>Launch Matching Engine</Text>
-            <Ionicons name="chevron-forward" size={18} color="#fff" />
+            <Ionicons name="git-network-outline" size={24} color={theme.primary} />
+            <Text style={[styles.adminCardText, { color: theme.primary }]}>Launch Matching Engine</Text>
+            <Ionicons name="chevron-forward" size={18} color={theme.primary} />
           </TouchableOpacity>
         </View>
       )}
@@ -128,7 +128,7 @@ export default function Services() {
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Patient Support</Text>
             <TouchableOpacity onPress={() => router.push('/escorts/require-escort')}>
-              <View style={[styles.addButton, { backgroundColor: theme.primaryGlow }]}>
+              <View style={[styles.addButton, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}>
                 <Ionicons name="add" size={20} color={theme.primary} />
               </View>
             </TouchableOpacity>
@@ -141,7 +141,7 @@ export default function Services() {
             </View>
           ) : (
             myRequests.map((req) => (
-              <TouchableOpacity key={req.id} style={[styles.itemCard, { backgroundColor: theme.surface }]} activeOpacity={0.7}>
+              <TouchableOpacity key={req.id} style={[styles.itemCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]} activeOpacity={0.7}>
                 <View style={styles.cardInfo}>
                   <Text style={[styles.hospitalName, { color: theme.text }]}>{req.hospital}</Text>
                   <View style={styles.detailRow}>
@@ -170,7 +170,7 @@ export default function Services() {
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Volunteer Slots</Text>
             <TouchableOpacity onPress={() => router.push('/escorts/escort')}>
-              <View style={[styles.addButton, { backgroundColor: theme.primaryGlow }]}>
+              <View style={[styles.addButton, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}>
                 <Ionicons name="add" size={20} color={theme.primary} />
               </View>
             </TouchableOpacity>
@@ -183,7 +183,7 @@ export default function Services() {
             </View>
           ) : (
             myAvailabilities.map((avail) => (
-              <TouchableOpacity key={avail.id} style={[styles.itemCard, { backgroundColor: theme.surface }]} activeOpacity={0.7}>
+              <TouchableOpacity key={avail.id} style={[styles.itemCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]} activeOpacity={0.7}>
                 <View style={styles.cardInfo}>
                   <Text style={[styles.hospitalName, { color: theme.text }]}>{avail.location}</Text>
                   <View style={styles.detailRow}>
@@ -262,11 +262,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 28,
     marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
   },
   cardInfo: {
     marginBottom: 12,

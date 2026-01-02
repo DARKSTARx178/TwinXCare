@@ -41,14 +41,14 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.row}>
-        <TouchableOpacity onPress={() => router.push('/explore')} style={[styles.card, { backgroundColor: theme.surface, width: screenWidth / 2 - 30 }]}>
+        <TouchableOpacity onPress={() => router.push('/explore')} style={[styles.card, { backgroundColor: theme.surface, width: screenWidth / 2 - 30, borderWidth: 1, borderColor: theme.border }]}>
           <View style={[styles.iconContainer, { backgroundColor: theme.primaryGlow }]}>
             <MaterialCommunityIcons name="hospital-box" size={32} color={theme.primary} />
           </View>
           <Text style={[styles.cardText, { fontSize: responsiveText(textSize - 2), color: theme.text, fontWeight: '600' }]}>{t.bookEquipment}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push('/services')} style={[styles.card, { backgroundColor: theme.surface, width: screenWidth / 2 - 30 }]}>
+        <TouchableOpacity onPress={() => router.push('/services')} style={[styles.card, { backgroundColor: theme.surface, width: screenWidth / 2 - 30, borderWidth: 1, borderColor: theme.border }]}>
           <View style={[styles.iconContainer, { backgroundColor: theme.primaryGlow }]}>
             <MaterialCommunityIcons name="car-side" size={32} color={theme.primary} />
           </View>
@@ -57,7 +57,7 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.row}>
-        <TouchableOpacity onPress={() => router.push('/assistance')} style={[styles.card, { backgroundColor: theme.surface, width: screenWidth - 40, flexDirection: 'row', justifyContent: 'flex-start', paddingHorizontal: 25 }]}>
+        <TouchableOpacity onPress={() => router.push('/assistance')} style={[styles.card, { backgroundColor: theme.surface, width: screenWidth - 40, flexDirection: 'row', justifyContent: 'flex-start', paddingHorizontal: 25, borderWidth: 1, borderColor: theme.border }]}>
           <View style={[styles.iconContainer, { backgroundColor: theme.primaryGlow, marginRight: 20 }]}>
             <MaterialCommunityIcons name="hand-heart" size={32} color={theme.primary} />
           </View>
@@ -66,8 +66,11 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity onPress={() => router.push('../bookings' as any)} style={[styles.fullButton, { backgroundColor: theme.primary, width: screenWidth - 40 }]}>
-        <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: '#fff' }]}>{t.myRentals}</Text>
+      <TouchableOpacity
+        onPress={() => router.push('../bookings' as any)}
+        style={[styles.fullButton, { backgroundColor: theme.surface, borderWidth: 2, borderColor: theme.primary, width: screenWidth - 40 }]}
+      >
+        <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: theme.primary }]}>{t.myRentals}</Text>
       </TouchableOpacity>
 
       {!user ? (
@@ -77,15 +80,21 @@ export default function HomeScreen() {
             <TouchableOpacity onPress={() => router.push('/register' as any)} style={[styles.outlineButton, { borderColor: theme.primary, width: screenWidth / 2 - 30 }]}>
               <Text style={[styles.outlineButtonText, { fontSize: responsiveText(textSize - 2), color: theme.primary }]}>{t.createAccount}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/login' as any)} style={[styles.button, { backgroundColor: theme.primary, width: screenWidth / 2 - 30 }]}>
-              <Text style={[styles.buttonText, { fontSize: responsiveText(textSize - 2), color: '#fff' }]}>{t.login}</Text>
+            <TouchableOpacity
+              onPress={() => router.push('/login' as any)}
+              style={[styles.button, { backgroundColor: theme.surface, borderWidth: 2, borderColor: theme.primary, width: screenWidth / 2 - 30 }]}
+            >
+              <Text style={[styles.buttonText, { fontSize: responsiveText(textSize - 2), color: theme.primary }]}>{t.login}</Text>
             </TouchableOpacity>
           </View>
         </View>
       ) : (
         <View style={styles.row}>
-          <TouchableOpacity onPress={() => router.push('/feedback' as any)} style={[styles.button, { backgroundColor: theme.primary, width: screenWidth - 40, marginTop: 20 }]}>
-            <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: '#fff' }]}>{t.submitFeedback}</Text>
+          <TouchableOpacity
+            onPress={() => router.push('/feedback' as any)}
+            style={[styles.button, { backgroundColor: theme.surface, borderWidth: 2, borderColor: theme.primary, width: screenWidth - 40, marginTop: 20 }]}
+          >
+            <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: theme.primary }]}>{t.submitFeedback}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -121,11 +130,6 @@ const styles = StyleSheet.create({
     margin: 8,
     borderRadius: 24,
     alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
   },
   iconContainer: {
     padding: 12,
@@ -137,11 +141,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginVertical: 16,
     alignItems: 'center',
-    shadowColor: "#81ade7",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
   },
   cardText: {
     marginTop: 8,

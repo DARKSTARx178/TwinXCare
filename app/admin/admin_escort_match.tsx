@@ -80,8 +80,8 @@ export default function AdminEscortMatch() {
                 styles.itemCard,
                 {
                     backgroundColor: theme.surface,
-                    borderColor: selectedRequest?.id === item.id ? theme.primary : 'transparent',
-                    borderWidth: selectedRequest?.id === item.id ? 2 : 0
+                    borderColor: selectedRequest?.id === item.id ? theme.primary : theme.border,
+                    borderWidth: selectedRequest?.id === item.id ? 2 : 1
                 }
             ]}
             onPress={() => setSelectedRequest(item)}
@@ -100,7 +100,7 @@ export default function AdminEscortMatch() {
     );
 
     const renderAvailabilityItem = ({ item }: { item: any }) => (
-        <View style={[styles.itemCard, { backgroundColor: theme.surface }]}>
+        <View style={[styles.itemCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
             <View style={styles.cardHeader}>
                 <Ionicons name="person-circle" size={18} color={theme.primary} />
                 <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>{item.providerEmail.split('@')[0]}</Text>
@@ -113,7 +113,7 @@ export default function AdminEscortMatch() {
 
             {selectedRequest && (
                 <TouchableOpacity
-                    style={[styles.matchBtn, { backgroundColor: theme.primaryGlow }]}
+                    style={[styles.matchBtn, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}
                     onPress={() => handleCompromise(item.providerId, item.providerEmail, selectedRequest)}
                 >
                     <Ionicons name="hand-left" size={14} color={theme.primary} />
@@ -227,11 +227,6 @@ const styles = StyleSheet.create({
         padding: 14,
         borderRadius: 20,
         marginBottom: 12,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.03,
-        shadowRadius: 5,
-        elevation: 1,
     },
     cardHeader: {
         flexDirection: 'row',

@@ -175,7 +175,7 @@ export default function AdminEquipmentMgt() {
                 </Text>
             </View>
 
-            <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
                 <Text style={[styles.cardHeading, { color: theme.text }]}>Add New Item</Text>
 
                 <View style={styles.formRow}>
@@ -250,18 +250,18 @@ export default function AdminEquipmentMgt() {
                 </View>
 
                 <TouchableOpacity
-                    style={[styles.addButton, { backgroundColor: theme.primary }]}
+                    style={[styles.addButton, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
                     onPress={handleAddEquipment}
                     activeOpacity={0.8}
                 >
-                    <Text style={styles.addButtonText}>Register New Equipment</Text>
-                    <Ionicons name="add-circle-outline" size={20} color="#fff" style={{ marginLeft: 8 }} />
+                    <Text style={[styles.addButtonText, { color: theme.primary }]}>Register New Equipment</Text>
+                    <Ionicons name="add-circle-outline" size={20} color={theme.primary} style={{ marginLeft: 8 }} />
                 </TouchableOpacity>
             </View>
 
             <View style={styles.sectionHeader}>
                 <Text style={[styles.sectionTitle, { color: theme.text }]}>Current Inventory</Text>
-                <View style={[styles.searchBar, { backgroundColor: theme.surface }]}>
+                <View style={[styles.searchBar, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
                     <Ionicons name="search-outline" size={18} color={theme.textDim} />
                     <TextInput
                         placeholder="Search items..."
@@ -288,7 +288,7 @@ export default function AdminEquipmentMgt() {
                     const isManaging = isEditing[item.id];
 
                     return (
-                        <View key={item.id} style={[styles.itemCard, { backgroundColor: theme.surface }]}>
+                        <View key={item.id} style={[styles.itemCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
                             <TouchableOpacity
                                 onPress={() => toggleExpand(item)}
                                 activeOpacity={0.7}
@@ -328,27 +328,27 @@ export default function AdminEquipmentMgt() {
                                             </Text>
                                             <View style={styles.manageRow}>
                                                 <TouchableOpacity
-                                                    style={[styles.manageBtn, { backgroundColor: '#F1F5F9' }]}
+                                                    style={[styles.manageBtn, { borderColor: theme.border, borderWidth: 1.5, backgroundColor: theme.surface }]}
                                                     onPress={() => handleUpdateStock(item.id, item.stock + 1)}
                                                 >
                                                     <Ionicons name="add" size={18} color={theme.text} />
                                                     <Text style={[styles.manageBtnText, { color: theme.text }]}>Add Stock</Text>
                                                 </TouchableOpacity>
                                                 <TouchableOpacity
-                                                    style={[styles.manageBtn, { backgroundColor: '#F1F5F9' }]}
+                                                    style={[styles.manageBtn, { borderColor: theme.border, borderWidth: 1.5, backgroundColor: theme.surface }]}
                                                     onPress={() => handleUpdateStock(item.id, Math.max(0, item.stock - 1))}
                                                 >
                                                     <Ionicons name="remove" size={18} color={theme.text} />
                                                     <Text style={[styles.manageBtnText, { color: theme.text }]}>Remove</Text>
                                                 </TouchableOpacity>
                                                 <TouchableOpacity
-                                                    style={[styles.manageBtn, { backgroundColor: theme.primaryGlow }]}
+                                                    style={[styles.manageBtn, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}
                                                     onPress={() => toggleEditMode(item.id, item)}
                                                 >
                                                     <Ionicons name="create-outline" size={18} color={theme.primary} />
                                                 </TouchableOpacity>
                                                 <TouchableOpacity
-                                                    style={[styles.manageBtn, { backgroundColor: '#fee2e2' }]}
+                                                    style={[styles.manageBtn, { borderColor: '#ef4444', borderWidth: 1.5, backgroundColor: theme.surface }]}
                                                     onPress={() => handleDeleteEquipment(item.id, item.name)}
                                                 >
                                                     <Ionicons name="trash-outline" size={18} color="#ef4444" />
@@ -383,13 +383,13 @@ export default function AdminEquipmentMgt() {
                                             </View>
                                             <View style={styles.saveRow}>
                                                 <TouchableOpacity
-                                                    style={[styles.saveBtn, { backgroundColor: theme.primary }]}
+                                                    style={[styles.saveBtn, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
                                                     onPress={async () => { await handleUpdateEquipment(item.id); setIsEditing(prev => ({ ...prev, [item.id]: false })); }}
                                                 >
-                                                    <Text style={styles.saveBtnText}>Save Changes</Text>
+                                                    <Text style={[styles.saveBtnText, { color: theme.primary }]}>Save Changes</Text>
                                                 </TouchableOpacity>
                                                 <TouchableOpacity
-                                                    style={[styles.cancelBtn, { backgroundColor: '#F1F5F9' }]}
+                                                    style={[styles.cancelBtn, { borderColor: theme.border, borderWidth: 1.5, backgroundColor: theme.surface }]}
                                                     onPress={() => toggleEditMode(item.id)}
                                                 >
                                                     <Text style={[styles.cancelBtnText, { color: theme.text }]}>Cancel</Text>
@@ -437,11 +437,6 @@ const styles = StyleSheet.create({
         marginHorizontal: 20,
         padding: 24,
         borderRadius: 32,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.05,
-        shadowRadius: 15,
-        elevation: 6,
         marginBottom: 30,
     },
     cardHeading: {
@@ -501,11 +496,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         borderRadius: 20,
         height: 54,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-        elevation: 2,
     },
     searchInput: {
         flex: 1,
@@ -519,11 +509,6 @@ const styles = StyleSheet.create({
     itemCard: {
         borderRadius: 24,
         marginBottom: 12,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.03,
-        shadowRadius: 5,
-        elevation: 1,
         overflow: 'hidden',
     },
     cardMain: {

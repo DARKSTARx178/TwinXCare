@@ -35,7 +35,7 @@ export default function Splash() {
         styles.content,
         { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }
       ]}>
-        <View style={[styles.logoCircle, { backgroundColor: theme.primaryGlow }]}>
+        <View style={[styles.logoCircle, { backgroundColor: theme.primaryGlow, borderWidth: 1, borderColor: theme.border }]}>
           <Image
             source={require('@/assets/images/logo_all-white.png')}
             style={[styles.logo, { tintColor: theme.primary }]}
@@ -80,11 +80,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 5,
   },
   logo: {
     width: 70,

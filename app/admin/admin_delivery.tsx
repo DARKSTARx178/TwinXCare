@@ -155,7 +155,7 @@ export default function AdminDeliveryPage() {
             </View>
 
             <View style={styles.searchSection}>
-                <View style={[styles.searchBar, { backgroundColor: theme.surface }]}>
+                <View style={[styles.searchBar, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
                     <Ionicons name="search-outline" size={18} color={theme.textDim} />
                     <TextInput
                         placeholder="Search by Transaction ID..."
@@ -175,7 +175,7 @@ export default function AdminDeliveryPage() {
                     </View>
                 ) : (
                     filteredOrders.map((order, idx) => (
-                        <View key={idx} style={[styles.orderCard, { backgroundColor: theme.surface }]}>
+                        <View key={idx} style={[styles.orderCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
                             <View style={styles.cardHeader}>
                                 <View style={styles.orderMain}>
                                     <Text style={[styles.orderName, { color: theme.text }]}>{order.name}</Text>
@@ -231,10 +231,10 @@ export default function AdminDeliveryPage() {
                                         />
                                     </View>
                                     <TouchableOpacity
-                                        style={[styles.confirmBtn, { backgroundColor: theme.primary }]}
+                                        style={[styles.confirmBtn, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
                                         onPress={() => updateEta(order, etaInputs[order.transactionId] ?? '')}
                                     >
-                                        <Text style={styles.confirmBtnText}>Update</Text>
+                                        <Text style={[styles.confirmBtnText, { color: theme.primary }]}>Update</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -242,20 +242,20 @@ export default function AdminDeliveryPage() {
                             <TouchableOpacity
                                 style={[
                                     styles.statusToggleBtn,
-                                    { backgroundColor: order.status === 'Incomplete' ? theme.primaryGlow : '#F1F5F9' }
+                                    { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }
                                 ]}
                                 onPress={() => toggleStatus(order)}
                             >
                                 <Text style={[
                                     styles.statusToggleText,
-                                    { color: order.status === 'Incomplete' ? theme.primary : theme.text }
+                                    { color: theme.primary }
                                 ]}>
                                     {order.status === 'Incomplete' ? 'Mark Completed' : 'Revert to Incomplete'}
                                 </Text>
                                 <Ionicons
                                     name={order.status === 'Incomplete' ? "checkmark-done" : "refresh"}
                                     size={18}
-                                    color={order.status === 'Incomplete' ? theme.primary : theme.text}
+                                    color={theme.primary}
                                 />
                             </TouchableOpacity>
                         </View>
@@ -302,11 +302,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         borderRadius: 20,
         height: 54,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-        elevation: 2,
     },
     searchInput: {
         flex: 1,
@@ -321,11 +316,6 @@ const styles = StyleSheet.create({
         borderRadius: 28,
         padding: 20,
         marginBottom: 16,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.04,
-        shadowRadius: 10,
-        elevation: 3,
     },
     cardHeader: {
         flexDirection: 'row',

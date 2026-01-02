@@ -134,7 +134,7 @@ export default function AdminUserMgt() {
                     return (
                         <View
                             key={user.id}
-                            style={[styles.card, { backgroundColor: theme.surface }]}
+                            style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}
                         >
                             <View style={styles.cardHeader}>
                                 <View style={[styles.avatarCircle, { backgroundColor: isAdmin ? theme.primaryGlow : '#F1F5F9' }]}>
@@ -161,7 +161,7 @@ export default function AdminUserMgt() {
 
                             <View style={styles.cardActions}>
                                 <TouchableOpacity
-                                    style={[styles.actionButton, { backgroundColor: '#F1F5F9' }]}
+                                    style={[styles.actionButton, { borderColor: theme.border, borderWidth: 1.5, backgroundColor: theme.surface }]}
                                     onPress={() => toggleRole(user.id, role)}
                                     activeOpacity={0.7}
                                 >
@@ -170,13 +170,21 @@ export default function AdminUserMgt() {
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={[styles.actionButton, { backgroundColor: isAdmin ? '#F8FAFC' : '#fee2e2' }]}
+                                    style={[
+                                        styles.actionButton,
+                                        {
+                                            borderColor: isAdmin ? theme.border : '#ef4444',
+                                            borderWidth: 1.5,
+                                            backgroundColor: theme.surface,
+                                            opacity: isAdmin ? 0.5 : 1
+                                        }
+                                    ]}
                                     onPress={() => deleteUser(user.id, role)}
                                     disabled={isAdmin}
                                     activeOpacity={0.7}
                                 >
-                                    <Ionicons name="trash-outline" size={18} color={isAdmin ? '#94a3b8' : '#ef4444'} />
-                                    <Text style={[styles.actionText, { color: isAdmin ? '#94a3b8' : '#ef4444' }]}>Delete</Text>
+                                    <Ionicons name="trash-outline" size={18} color={isAdmin ? theme.textDim : '#ef4444'} />
+                                    <Text style={[styles.actionText, { color: isAdmin ? theme.textDim : '#ef4444' }]}>Delete</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -225,11 +233,6 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 28,
         marginBottom: 16,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 3,
     },
     cardHeader: {
         flexDirection: 'row',

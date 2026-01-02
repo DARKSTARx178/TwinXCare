@@ -150,7 +150,7 @@ const PwMgt: React.FC = () => {
                 </Text>
             </View>
 
-            <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
                 <Text style={[styles.cardHeading, { color: theme.text }]}>Admin Authorization</Text>
 
                 <View style={styles.inputWrapper}>
@@ -184,7 +184,7 @@ const PwMgt: React.FC = () => {
                 </View>
 
                 <TouchableOpacity
-                    style={[styles.loadButton, { backgroundColor: theme.primaryGlow }]}
+                    style={[styles.loadButton, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
                     onPress={handleGetUsers}
                     activeOpacity={0.7}
                 >
@@ -208,7 +208,7 @@ const PwMgt: React.FC = () => {
             </View>
 
             {users.length > 0 && (
-                <View style={[styles.card, { backgroundColor: theme.surface, marginTop: 20 }]}>
+                <View style={[styles.card, { backgroundColor: theme.surface, marginTop: 20, borderWidth: 1, borderColor: theme.border }]}>
                     <Text style={[styles.cardHeading, { color: theme.text }]}>User Directory</Text>
                     <View style={styles.userListContainer}>
                         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -217,7 +217,8 @@ const PwMgt: React.FC = () => {
                                     key={username}
                                     style={[
                                         styles.userRow,
-                                        selectedUser === username && { backgroundColor: theme.primaryGlow, borderColor: theme.primary },
+                                        { backgroundColor: theme.surface },
+                                        selectedUser === username && { borderColor: theme.primary, borderWidth: 2 },
                                     ]}
                                     onPress={() => setSelectedUser(username)}
                                     activeOpacity={0.7}
@@ -259,15 +260,15 @@ const PwMgt: React.FC = () => {
 
                             <View style={styles.actionRow}>
                                 <TouchableOpacity
-                                    style={[styles.actionButton, { backgroundColor: theme.primary }]}
+                                    style={[styles.actionButton, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
                                     onPress={handleResetPassword}
                                     activeOpacity={0.8}
                                 >
-                                    <Text style={styles.actionButtonText}>Reset Password</Text>
+                                    <Text style={[styles.actionButtonText, { color: theme.primary }]}>Reset Password</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={[styles.actionButton, { backgroundColor: '#fee2e2' }]}
+                                    style={[styles.actionButton, { borderColor: '#ef4444', borderWidth: 2, backgroundColor: theme.surface }]}
                                     onPress={handleDeleteUser}
                                     activeOpacity={0.8}
                                 >
@@ -319,11 +320,6 @@ const styles = StyleSheet.create({
     card: {
         padding: 24,
         borderRadius: 32,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.05,
-        shadowRadius: 15,
-        elevation: 6,
     },
     cardHeading: {
         fontSize: 18,

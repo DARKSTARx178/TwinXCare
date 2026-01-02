@@ -67,7 +67,7 @@ export default function ChangePassword() {
         <Ionicons name="arrow-back" size={28} color={theme.text} />
       </TouchableOpacity>
 
-      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+      <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
         <View style={styles.logoCircle}>
           <Ionicons name="key-outline" size={32} color={theme.primary} />
         </View>
@@ -112,7 +112,7 @@ export default function ChangePassword() {
         <View style={styles.inputWrapper}>
           <Text style={[styles.label, { color: theme.textDim }]}>Confirm New Password</Text>
           <View style={[styles.inputContainer, { borderColor: theme.border }]}>
-            <Ionicons name="checkmark-shield-outline" size={20} color={theme.textDim} style={styles.inputIcon} />
+            <Ionicons name="checkmark-done-circle-outline" size={20} color={theme.textDim} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { color: theme.text }]}
               placeholder="••••••••"
@@ -126,17 +126,17 @@ export default function ChangePassword() {
         </View>
 
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: theme.primary }]}
+          style={[styles.button, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
           onPress={handleChangePassword}
           disabled={loading}
           activeOpacity={0.8}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={theme.primary} />
           ) : (
             <>
-              <Text style={styles.buttonText}>Update Password</Text>
-              <Ionicons name="arrow-forward" size={18} color="#fff" style={{ marginLeft: 8 }} />
+              <Text style={[styles.buttonText, { color: theme.primary }]}>Update Password</Text>
+              <Ionicons name="arrow-forward" size={18} color={theme.primary} style={{ marginLeft: 8 }} />
             </>
           )}
         </TouchableOpacity>
@@ -166,11 +166,6 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     width: '100%',
     alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 8,
   },
   logoCircle: {
     width: 64,
@@ -226,11 +221,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: 'center',
     marginTop: 16,
-    shadowColor: "#81ade7",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
   },
   buttonText: {
     color: "#FFFFFF",

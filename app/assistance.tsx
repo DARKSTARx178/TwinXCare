@@ -111,7 +111,7 @@ export default function Assistance() {
         <Ionicons name="arrow-back" size={28} color={theme.text} />
       </TouchableOpacity>
 
-      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+      <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
         <View style={styles.iconCircle}>
           <Ionicons name="megaphone-outline" size={32} color={theme.primary} />
         </View>
@@ -136,15 +136,15 @@ export default function Assistance() {
         </View>
 
         <TouchableOpacity
-          style={[styles.submitButton, { backgroundColor: theme.primary }]}
+          style={[styles.submitButton, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
           onPress={handleSend}
           disabled={submitting}
           activeOpacity={0.8}
         >
-          <Text style={[styles.submitText, { color: '#fff' }]}>
+          <Text style={[styles.submitText, { color: theme.primary }]}>
             {submitting ? 'Sending Request...' : 'Send Request'}
           </Text>
-          {!submitting && <Ionicons name="paper-plane-outline" size={20} color="#fff" style={{ marginLeft: 8 }} />}
+          {!submitting && <Ionicons name="paper-plane-outline" size={20} color={theme.primary} style={{ marginLeft: 8 }} />}
         </TouchableOpacity>
 
         <View style={styles.infoBox}>
@@ -177,11 +177,6 @@ const styles = StyleSheet.create({
   card: {
     padding: 30,
     borderRadius: 32,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 8,
     alignItems: 'center',
   },
   iconCircle: {
@@ -228,11 +223,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: "#81ade7",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
   },
   submitText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   infoBox: {

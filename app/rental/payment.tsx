@@ -300,7 +300,7 @@ export default function PaymentPage() {
         </Text>
       </View>
 
-      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+      <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
         <Text style={[styles.cardHeading, { color: theme.text }]}>Order Summary</Text>
 
         <View style={styles.summaryRow}>
@@ -322,7 +322,7 @@ export default function PaymentPage() {
       </View>
 
       {type === 'equipment' && (
-        <View style={[styles.card, { backgroundColor: theme.surface, marginTop: 20 }]}>
+        <View style={[styles.card, { backgroundColor: theme.surface, marginTop: 20, borderWidth: 1, borderColor: theme.border }]}>
           <Text style={[styles.cardHeading, { color: theme.text }]}>Delivery Information</Text>
           <View style={styles.inputWrapper}>
             <Text style={[styles.label, { color: theme.textDim }]}>Address</Text>
@@ -342,12 +342,12 @@ export default function PaymentPage() {
       )}
 
       <TouchableOpacity
-        style={[styles.confirmButton, { backgroundColor: theme.primary }]}
+        style={[styles.confirmButton, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
         onPress={handleConfirm}
         activeOpacity={0.8}
       >
-        <Text style={styles.confirmButtonText}>Complete Transaction</Text>
-        <Ionicons name="shield-checkmark" size={20} color="#fff" style={{ marginLeft: 8 }} />
+        <Text style={[styles.confirmButtonText, { color: theme.primary }]}>Complete Transaction</Text>
+        <Ionicons name="shield-checkmark" size={20} color={theme.primary} style={{ marginLeft: 8 }} />
       </TouchableOpacity>
 
       <View style={styles.securitySeal}>
@@ -391,11 +391,6 @@ const styles = StyleSheet.create({
   card: {
     padding: 24,
     borderRadius: 32,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 6,
   },
   cardHeading: {
     fontSize: 16,
@@ -453,11 +448,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 30,
-    shadowColor: "#81ade7",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
   },
   confirmButtonText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   securitySeal: {

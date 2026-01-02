@@ -18,5 +18,19 @@ export const getThemeColors = (scheme: AccessibilityMode = 'lightMode') => {
         danger: '#ef4444',
         warning: '#f59e0b',
         fontSize: 18,
+        shadow: {
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.04,
+            shadowRadius: 12,
+            elevation: 2,
+        },
+        shadowSm: {
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.03,
+            shadowRadius: 8,
+            elevation: 1,
+        }
     };
 };

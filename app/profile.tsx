@@ -112,7 +112,7 @@ export default function Profile() {
       <View style={styles.header}>
         {user ? (
           <>
-            <View style={[styles.avatar, { backgroundColor: theme.primaryGlow, borderColor: theme.primary }]}>
+            <View style={[styles.avatar, { backgroundColor: theme.primaryGlow, borderColor: theme.primary, borderWidth: 2 }]}>
               <Text style={{ color: theme.primary, fontWeight: "800", fontSize: 40 }}>
                 {(username || user.email || "?").charAt(0).toUpperCase()}
               </Text>
@@ -130,11 +130,11 @@ export default function Profile() {
 
             {role === "admin" && (
               <TouchableOpacity
-                style={[styles.adminButton, { backgroundColor: theme.primary }]}
+                style={[styles.adminButton, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
                 onPress={handleAdminMode}
               >
-                <Ionicons name="shield-half-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-                <Text style={{ color: "#fff", fontWeight: "800", fontSize: textSize - 2 }}>Enter Admin View</Text>
+                <Ionicons name="shield-half-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
+                <Text style={{ color: theme.primary, fontWeight: "800", fontSize: textSize - 2 }}>Enter Admin View</Text>
               </TouchableOpacity>
             )}
           </>
@@ -147,10 +147,10 @@ export default function Profile() {
             <Text style={{ color: theme.textDim, marginBottom: 20 }}>Please sign in to access more features</Text>
 
             <View style={styles.authRow}>
-              <TouchableOpacity style={[styles.authButton, { backgroundColor: theme.primary }]} onPress={handleLogin}>
-                <Text style={styles.authButtonText}>Sign In</Text>
+              <TouchableOpacity style={[styles.authButton, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]} onPress={handleLogin}>
+                <Text style={[styles.authButtonText, { color: theme.primary }]}>Sign In</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.authButtonOutline, { borderColor: theme.primary }]} onPress={handleRegister}>
+              <TouchableOpacity style={[styles.authButtonOutline, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]} onPress={handleRegister}>
                 <Text style={[styles.authButtonOutlineText, { color: theme.primary }]}>Register</Text>
               </TouchableOpacity>
             </View>
@@ -158,7 +158,7 @@ export default function Profile() {
         )}
       </View>
 
-      <View style={[styles.menuCard, { backgroundColor: theme.surface }]}>
+      <View style={[styles.menuCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
         {menuItems.map((item, index) => (
           <TouchableOpacity
             key={index}
@@ -211,11 +211,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4,
   },
   userInfo: {
     alignItems: 'center',
@@ -241,11 +236,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
   },
   authRow: {
     flexDirection: 'row',
@@ -272,11 +262,6 @@ const styles = StyleSheet.create({
   menuCard: {
     padding: 12,
     borderRadius: 28,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 5,
   },
   menuItem: {
     flexDirection: 'row',

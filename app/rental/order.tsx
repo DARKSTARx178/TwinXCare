@@ -101,7 +101,7 @@ export default function OrderPage() {
         </TouchableOpacity>
 
         <View style={styles.content}>
-          <View style={[styles.imageCard, { backgroundColor: theme.surface }]}>
+          <View style={[styles.imageCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
             <Image source={{ uri: params.image as string }} style={styles.image} resizeMode="cover" />
             <View style={styles.priceBadge}>
               <Text style={styles.priceBadgeText}>${pricePerDay}/day</Text>
@@ -120,14 +120,14 @@ export default function OrderPage() {
             </View>
           </View>
 
-          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+          <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Description</Text>
             <Text style={[styles.description, { color: theme.textDim, fontSize: responsiveText(textSize - 2) }]}>
               {params.description || 'No detailed description available for this item.'}
             </Text>
           </View>
 
-          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+          <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
             <View style={styles.rowBetween}>
               <View>
                 <Text style={[styles.sectionTitle, { color: theme.text, marginBottom: 4 }]}>Quantity</Text>
@@ -135,7 +135,7 @@ export default function OrderPage() {
               </View>
               <View style={styles.qtyControls}>
                 <TouchableOpacity
-                  style={[styles.qtyBtn, { backgroundColor: '#F1F5F9' }, (quantity === 1 || stock === 0) && { opacity: 0.5 }]}
+                  style={[styles.qtyBtn, { backgroundColor: theme.surface, borderWidth: 1.5, borderColor: theme.border }, (quantity === 1 || stock === 0) && { opacity: 0.5 }]}
                   onPress={() => setQuantity((q) => Math.max(1, q - 1))}
                   disabled={quantity === 1 || stock === 0}
                 >
@@ -143,7 +143,7 @@ export default function OrderPage() {
                 </TouchableOpacity>
                 <Text style={[styles.qtyValue, { color: theme.text }]}>{quantity}</Text>
                 <TouchableOpacity
-                  style={[styles.qtyBtn, { backgroundColor: '#F1F5F9' }, (quantity === maxQty || stock === 0) && { opacity: 0.5 }]}
+                  style={[styles.qtyBtn, { backgroundColor: theme.surface, borderWidth: 1.5, borderColor: theme.border }, (quantity === maxQty || stock === 0) && { opacity: 0.5 }]}
                   onPress={() => setQuantity((q) => Math.min(maxQty, q + 1))}
                   disabled={quantity === maxQty || stock === 0}
                 >
@@ -153,7 +153,7 @@ export default function OrderPage() {
             </View>
           </View>
 
-          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+          <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Rental Period</Text>
             <Text style={[styles.sectionSubtitle, { color: theme.textDim, marginBottom: 20 }]}>
               Selected for {getRentalDays()} day{getRentalDays() > 1 ? 's' : ''}
@@ -161,7 +161,7 @@ export default function OrderPage() {
 
             <View style={styles.calendarContainer}>
               <TouchableOpacity
-                style={[styles.datePicker, { backgroundColor: '#F1F5F9' }]}
+                style={[styles.datePicker, { backgroundColor: theme.surface, borderWidth: 1.5, borderColor: theme.border }]}
                 onPress={() => setShowStart(true)}
               >
                 <Ionicons name="calendar-outline" size={18} color={theme.primary} style={{ marginRight: 10 }} />
@@ -176,7 +176,7 @@ export default function OrderPage() {
               </View>
 
               <TouchableOpacity
-                style={[styles.datePicker, { backgroundColor: '#F1F5F9' }]}
+                style={[styles.datePicker, { backgroundColor: theme.surface, borderWidth: 1.5, borderColor: theme.border }]}
                 onPress={() => setShowEnd(true)}
               >
                 <Ionicons name="calendar-outline" size={18} color={theme.primary} style={{ marginRight: 10 }} />
@@ -209,7 +209,7 @@ export default function OrderPage() {
         </View>
       </ScrollView>
 
-      <View style={[styles.bottomBar, { backgroundColor: theme.surface }]}>
+      <View style={[styles.bottomBar, { backgroundColor: theme.surface, borderTopWidth: 1, borderTopColor: theme.border }]}>
         <View style={styles.priceInfo}>
           <Text style={[styles.totalLabel, { color: theme.textDim }]}>Estimated Total</Text>
           <Text style={[styles.totalPrice, { color: theme.text }]}>
@@ -226,7 +226,8 @@ export default function OrderPage() {
               styles.swipeThumb,
               { backgroundColor: stock === 0 ? '#CBD5E1' : theme.primary },
               { transform: [{ translateX: swipeX }] },
-              swiped && { backgroundColor: '#10b981' }
+              swiped && { backgroundColor: '#10b981' },
+              { borderWidth: 2, borderColor: '#fff' }
             ]}>
               <Ionicons name={swiped ? 'checkmark' : 'chevron-forward'} size={24} color="#fff" />
             </Animated.View>
@@ -254,11 +255,6 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     overflow: 'hidden',
     marginBottom: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 8,
   },
   image: { width: '100%', height: '100%' },
   priceBadge: {
@@ -287,11 +283,6 @@ const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 28,
     marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
   },
   sectionTitle: { fontSize: 16, fontWeight: '800', marginBottom: 8 },
   sectionSubtitle: { fontSize: 13, fontWeight: '500' },
@@ -317,11 +308,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 20,
   },
   priceInfo: { flex: 1 },
   totalLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
@@ -350,10 +336,5 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
   },
 });

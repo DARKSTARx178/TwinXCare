@@ -112,7 +112,7 @@ export default function DeliveryPage() {
 
       {/* Hero section: Latest Activity */}
       {latest ? (
-        <View style={[styles.heroCard, { backgroundColor: theme.surface }]}>
+        <View style={[styles.heroCard, { backgroundColor: theme.surface, borderWidth: 2, borderColor: theme.primary }]}>
           <View style={styles.heroHeader}>
             <Text style={[styles.heroType, { color: theme.primary }]}>
               {latest.type === 'order' ? 'LATEST ORDER' : 'LATEST BOOKING'}
@@ -149,7 +149,7 @@ export default function DeliveryPage() {
           )}
         </View>
       ) : (
-        <View style={[styles.heroCard, { backgroundColor: theme.surface, padding: 40, alignItems: 'center' }]}>
+        <View style={[styles.heroCard, { backgroundColor: theme.surface, padding: 40, alignItems: 'center', borderWidth: 2, borderColor: theme.border }]}>
           <Ionicons name="basket-outline" size={48} color={theme.textDim} style={{ opacity: 0.2 }} />
           <Text style={[styles.emptyHeroText, { color: theme.textDim }]}>No active orders found.</Text>
         </View>
@@ -172,7 +172,7 @@ export default function DeliveryPage() {
               key={idx}
               activeOpacity={0.9}
               onPress={() => toggleExpand(idx)}
-              style={[styles.timelineCard, { backgroundColor: theme.surface }]}
+              style={[styles.timelineCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}
             >
               <View style={styles.timelineMain}>
                 <View style={[styles.timelineIcon, { backgroundColor: isOrder ? '#eff6ff' : '#f5f3ff' }]}>
@@ -263,11 +263,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     padding: 24,
     borderRadius: 32,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 10,
     marginBottom: 32,
   },
   heroHeader: {
@@ -352,11 +347,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 24,
     marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 5,
-    elevation: 2,
   },
   timelineMain: {
     flexDirection: 'row',

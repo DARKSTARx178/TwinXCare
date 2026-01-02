@@ -42,7 +42,7 @@ const Login: React.FC = () => {
         <Ionicons name="arrow-back" size={28} color={theme.text} />
       </TouchableOpacity>
 
-      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+      <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
         <View style={styles.logoCircle}>
           <Ionicons name="shield-checkmark" size={40} color={theme.primary} />
         </View>
@@ -90,11 +90,11 @@ const Login: React.FC = () => {
         </View>
 
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: theme.primary }]}
+          style={[styles.button, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
           onPress={handleLogin}
           activeOpacity={0.8}
         >
-          <Text style={[styles.buttonText, { fontSize: textSize }]}>Sign In</Text>
+          <Text style={[styles.buttonText, { fontSize: textSize, color: theme.primary }]}>Sign In</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.replace("/register")} style={styles.footerLink}>
@@ -128,11 +128,6 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     width: '100%',
     alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 10,
   },
   logoCircle: {
     width: 80,
@@ -186,11 +181,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: "center",
     marginTop: 16,
-    shadowColor: "#81ade7",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
   },
   buttonText: {
     color: "#FFFFFF",

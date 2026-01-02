@@ -99,7 +99,7 @@ export default function EscortAvailability() {
         </Text>
       </View>
 
-      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+      <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
         <Text style={[styles.cardHeading, { color: theme.text }]}>Service Schedule</Text>
 
         <View style={styles.inputWrapper}>
@@ -178,7 +178,7 @@ export default function EscortAvailability() {
         )}
       </View>
 
-      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+      <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
         <Text style={[styles.cardHeading, { color: theme.text }]}>Assignment Details</Text>
 
         <View style={styles.inputWrapper}>
@@ -229,15 +229,19 @@ export default function EscortAvailability() {
         </View>
 
         <TouchableOpacity
-          style={[styles.submitButton, { backgroundColor: theme.primary }, submitting && { opacity: 0.7 }]}
+          style={[
+            styles.submitButton,
+            { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface },
+            submitting && { opacity: 0.7, backgroundColor: '#F1F5F9', borderColor: '#E2E8F0' }
+          ]}
           onPress={handleSubmit}
           disabled={submitting}
           activeOpacity={0.8}
         >
-          <Text style={[styles.submitText, { color: '#fff' }]}>
+          <Text style={[styles.submitText, { color: submitting ? '#94B3B8' : theme.primary }]}>
             {submitting ? 'Registering...' : 'Register Availability'}
           </Text>
-          {!submitting && <Ionicons name="checkmark-circle-outline" size={20} color="#fff" style={{ marginLeft: 8 }} />}
+          {!submitting && <Ionicons name="checkmark-circle-outline" size={20} color={theme.primary} style={{ marginLeft: 8 }} />}
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -274,11 +278,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     padding: 24,
     borderRadius: 32,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 6,
     marginBottom: 20,
   },
   cardHeading: {

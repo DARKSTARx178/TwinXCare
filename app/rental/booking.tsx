@@ -72,88 +72,7 @@ export default function BookingScreen() {
     fetchSchedule();
   }, [params.id, params.schedule]);
 
-  function BackButton() {
-    return (
-      <TouchableOpacity style={{ alignSelf: 'flex-start', padding: 16 }} onPress={() => router.back()}>
-        <Ionicons name="arrow-back" size={28} color={theme.text} />
-      </TouchableOpacity>
-    );
-  }
 
-  function BookingCalendar() {
-    return (
-      <View style={[styles.box, { backgroundColor: boxBackground }]}>
-        <Text style={{ color: theme.text, fontSize: responsiveText(textSize), marginBottom: 8 }}>Choose booking date:</Text>
-        <RNPickerSelect
-          onValueChange={(value) => {
-            setBookingDate(value);
-            const slots = scheduleRef.current.filter((s: any) => s.date === value);
-            setTimeSlots(slots);
-            setSelectedSlot(null);
-          }}
-          items={availableDates.map((d) => ({ label: d, value: d }))}
-          value={bookingDate}
-          style={{
-            inputAndroid: { color: theme.text, fontSize: responsiveText(textSize), padding: 12 },
-            inputIOS: { color: theme.text, fontSize: responsiveText(textSize), padding: 12 },
-          }}
-        />
-      </View>
-    );
-  }
-
-  function TimeSlotSelector() {
-    return (
-      <View style={[styles.box, { backgroundColor: boxBackground }]}>
-        <Text style={{ color: theme.text, fontSize: responsiveText(textSize), marginBottom: 8 }}>Select a time slot:</Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-          {timeSlots.length === 0 ? <Text style={{ color: theme.unselected }}>No slots available</Text> :
-            timeSlots.map((slot) => {
-              const slotText = `${slot.from} - ${slot.to}`;
-              const active = selectedSlot === slotText;
-              return (
-                <TouchableOpacity
-                  key={slotText}
-                  style={[
-                    styles.slotBtn,
-                    { backgroundColor: active ? theme.primary : theme.unselected },
-                    slot.pax === 0 ? { opacity: 0.5 } : {}
-                  ]}
-                  onPress={() => slot.pax === 0 ? null : setSelectedSlot(slotText)}
-                >
-                  <Text style={{ color: active ? '#fff' : theme.text, fontSize: responsiveText(textSize - 2) }}>
-                    {slotText}{slot.pax === 0 ? ' (Full)' : ''}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-        </View>
-      </View>
-    );
-  }
-
-  function UserDetailsForm() {
-    return (
-      <View style={[styles.box, { backgroundColor: boxBackground }]}>
-        <TextInput
-          placeholder="Phone"
-          placeholderTextColor={theme.unselected}
-          defaultValue={phoneRef.current}
-          onChangeText={(t) => (phoneRef.current = t)}
-          keyboardType="phone-pad"
-          style={[styles.input, { borderColor: theme.unselected, color: theme.text }]}
-        />
-        <TextInput
-          placeholder="Notes (Optional)"
-          placeholderTextColor={theme.unselected}
-          defaultValue={notesRef.current}
-          onChangeText={(t) => (notesRef.current = t)}
-          multiline
-          style={[styles.input, { borderColor: theme.unselected, color: theme.text }]}
-        />
-      </View>
-    );
-  }
 
   const isBookingDisabled = !phoneRef.current?.trim() || !selectedSlot || (selectedSlot && scheduleRef.current.find(s => `${s.from} - ${s.to}` === selectedSlot)?.pax === 0);
 
@@ -168,7 +87,7 @@ export default function BookingScreen() {
         </TouchableOpacity>
 
         <View style={styles.content}>
-          <View style={[styles.imageCard, { backgroundColor: theme.surface }]}>
+          <View style={[styles.imageCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
             {params.image && <Image source={{ uri: params.image }} style={styles.image} resizeMode="cover" />}
             <View style={styles.badge}>
               <Text style={styles.badgeText}>${bookPrice}</Text>
@@ -184,7 +103,7 @@ export default function BookingScreen() {
             )}
           </View>
 
-          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+          <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
             <View style={styles.sectionHeader}>
               <Ionicons name="calendar-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
               <Text style={[styles.sectionTitle, { color: theme.text }]}>Booking Date</Text>
@@ -207,7 +126,7 @@ export default function BookingScreen() {
             </View>
           </View>
 
-          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+          <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
             <View style={styles.sectionHeader}>
               <Ionicons name="time-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
               <Text style={[styles.sectionTitle, { color: theme.text }]}>Time Slot</Text>
@@ -246,7 +165,7 @@ export default function BookingScreen() {
             </View>
           </View>
 
-          <View style={[styles.card, { backgroundColor: theme.surface }]}>
+          <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
             <View style={styles.sectionHeader}>
               <Ionicons name="call-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
               <Text style={[styles.sectionTitle, { color: theme.text }]}>Contact & Notes</Text>
@@ -272,7 +191,7 @@ export default function BookingScreen() {
         </View>
       </ScrollView>
 
-      <View style={[styles.bottomBar, { backgroundColor: theme.surface }]}>
+      <View style={[styles.bottomBar, { backgroundColor: theme.surface, borderTopWidth: 1, borderTopColor: theme.border }]}>
         <View style={styles.priceSection}>
           <Text style={[styles.totalLabel, { color: theme.textDim }]}>Total Price</Text>
           <Text style={[styles.totalValue, { color: theme.text }]}>${bookPrice.toFixed(2)}</Text>
@@ -281,9 +200,13 @@ export default function BookingScreen() {
         <TouchableOpacity
           style={[
             styles.bookButton,
-            { backgroundColor: isBookingDisabled ? '#E2E8F0' : theme.primary }
+            {
+              borderColor: isBookingDisabled ? '#E2E8F0' : theme.primary,
+              borderWidth: 2,
+              backgroundColor: isBookingDisabled ? '#F1F5F9' : theme.surface
+            }
           ]}
-          disabled={isBookingDisabled}
+          disabled={!!isBookingDisabled}
           activeOpacity={0.8}
           onPress={() => {
             const slotObj = scheduleRef.current.find(
@@ -308,10 +231,10 @@ export default function BookingScreen() {
             });
           }}
         >
-          <Text style={[styles.bookButtonText, { color: isBookingDisabled ? '#94B3B8' : '#fff' }]}>
-            Complete Booking
+          <Text style={[styles.bookButtonText, { color: isBookingDisabled ? '#94B3B8' : theme.primary }]}>
+            {isBookingDisabled ? 'Unavailable' : 'Complete Booking'}
           </Text>
-          <Ionicons name="chevron-forward" size={18} color="#fff" style={{ marginLeft: 6 }} />
+          <Ionicons name="chevron-forward" size={18} color={isBookingDisabled ? '#94B3B8' : theme.primary} style={{ marginLeft: 6 }} />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -335,11 +258,6 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     overflow: 'hidden',
     marginBottom: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 10,
   },
   image: { width: '100%', height: '100%' },
   badge: {
@@ -359,11 +277,6 @@ const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 28,
     marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
   },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
   sectionTitle: { fontWeight: '800', fontSize: 16 },
@@ -395,11 +308,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 20,
   },
   priceSection: { flex: 1 },
   totalLabel: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
@@ -411,11 +319,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: "#81ade7",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
   },
   bookButtonText: { fontWeight: '800', fontSize: 16 },
 });

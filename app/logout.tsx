@@ -37,7 +37,7 @@ const Logout: React.FC = () => {
         </Text>
       </View>
 
-      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+      <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
         <Ionicons name="shield-checkmark-outline" size={48} color={theme.primary} style={{ marginBottom: 20 }} />
         <Text style={[styles.cardTitle, { color: theme.text }]}>Safe & Secure</Text>
         <Text style={[styles.cardSubtitle, { color: theme.textDim }]}>
@@ -45,12 +45,12 @@ const Logout: React.FC = () => {
         </Text>
 
         <TouchableOpacity
-          style={[styles.logoutBtn, { backgroundColor: '#ef4444' }]}
+          style={[styles.logoutBtn, { borderColor: '#ef4444', borderWidth: 2, backgroundColor: theme.surface }]}
           onPress={handleLogout}
           activeOpacity={0.8}
         >
-          <Text style={styles.logoutBtnText}>Confirm Logout</Text>
-          <Ionicons name="log-out" size={20} color="#fff" style={{ marginLeft: 8 }} />
+          <Text style={[styles.logoutBtnText, { color: '#ef4444' }]}>Confirm Logout</Text>
+          <Ionicons name="log-out" size={20} color="#ef4444" style={{ marginLeft: 8 }} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -98,11 +98,6 @@ const styles = StyleSheet.create({
     padding: 32,
     borderRadius: 32,
     alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 10,
   },
   cardTitle: {
     fontSize: 20,

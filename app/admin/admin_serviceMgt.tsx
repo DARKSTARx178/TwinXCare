@@ -169,7 +169,7 @@ export default function AdminServiceMgt() {
                 </Text>
             </View>
 
-            <View style={[styles.card, { backgroundColor: theme.surface }]}>
+            <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
                 <Text style={[styles.cardHeading, { color: theme.text }]}>Add New Service</Text>
 
                 <View style={styles.inputWrapper}>
@@ -242,12 +242,12 @@ export default function AdminServiceMgt() {
                 </View>
 
                 <TouchableOpacity
-                    style={[styles.addButton, { backgroundColor: theme.primary }]}
+                    style={[styles.addButton, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
                     onPress={handleAddService}
                     activeOpacity={0.8}
                 >
-                    <Text style={styles.addButtonText}>Create Service Listing</Text>
-                    <Ionicons name="checkmark-circle-outline" size={20} color="#fff" style={{ marginLeft: 8 }} />
+                    <Text style={[styles.addButtonText, { color: theme.primary }]}>Create Service Listing</Text>
+                    <Ionicons name="checkmark-circle-outline" size={20} color={theme.primary} style={{ marginLeft: 8 }} />
                 </TouchableOpacity>
             </View>
 
@@ -258,7 +258,7 @@ export default function AdminServiceMgt() {
 
             <View style={styles.listContainer}>
                 {services.map(service => (
-                    <View key={service.id} style={[styles.serviceCard, { backgroundColor: theme.surface }]}>
+                    <View key={service.id} style={[styles.serviceCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
                         <TouchableOpacity
                             onPress={() => setExpandedId(expandedId === service.id ? null : service.id)}
                             activeOpacity={0.7}
@@ -326,7 +326,7 @@ export default function AdminServiceMgt() {
                                             />
                                         </View>
                                         <TouchableOpacity
-                                            style={[styles.addScheduleBtn, { backgroundColor: theme.primaryGlow }]}
+                                            style={[styles.addScheduleBtn, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}
                                             onPress={() => handleAddSchedule(service.id)}
                                         >
                                             <Ionicons name="add" size={18} color={theme.primary} />
@@ -401,11 +401,6 @@ const styles = StyleSheet.create({
         marginHorizontal: 20,
         padding: 24,
         borderRadius: 32,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.05,
-        shadowRadius: 15,
-        elevation: 6,
         marginBottom: 30,
     },
     cardHeading: {
@@ -467,11 +462,6 @@ const styles = StyleSheet.create({
     serviceCard: {
         borderRadius: 24,
         marginBottom: 12,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.03,
-        shadowRadius: 5,
-        elevation: 1,
         overflow: 'hidden',
     },
     cardMain: {

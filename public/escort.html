@@ -871,11 +871,11 @@
 
         // DATA SYNC
         function syncData() {
-            onSnapshot(collection(db, 'volunteers'), (snap) => {
+            onSnapshot(collection(db, 'escort', 'availability', 'entries'), (snap) => {
                 volunteers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderEntries();
             });
-            onSnapshot(collection(db, 'requests'), (snap) => {
+            onSnapshot(collection(db, 'escort', 'request', 'entries'), (snap) => {
                 requests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderEntries();
             });
@@ -885,33 +885,35 @@
         document.getElementById('vol-form').onsubmit = async (e) => {
             e.preventDefault();
             const data = {
-                name: document.getElementById('vol-name').value,
+                providerId: auth?.currentUser?.uid ?? 'guest',
+                providerEmail: auth?.currentUser?.email ?? 'guest',
                 notes: document.getElementById('vol-notes').value,
-                availability: {
-                    date: document.getElementById('vol-date').value,
-                    startTime: document.getElementById('vol-start').value,
-                    endTime: document.getElementById('vol-end').value
-                },
-                createdAt: new Date().toISOString()
+                date: document.getElementById('vol-date').value,
+                fromTime: document.getElementById('vol-start').value,
+                toTime: document.getElementById('vol-end').value,
+                createdAt: new Date().toISOString(),
+                status: 'available',
+                location: 'Main Hospital' // Defaulting for simple entries
             };
-            await addDoc(collection(db, 'volunteers'), data);
+            await addDoc(collection(db, 'escort', 'availability', 'entries'), data);
             e.target.reset();
         };
 
         document.getElementById('req-form').onsubmit = async (e) => {
             e.preventDefault();
             const data = {
-                caregiverName: document.getElementById('req-name').value,
+                userId: auth?.currentUser?.uid ?? 'guest',
+                userEmail: auth?.currentUser?.email ?? 'guest',
+                caregiverName: document.getElementById('req-name').value, // Used in UI
                 notes: document.getElementById('req-notes').value,
-                needed: {
-                    date: document.getElementById('req-date').value,
-                    startTime: document.getElementById('req-start').value,
-                    endTime: document.getElementById('req-end').value
-                },
+                date: document.getElementById('req-date').value,
+                time: document.getElementById('req-start').value,
+                endTime: document.getElementById('req-end').value,
                 status: 'pending',
+                hospital: 'Main Hospital', // Defaulting
                 createdAt: new Date().toISOString()
             };
-            await addDoc(collection(db, 'requests'), data);
+            await addDoc(collection(db, 'escort', 'request', 'entries'), data);
             e.target.reset();
         };
 
@@ -936,34 +938,35 @@
 
         function renderVolunteers() {
             const grid = document.getElementById('vol-grid');
-            const sorted = volunteers.filter(v => v.name.toLowerCase().includes(volSearch.toLowerCase()))
-                .sort((a, b) => b.availability.date.localeCompare(a.availability.date));
+            const sorted = volunteers.filter(v => (v.name || v.providerEmail || '').toLowerCase().includes(volSearch.toLowerCase()))
+                .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
             grid.innerHTML = sorted.map(v => {
-                const isMatched = requests.some(r => r.matchedVolunteerId === v.id && r.status === 'matched');
-                const ratings = requests.filter(r => r.matchedVolunteerId === v.id && r.status === 'completed' && r.rating);
+                const displayName = v.name || v.providerEmail?.split('@')[0] || 'Unknown';
+                const isMatched = v.status === 'matched';
+                const ratings = requests.filter(r => r.matchedProviderId === v.providerId && r.status === 'completed' && r.rating);
                 const avg = ratings.length ? (ratings.reduce((sx, r) => sx + r.rating, 0) / ratings.length).toFixed(1) : null;
 
                 return `
                     <div class="entry-card">
                         <div class="card-top">
                             <div class="card-user">
-                                <div class="avatar-circle">${v.name[0]}</div>
+                                <div class="avatar-circle">${displayName[0]}</div>
                                 <div>
-                                    <div class="card-name">${v.name}</div>
+                                    <div class="card-name">${displayName}</div>
                                     <div class="card-sub">${isMatched ? 'On Assignment' : 'Standby'}</div>
                                 </div>
                             </div>
                             <span class="badge-glass ${isMatched ? 'badge-matched' : 'badge-pending'}">${isMatched ? 'Matched' : 'Open'}</span>
                         </div>
                         <div class="card-details">
-                            <div class="detail-item"><i class="fas fa-calendar"></i> ${formatDate(v.availability.date)}</div>
-                            <div class="detail-item"><i class="fas fa-clock"></i> ${v.availability.startTime} - ${v.availability.endTime}</div>
+                            <div class="detail-item"><i class="fas fa-calendar"></i> ${formatDate(v.date)}</div>
+                            <div class="detail-item"><i class="fas fa-clock"></i> ${v.fromTime} - ${v.toTime}</div>
                             ${avg ? `<div class="detail-item" style="color:var(--warning)"><i class="fas fa-star"></i> Provider Rating: ${avg}</div>` : ''}
                             <div class="detail-item" style="font-style: italic; opacity: 0.7;"><i class="fas fa-quote-left"></i> ${v.notes || 'No specialized notes'}</div>
                         </div>
                         <div class="card-actions">
-                             <button class="btn-sm" style="border-color:var(--danger); color:var(--danger)" onclick="deleteEntry('volunteers', '${v.id}')">Remove</button>
+                             <button class="btn-sm" style="border-color:var(--danger); color:var(--danger)" onclick="deleteEntry('availability', '${v.id}')">Remove</button>
                         </div>
                     </div>
                 `;
@@ -972,9 +975,10 @@
 
         function renderRequests() {
             const grid = document.getElementById('req-grid');
-            const sorted = requests.sort((a, b) => b.needed.date.localeCompare(a.needed.date));
+            const sorted = requests.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
             grid.innerHTML = sorted.map(r => {
+                const displayName = r.caregiverName || r.userEmail?.split('@')[0] || 'Anonymous';
                 let action = '';
                 if (r.status === 'pending') {
                     action = `<button class="btn-sm" onclick="openMatchModal('${r.id}')">Verify Match</button>`;
@@ -990,20 +994,20 @@
                             <div class="card-user">
                                 <div class="avatar-circle" style="color: var(--rose-600);"><i class="fas fa-heart"></i></div>
                                 <div>
-                                    <div class="card-name">${r.caregiverName}</div>
+                                    <div class="card-name">${displayName}</div>
                                     <div class="card-sub">Request ID: #${r.id.substring(0, 6)}</div>
                                 </div>
                             </div>
                             <span class="badge-glass badge-${r.status}">${r.status}</span>
                         </div>
                         <div class="card-details">
-                            <div class="detail-item"><i class="fas fa-calendar-day"></i> ${formatDate(r.needed.date)}</div>
-                            <div class="detail-item"><i class="fas fa-clock"></i> ${r.needed.startTime} - ${r.needed.endTime}</div>
+                            <div class="detail-item"><i class="fas fa-calendar-day"></i> ${formatDate(r.date)}</div>
+                            <div class="detail-item"><i class="fas fa-clock"></i> ${r.time} - ${r.endTime}</div>
                             <div class="detail-item"><i class="fas fa-scroll"></i> ${r.notes || 'Standard care requested'}</div>
                         </div>
                         <div class="card-actions" style="gap: 10px;">
                             ${action}
-                             <button class="btn-sm" style="border:0; color:var(--text-dim)" onclick="deleteEntry('requests', '${r.id}')">Delete</button>
+                             <button class="btn-sm" style="border:0; color:var(--text-dim)" onclick="deleteEntry('request', '${r.id}')">Delete</button>
                         </div>
                     </div>
                 `;
@@ -1014,21 +1018,22 @@
         window.openMatchModal = (reqId) => {
             const req = requests.find(r => r.id === reqId);
             const list = document.getElementById('match-options');
-            document.getElementById('match-subtitle').innerText = `Assigning support for ${req.caregiverName} on ${formatDate(req.needed.date)}`;
+            document.getElementById('match-subtitle').innerText = `Assigning support for ${req.caregiverName || req.userEmail} on ${formatDate(req.date)}`;
 
             // Availability Cross-check
             const matches = volunteers.filter(v => {
-                if (v.availability.date !== req.needed.date) return false;
-                return v.availability.startTime <= req.needed.startTime && v.availability.endTime >= req.needed.endTime;
+                if (v.date !== req.date) return false;
+                return v.fromTime <= req.time && v.toTime >= req.endTime;
             });
 
             list.innerHTML = matches.length ? matches.map(v => {
-                const occupied = requests.some(r => r.matchedVolunteerId === v.id && r.status === 'matched');
+                const occupied = v.status === 'matched';
+                const displayName = v.name || v.providerEmail?.split('@')[0] || 'Unknown';
                 return `
-                    <div class="option-item ${occupied ? 'occupied' : ''}" onclick="confirmMatch('${req.id}', '${v.id}')">
+                    <div class="option-item ${occupied ? 'occupied' : ''}" onclick="confirmMatch('${req.id}', '${v.id}', '${v.providerId}', '${v.providerEmail}')">
                         <div>
-                            <div style="font-weight: 800;">${v.name}</div>
-                            <div style="font-size: 0.8rem; color: var(--text-dim);">${v.availability.startTime} - ${v.availability.endTime}</div>
+                            <div style="font-weight: 800;">${displayName}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-dim);">${v.fromTime} - ${v.toTime}</div>
                         </div>
                         ${occupied ? '<span style="font-size:0.7rem; color:var(--danger);">Engaged</span>' : '<i class="fas fa-plus-circle" style="color: var(--primary);"></i>'}
                     </div>
@@ -1038,22 +1043,35 @@
             document.getElementById('match-modal').style.display = 'flex';
         };
 
-        window.confirmMatch = async (reqId, volId) => {
-            await updateDoc(doc(db, 'requests', reqId), { status: 'matched', matchedVolunteerId: volId });
+        window.confirmMatch = async (reqId, availId, providerId, providerEmail) => {
+            // Update Request
+            await updateDoc(doc(db, 'escort', 'request', 'entries', reqId), {
+                status: 'matched',
+                matchedAvailabilityId: availId,
+                matchedProviderId: providerId,
+                matchedProviderName: providerEmail
+            });
+            // Update Availability
+            await updateDoc(doc(db, 'escort', 'availability', 'entries', availId), {
+                status: 'matched',
+                matchedRequestId: reqId,
+                matchedUserId: requests.find(r => r.id === reqId)?.userId
+            });
             closeModal('match-modal');
         };
 
         window.openRateModal = (reqId) => {
             activeRatingRequest = requests.find(r => r.id === reqId);
-            const vol = volunteers.find(v => v.id === activeRatingRequest.matchedVolunteerId);
-            document.getElementById('rate-subtitle').innerText = `How would you rate ${vol?.name || 'the provider'}'s service for ${activeRatingRequest.caregiverName}?`;
+            const vol = volunteers.find(v => v.id === activeRatingRequest.matchedAvailabilityId);
+            const displayName = vol?.name || activeRatingRequest.matchedProviderName?.split('@')[0] || 'the provider';
+            document.getElementById('rate-subtitle').innerText = `How would you rate ${displayName}'s service for ${activeRatingRequest.caregiverName || activeRatingRequest.userEmail}?`;
             document.getElementById('rate-modal').style.display = 'flex';
             resetRating();
         };
 
         document.getElementById('confirm-rate-btn').onclick = async () => {
             if (selectedRating === 0) return alert("Select a rating to finalize.");
-            await updateDoc(doc(db, 'requests', activeRatingRequest.id), { status: 'completed', rating: selectedRating });
+            await updateDoc(doc(db, 'escort', 'request', 'entries', activeRatingRequest.id), { status: 'completed', rating: selectedRating });
             closeModal('rate-modal');
         };
 
@@ -1072,7 +1090,12 @@
 
         // UTILS
         window.closeModal = (id) => document.getElementById(id).style.display = 'none';
-        window.deleteEntry = async (coll, id) => { if (confirm('Permanently scrub this record?')) await deleteDoc(doc(db, coll, id)); };
+        window.deleteEntry = async (type, id) => {
+            if (confirm('Permanently scrub this record?')) {
+                const path = type === 'availability' ? 'escort/availability/entries' : 'escort/request/entries';
+                await deleteDoc(doc(db, path, id));
+            }
+        };
 
         document.getElementById('vol-search').oninput = (e) => {
             volSearch = e.target.value;

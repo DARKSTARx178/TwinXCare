@@ -772,10 +772,4 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 6,
   },
-  label: {
-    fontSize: 13,
-    fontWeight: '700',
-    marginBottom: 8,
-    letterSpacing: 0.5,
-  }
 });

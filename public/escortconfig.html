@@ -690,9 +690,11 @@
                                     </div>
                                     <div>
                                         <label>Window</label>
-                                        <div style="display: flex; align-items: center; gap: 5px;">
-                                            <input type="time" class="input-dark" id="vol-start" required>
-                                            <input type="time" class="input-dark" id="vol-end" required>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <input type="time" class="input-dark" id="vol-start"
+                                                style="flex: 1; min-width: 0;" required>
+                                            <input type="time" class="input-dark" id="vol-end"
+                                                style="flex: 1; min-width: 0;" required>
                                         </div>
                                     </div>
                                 </div>
@@ -726,9 +728,11 @@
                                     </div>
                                     <div>
                                         <label>Required Time</label>
-                                        <div style="display: flex; align-items: center; gap: 5px;">
-                                            <input type="time" class="input-dark" id="req-start" required>
-                                            <input type="time" class="input-dark" id="req-end" required>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <input type="time" class="input-dark" id="req-start"
+                                                style="flex: 1; min-width: 0;" required>
+                                            <input type="time" class="input-dark" id="req-end"
+                                                style="flex: 1; min-width: 0;" required>
                                         </div>
                                     </div>
                                 </div>
@@ -856,12 +860,25 @@
         const logoutBtn = document.getElementById('logout-btn');
 
         // INITIALIZATION
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                dashboardView.style.display = 'block';
-                authView.style.display = 'none';
-                logoutBtn.classList.remove('hidden');
-                syncData();
+                // Verify Admin Role
+                try {
+                    const userSnap = await getDoc(doc(db, 'users', user.uid));
+                    if (userSnap.exists() && userSnap.data().role === 'admin') {
+                        dashboardView.style.display = 'block';
+                        authView.style.display = 'none';
+                        logoutBtn.classList.remove('hidden');
+                        syncData();
+                    } else {
+                        alert("Unauthorized access. Admin credentials required.");
+                        await signOut(auth);
+                        location.reload();
+                    }
+                } catch (err) {
+                    console.error("Auth verification failed:", err);
+                    await signOut(auth);
+                }
             } else {
                 dashboardView.style.display = 'none';
                 authView.style.display = 'flex';

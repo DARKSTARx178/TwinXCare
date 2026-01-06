@@ -1,16 +1,27 @@
 import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
-import { checkMatchForAvailability } from '@/services/matchingService';
+import { checkMatchForAvailability, lockInJob } from '@/services/matchingService';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useRouter } from 'expo-router';
-import { addDoc, collection, serverTimestamp, getDoc, doc } from 'firebase/firestore';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { addDoc, collection, doc, getDoc, getDocs, query, serverTimestamp, where } from 'firebase/firestore';
 import React, { useContext, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { interpolateColor, runOnJS, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const SLIDER_WIDTH = SCREEN_WIDTH - 80;
+const KNOB_SIZE = 60;
+const HITTING_POINT = SLIDER_WIDTH - KNOB_SIZE - 20;
 
 export default function EscortAvailability() {
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
+  const { jobId, type } = useLocalSearchParams<{ jobId: string, type: 'request' | 'availability' }>();
+
+  const [jobData, setJobData] = useState<any>(null);
+  const [loadingJob, setLoadingJob] = useState(!!jobId);
 
   const [date, setDate] = useState(new Date());
   const [fromTime, setFromTime] = useState(new Date());
@@ -26,20 +37,97 @@ export default function EscortAvailability() {
   const [submitting, setSubmitting] = useState(false);
   const [userRating, setUserRating] = useState<number | null>(null);
   const [ratingCount, setRatingCount] = useState(0);
+  const [mySlots, setMySlots] = useState<any[]>([]);
+
+  const refreshMySlots = async () => {
+    if (auth.currentUser) {
+      const q = query(collection(db, 'escort', 'availability', 'entries'), where('providerId', '==', auth.currentUser.uid));
+      const snap = await getDocs(q);
+      setMySlots(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }
+  };
 
   React.useEffect(() => {
     const fetchRating = async () => {
       if (auth.currentUser) {
-        const uDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
-        if (uDoc.exists()) {
-          const data = uDoc.data();
-          setUserRating(data.rating ?? null);
-          setRatingCount(data.ratingCount ?? 0);
+        try {
+          const uDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+          if (uDoc.exists()) {
+            const data = uDoc.data();
+            setUserRating(data.rating ?? null);
+            setRatingCount(data.ratingCount ?? 0);
+          }
+
+          // Also fetch my slots
+          await refreshMySlots();
+        } catch (err) {
+          console.error("Error fetching volunteer data:", err);
         }
       }
     };
     fetchRating();
-  }, []);
+
+    const fetchJob = async () => {
+      if (!jobId || !type) return;
+      try {
+        const path = type === 'availability' ? 'escort/availability/entries' : 'escort/request/entries';
+        const jDoc = await getDoc(doc(db, path, jobId));
+        if (jDoc.exists()) {
+          setJobData(jDoc.data());
+        }
+      } catch (err) {
+        console.error('Error fetching job details:', err);
+      } finally {
+        setLoadingJob(false);
+      }
+    };
+    fetchJob();
+  }, [jobId, type]);
+
+  // Reanimated Slider State
+  const translateX = useSharedValue(0);
+
+  const onConfirm = async () => {
+    if (!jobId || !jobData) return;
+    const reqId = type === 'request' ? jobId : jobData.matchedRequestId;
+    const availId = type === 'availability' ? jobId : jobData.matchedAvailabilityId;
+
+    if (!reqId || !availId) {
+      Alert.alert("Error", "Could not find linked companion for this job.");
+      return;
+    }
+
+    const success = await lockInJob(reqId, availId);
+    if (success) {
+      setJobData({ ...jobData, status: 'confirmed' });
+      await refreshMySlots();
+      Alert.alert("Success", "Job has been locked in and confirmed!");
+    } else {
+      Alert.alert("Error", "Failed to confirm job. Please try again.");
+      translateX.value = withSpring(0);
+    }
+  };
+
+  const panGesture = Gesture.Pan()
+    .onUpdate((event) => {
+      const nextX = event.translationX;
+      if (nextX >= 0 && nextX <= HITTING_POINT) {
+        translateX.value = nextX;
+      }
+    })
+    .onEnd(() => {
+      if (translateX.value > HITTING_POINT * 0.8) {
+        translateX.value = withSpring(HITTING_POINT);
+        runOnJS(onConfirm)();
+      } else {
+        translateX.value = withSpring(0);
+      }
+    });
+
+  const animatedKnobStyle = useAnimatedStyle(() => ({ transform: [{ translateX: translateX.value }] }));
+  const animatedTrackStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(translateX.value, [0, HITTING_POINT], [theme.primaryGlow, '#10b981'])
+  }));
 
   const formatDate = (d: Date) => d.toISOString().split('T')[0];
   const formatTime = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -123,151 +211,268 @@ export default function EscortAvailability() {
         </Text>
       </View>
 
-      <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
-        <Text style={[styles.cardHeading, { color: theme.text }]}>Service Schedule</Text>
+      {jobId ? (
+        // JOB DETAILS VIEW
+        <View style={{ paddingHorizontal: 20 }}>
+          <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={[styles.cardHeading, { color: theme.text, marginBottom: 0 }]}>Assignment Overview</Text>
+              <View style={[styles.statusBadge, {
+                backgroundColor: jobData?.status === 'confirmed' ? '#ecfdf5' :
+                  jobData?.status === 'matched' ? '#fffbeb' : '#f8fafc'
+              }]}>
+                <Text style={{
+                  fontSize: 10, fontWeight: '800',
+                  color: jobData?.status === 'confirmed' ? '#10b981' :
+                    jobData?.status === 'matched' ? '#f59e0b' : '#94a3b8'
+                }}>
+                  {jobData?.status?.toUpperCase() || 'UNKNOWN'}
+                </Text>
+              </View>
+            </View>
 
-        <View style={styles.inputWrapper}>
-          <Text style={[styles.label, { color: theme.textDim }]}>Escort Date</Text>
-          <TouchableOpacity
-            onPress={() => setShowDatePicker(true)}
-            style={[styles.datePicker, { backgroundColor: '#F1F5F9' }]}
-          >
-            <Ionicons name="calendar-outline" size={20} color={theme.primary} style={{ marginRight: 10 }} />
-            <Text style={[styles.dateText, { color: theme.text }]}>{formatDate(date)}</Text>
-          </TouchableOpacity>
+            <View style={styles.detailBox}>
+              <View style={styles.detailRow}>
+                <Ionicons name="location" size={20} color={theme.primary} />
+                <View>
+                  <Text style={[styles.detailLabel, { color: theme.textDim }]}>LOCATION</Text>
+                  <Text style={[styles.detailValue, { color: theme.text }]}>{jobData?.location || jobData?.hospital || 'N/A'}</Text>
+                </View>
+              </View>
+              <View style={[styles.detailRow, { marginTop: 15 }]}>
+                <Ionicons name="calendar" size={20} color={theme.primary} />
+                <View>
+                  <Text style={[styles.detailLabel, { color: theme.textDim }]}>DATE & TIME</Text>
+                  <Text style={[styles.detailValue, { color: theme.text }]}>
+                    {jobData?.date} • {jobData?.fromTime || jobData?.time} - {jobData?.toTime || jobData?.endTime}
+                  </Text>
+                </View>
+              </View>
+              {jobData?.notes && (
+                <View style={[styles.detailRow, { marginTop: 15 }]}>
+                  <Ionicons name="document-text" size={20} color={theme.primary} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.detailLabel, { color: theme.textDim }]}>NOTES</Text>
+                    <Text style={[styles.detailValue, { color: theme.text }]}>{jobData?.notes}</Text>
+                  </View>
+                </View>
+              )}
+            </View>
+
+            {jobData?.status === 'matched' && (
+              <View style={{ marginTop: 40 }}>
+                <Text style={[styles.label, { color: theme.textDim, textAlign: 'center', marginBottom: 20 }]}>Slide to Confirm Job</Text>
+
+                <View style={styles.sliderContainer}>
+                  <Animated.View style={[styles.sliderTrack, animatedTrackStyle]}>
+                    <Text style={[styles.sliderHint, { color: theme.textDim }]}>Confirming...</Text>
+                  </Animated.View>
+
+                  <GestureDetector gesture={panGesture}>
+                    <Animated.View style={[styles.sliderKnob, animatedKnobStyle]}>
+                      <Ionicons name="arrow-forward" size={24} color="#000" />
+                    </Animated.View>
+                  </GestureDetector>
+                </View>
+              </View>
+            )}
+
+            {jobData?.status === 'confirmed' && (
+              <View style={[styles.confirmedBox, { backgroundColor: '#ecfdf5' }]}>
+                <Ionicons name="checkmark-circle" size={40} color="#10b981" />
+                <Text style={{ fontWeight: '800', color: '#065f46', marginTop: 10 }}>JOB LOCKED IN</Text>
+                <Text style={{ fontSize: 13, color: '#065f46', textAlign: 'center', marginTop: 5 }}>
+                  You are officially scheduled for this assignment. TwinXCare will notify you if anything changes.
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
+      ) : (
+        // STANDARD FORM VIEW
+        <>
+          <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
+            <Text style={[styles.cardHeading, { color: theme.text }]}>Service Schedule</Text>
 
-        {showDatePicker && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display="default"
-            minimumDate={new Date()}
-            onChange={(event, selectedDate) => {
-              setShowDatePicker(false);
-              if (selectedDate) setDate(selectedDate);
-            }}
-          />
-        )}
+            <View style={styles.inputWrapper}>
+              <Text style={[styles.label, { color: theme.textDim }]}>Escort Date</Text>
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(true)}
+                style={[styles.datePicker, { backgroundColor: '#F1F5F9' }]}
+              >
+                <Ionicons name="calendar-outline" size={20} color={theme.primary} style={{ marginRight: 10 }} />
+                <Text style={[styles.dateText, { color: theme.text }]}>{formatDate(date)}</Text>
+              </TouchableOpacity>
+            </View>
 
-        <View style={[styles.formRow, { gap: 12 }]}>
-          <View style={styles.inputWrapper}>
-            <Text style={[styles.label, { color: theme.textDim }]}>Available From</Text>
+            {showDatePicker && (
+              <DateTimePicker
+                value={date}
+                mode="date"
+                display="default"
+                minimumDate={new Date()}
+                onChange={(event, selectedDate) => {
+                  setShowDatePicker(false);
+                  if (selectedDate) setDate(selectedDate);
+                }}
+              />
+            )}
+
+            <View style={[styles.formRow, { gap: 12 }]}>
+              <View style={styles.inputWrapper}>
+                <Text style={[styles.label, { color: theme.textDim }]}>Available From</Text>
+                <TouchableOpacity
+                  onPress={() => setShowFromPicker(true)}
+                  style={[styles.timePicker, { backgroundColor: '#F1F5F9' }]}
+                >
+                  <Ionicons name="time-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
+                  <Text style={[styles.timeText, { color: theme.text }]}>{formatTime(fromTime)}</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.inputWrapper}>
+                <Text style={[styles.label, { color: theme.textDim }]}>Available Until</Text>
+                <TouchableOpacity
+                  onPress={() => setShowToPicker(true)}
+                  style={[styles.timePicker, { backgroundColor: '#F1F5F9' }]}
+                >
+                  <Ionicons name="time-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
+                  <Text style={[styles.timeText, { color: theme.text }]}>{formatTime(toTime)}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {showFromPicker && (
+              <DateTimePicker
+                value={fromTime}
+                mode="time"
+                is24Hour={true}
+                display="default"
+                minuteInterval={5}
+                onChange={(event, selectedDate) => {
+                  setShowFromPicker(false);
+                  if (selectedDate) setFromTime(selectedDate);
+                }}
+              />
+            )}
+
+            {showToPicker && (
+              <DateTimePicker
+                value={toTime}
+                mode="time"
+                is24Hour={true}
+                display="default"
+                minuteInterval={5}
+                onChange={(event, selectedDate) => {
+                  setShowToPicker(false);
+                  if (selectedDate) setToTime(selectedDate);
+                }}
+              />
+            )}
+          </View>
+
+          <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
+            <Text style={[styles.cardHeading, { color: theme.text }]}>Assignment Details</Text>
+
+            <View style={styles.inputWrapper}>
+              <Text style={[styles.label, { color: theme.textDim }]}>Preferred Location</Text>
+              <TextInput
+                style={[styles.input, { color: theme.text }]}
+                placeholder="Hospital, area, or facility"
+                placeholderTextColor="#94a3b8"
+                value={location}
+                onChangeText={setLocation}
+              />
+            </View>
+
+            <View style={styles.formRow}>
+              <View style={[styles.inputWrapper, { flex: 1, marginRight: 12 }]}>
+                <Text style={[styles.label, { color: theme.textDim }]}>Capacity (Pax)</Text>
+                <TextInput
+                  style={[styles.input, { color: theme.text }]}
+                  placeholder="1"
+                  value={maxPax}
+                  onChangeText={setMaxPax}
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={[styles.inputWrapper, { flex: 2 }]}>
+                <Text style={[styles.label, { color: theme.textDim }]}>Contact Phone</Text>
+                <TextInput
+                  style={[styles.input, { color: theme.text }]}
+                  placeholder="Your active number"
+                  placeholderTextColor="#94a3b8"
+                  value={contactPhone}
+                  onChangeText={setContactPhone}
+                  keyboardType="phone-pad"
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <Text style={[styles.label, { color: theme.textDim }]}>Additional Notes</Text>
+              <TextInput
+                style={[styles.input, { color: theme.text, minHeight: 80, textAlignVertical: 'top' }]}
+                placeholder="Constraints or references..."
+                placeholderTextColor="#94a3b8"
+                value={notes}
+                onChangeText={setNotes}
+                multiline
+              />
+            </View>
+
             <TouchableOpacity
-              onPress={() => setShowFromPicker(true)}
-              style={[styles.timePicker, { backgroundColor: '#F1F5F9' }]}
+              style={[
+                styles.submitButton,
+                { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface },
+                submitting && { opacity: 0.7, backgroundColor: '#F1F5F9', borderColor: '#E2E8F0' }
+              ]}
+              onPress={handleSubmit}
+              disabled={submitting}
+              activeOpacity={0.8}
             >
-              <Ionicons name="time-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
-              <Text style={[styles.timeText, { color: theme.text }]}>{formatTime(fromTime)}</Text>
+              <Text style={[styles.submitText, { color: submitting ? '#94B3B8' : theme.primary }]}>
+                {submitting ? 'Registering...' : 'Register Availability'}
+              </Text>
+              {!submitting && <Ionicons name="checkmark-circle-outline" size={20} color={theme.primary} style={{ marginLeft: 8 }} />}
             </TouchableOpacity>
           </View>
-          <View style={styles.inputWrapper}>
-            <Text style={[styles.label, { color: theme.textDim }]}>Available Until</Text>
-            <TouchableOpacity
-              onPress={() => setShowToPicker(true)}
-              style={[styles.timePicker, { backgroundColor: '#F1F5F9' }]}
-            >
-              <Ionicons name="time-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
-              <Text style={[styles.timeText, { color: theme.text }]}>{formatTime(toTime)}</Text>
-            </TouchableOpacity>
+
+          {/* MY SLOTS SECTION */}
+          <View style={{ paddingHorizontal: 20, marginTop: 10 }}>
+            <Text style={[styles.cardHeading, { color: theme.text, marginLeft: 10 }]}>My Recent Slots</Text>
+            {mySlots.length === 0 ? (
+              <View style={[styles.emptyInline, { backgroundColor: theme.surface }]}>
+                <Text style={{ color: theme.textDim }}>No slots posted yet.</Text>
+              </View>
+            ) : (
+              mySlots.map(slot => (
+                <TouchableOpacity
+                  key={slot.id}
+                  style={[styles.smallCard, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 }]}
+                  onPress={() => router.setParams({ jobId: slot.id, type: 'availability' })}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.slotTitle, { color: theme.text }]}>{slot.location}</Text>
+                    <Text style={[styles.slotSub, { color: theme.textDim }]}>{slot.date} • {slot.fromTime}</Text>
+                  </View>
+                  <View style={[styles.statusTag, {
+                    backgroundColor: slot.status === 'confirmed' ? '#ecfdf5' :
+                      slot.status === 'matched' ? '#fffbeb' : '#f8fafc'
+                  }]}>
+                    <Text style={{
+                      fontSize: 9, fontWeight: '800',
+                      color: slot.status === 'confirmed' ? '#10b981' :
+                        slot.status === 'matched' ? '#f59e0b' : '#94a3b8'
+                    }}>
+                      {slot.status.toUpperCase()}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
           </View>
-        </View>
-
-        {showFromPicker && (
-          <DateTimePicker
-            value={fromTime}
-            mode="time"
-            is24Hour={true}
-            display="default"
-            minuteInterval={5}
-            onChange={(event, selectedDate) => {
-              setShowFromPicker(false);
-              if (selectedDate) setFromTime(selectedDate);
-            }}
-          />
-        )}
-
-        {showToPicker && (
-          <DateTimePicker
-            value={toTime}
-            mode="time"
-            is24Hour={true}
-            display="default"
-            minuteInterval={5}
-            onChange={(event, selectedDate) => {
-              setShowToPicker(false);
-              if (selectedDate) setToTime(selectedDate);
-            }}
-          />
-        )}
-      </View>
-
-      <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
-        <Text style={[styles.cardHeading, { color: theme.text }]}>Assignment Details</Text>
-
-        <View style={styles.inputWrapper}>
-          <Text style={[styles.label, { color: theme.textDim }]}>Preferred Location</Text>
-          <TextInput
-            style={[styles.input, { color: theme.text }]}
-            placeholder="Hospital, area, or facility"
-            placeholderTextColor="#94a3b8"
-            value={location}
-            onChangeText={setLocation}
-          />
-        </View>
-
-        <View style={styles.formRow}>
-          <View style={[styles.inputWrapper, { flex: 1, marginRight: 12 }]}>
-            <Text style={[styles.label, { color: theme.textDim }]}>Capacity (Pax)</Text>
-            <TextInput
-              style={[styles.input, { color: theme.text }]}
-              placeholder="1"
-              value={maxPax}
-              onChangeText={setMaxPax}
-              keyboardType="numeric"
-            />
-          </View>
-          <View style={[styles.inputWrapper, { flex: 2 }]}>
-            <Text style={[styles.label, { color: theme.textDim }]}>Contact Phone</Text>
-            <TextInput
-              style={[styles.input, { color: theme.text }]}
-              placeholder="Your active number"
-              placeholderTextColor="#94a3b8"
-              value={contactPhone}
-              onChangeText={setContactPhone}
-              keyboardType="phone-pad"
-            />
-          </View>
-        </View>
-
-        <View style={styles.inputWrapper}>
-          <Text style={[styles.label, { color: theme.textDim }]}>Additional Notes</Text>
-          <TextInput
-            style={[styles.input, { color: theme.text, minHeight: 80, textAlignVertical: 'top' }]}
-            placeholder="Constraints or references..."
-            placeholderTextColor="#94a3b8"
-            value={notes}
-            onChangeText={setNotes}
-            multiline
-          />
-        </View>
-
-        <TouchableOpacity
-          style={[
-            styles.submitButton,
-            { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface },
-            submitting && { opacity: 0.7, backgroundColor: '#F1F5F9', borderColor: '#E2E8F0' }
-          ]}
-          onPress={handleSubmit}
-          disabled={submitting}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.submitText, { color: submitting ? '#94B3B8' : theme.primary }]}>
-            {submitting ? 'Registering...' : 'Register Availability'}
-          </Text>
-          {!submitting && <Ionicons name="checkmark-circle-outline" size={20} color={theme.primary} style={{ marginLeft: 8 }} />}
-        </TouchableOpacity>
-      </View>
+        </>
+      )}
     </ScrollView>
   );
 }
@@ -379,4 +584,91 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  detailBox: {
+    padding: 10,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 15,
+  },
+  detailLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  detailValue: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  sliderContainer: {
+    height: 70,
+    width: '100%',
+    justifyContent: 'center',
+    paddingHorizontal: 5,
+  },
+  sliderTrack: {
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sliderKnob: {
+    width: KNOB_SIZE,
+    height: KNOB_SIZE,
+    borderRadius: 30,
+    backgroundColor: '#fff',
+    position: 'absolute',
+    left: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  sliderHint: {
+    fontSize: 14,
+    fontWeight: '800',
+    opacity: 0.5,
+  },
+  confirmedBox: {
+    padding: 30,
+    borderRadius: 24,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  emptyInline: {
+    padding: 20,
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+  smallCard: {
+    padding: 15,
+    borderRadius: 20,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  slotTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  slotSub: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  statusTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  }
 });

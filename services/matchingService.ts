@@ -218,3 +218,42 @@ const executeMatch = async (reqId: string, reqData: any, availId: string, availD
         console.error('❌ Error executing match:', e);
     }
 };
+
+/**
+ * Transitions a match from 'matched' to 'confirmed' (locked-in).
+ * This usually happens when one or both parties agree to the introduction.
+ */
+export const lockInJob = async (reqId: string, availId: string) => {
+    console.log(`🔐 LOCKING IN JOB: Req ${reqId} + Avail ${availId}`);
+    try {
+        await updateDoc(doc(db, 'escort', 'request', 'entries', reqId), {
+            status: 'confirmed'
+        });
+        await updateDoc(doc(db, 'escort', 'availability', 'entries', availId), {
+            status: 'confirmed'
+        });
+
+        // Notify both parties of the firm commitment
+        const reqSnap = await getDoc(doc(db, 'escort', 'request', 'entries', reqId));
+        const availSnap = await getDoc(doc(db, 'escort', 'availability', 'entries', availId));
+
+        if (reqSnap.exists() && availSnap.exists()) {
+            const reqData = reqSnap.data();
+            const availData = availSnap.data();
+
+            const patientToken = await getUserPushToken(reqData.userId);
+            const providerToken = await getUserPushToken(availData.providerId);
+
+            const msg = `Assignment Confirmed! Your escort for ${reqData.date} is now officially locked in.`;
+
+            if (patientToken) await sendPushNotification(patientToken, 'Job Locked In! 🔒', msg);
+            if (providerToken) await sendPushNotification(providerToken, 'Job Locked In! 🔒', msg);
+        }
+
+        await sendLocalNotification('Job Locked In! 🔒', 'The assignment is now officially confirmed.');
+        return true;
+    } catch (e) {
+        console.error('❌ Error locking in job:', e);
+        return false;
+    }
+};

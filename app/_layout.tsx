@@ -7,6 +7,7 @@ import { Slot } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import { useContext, useEffect, useState } from 'react';
 import { Button, Linking, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import NotificationsSetup from './notifs/notifs-setup';
 import SplashScreen from './SplashScreen';
 
@@ -100,12 +101,14 @@ const styles = StyleSheet.create({
 
 export default function RootLayout() {
   return (
-    <AccessibilityProvider>
-      <LanguageProvider>
-        <ThemeProvider>
-          <RootLayoutContent />
-        </ThemeProvider>
-      </LanguageProvider>
-    </AccessibilityProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AccessibilityProvider>
+        <LanguageProvider>
+          <ThemeProvider>
+            <RootLayoutContent />
+          </ThemeProvider>
+        </LanguageProvider>
+      </AccessibilityProvider>
+    </GestureHandlerRootView>
   );
 }

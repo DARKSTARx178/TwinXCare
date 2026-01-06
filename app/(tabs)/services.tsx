@@ -81,6 +81,7 @@ export default function Services() {
     let color = '#94a3b8';
     let bgColor = '#f8fafc';
     if (status === 'matched') { color = '#10b981'; bgColor = '#ecfdf5'; }
+    if (status === 'confirmed') { color = '#065f46'; bgColor = '#dcfce7'; }
     if (status === 'pending' || status === 'available') { color = '#f59e0b'; bgColor = '#fffbeb'; }
 
     return (
@@ -145,7 +146,12 @@ export default function Services() {
             </View>
           ) : (
             myRequests.map((req) => (
-              <TouchableOpacity key={req.id} style={[styles.itemCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]} activeOpacity={0.7}>
+              <TouchableOpacity
+                key={req.id}
+                style={[styles.itemCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}
+                activeOpacity={0.7}
+                onPress={() => router.push({ pathname: '/escorts/escort', params: { jobId: req.id, type: 'request' } })}
+              >
                 <View style={styles.cardInfo}>
                   <Text style={[styles.hospitalName, { color: theme.text }]}>{req.hospital}</Text>
                   <View style={styles.detailRow}>
@@ -160,6 +166,12 @@ export default function Services() {
                     <Text style={[styles.matchText, { color: theme.primary }]}>
                       Volunteer Assigned
                     </Text>
+                  </View>
+                )}
+                {req.status === 'confirmed' && (
+                  <View style={[styles.matchInfo, { backgroundColor: '#dcfce7' }]}>
+                    <Ionicons name="lock-closed" size={16} color="#059669" />
+                    <Text style={[styles.matchText, { color: '#059669' }]}>Job Confirmed & Locked</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -195,7 +207,12 @@ export default function Services() {
             </View>
           ) : (
             myAvailabilities.map((avail) => (
-              <TouchableOpacity key={avail.id} style={[styles.itemCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]} activeOpacity={0.7}>
+              <TouchableOpacity
+                key={avail.id}
+                style={[styles.itemCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}
+                activeOpacity={0.7}
+                onPress={() => router.push({ pathname: '/escorts/escort', params: { jobId: avail.id, type: 'availability' } })}
+              >
                 <View style={styles.cardInfo}>
                   <Text style={[styles.hospitalName, { color: theme.text }]}>{avail.location}</Text>
                   <View style={styles.detailRow}>
@@ -208,6 +225,12 @@ export default function Services() {
                   <View style={[styles.matchInfo, { backgroundColor: theme.primaryGlow }]}>
                     <Ionicons name="heart" size={16} color={theme.primary} />
                     <Text style={[styles.matchText, { color: theme.primary }]}>Matched with Patient</Text>
+                  </View>
+                )}
+                {avail.status === 'confirmed' && (
+                  <View style={[styles.matchInfo, { backgroundColor: '#dcfce7' }]}>
+                    <Ionicons name="lock-closed" size={16} color="#059669" />
+                    <Text style={[styles.matchText, { color: '#059669' }]}>Job Confirmed & Locked</Text>
                   </View>
                 )}
               </TouchableOpacity>

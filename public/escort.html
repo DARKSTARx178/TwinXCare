@@ -604,19 +604,15 @@
                 <div class="control-panel">
                     <div class="glass-box" id="vol-form-container" style="display: none;">
                         <div class="box-header" style="background: rgba(129, 140, 248, 0.05);">
-                            <h2><i class="fas fa-plus-circle" style="color: var(--indigo-600);"></i> Add Availability
-                            </h2>
+                            <h2><i class="fas fa-plus-circle" style="color: var(--indigo-600);"></i> Register
+                                Availability</h2>
                         </div>
                         <div class="form-body">
                             <form id="vol-form">
-                                <div class="form-group">
-                                    <label>Display Name</label>
-                                    <input type="text" class="input-dark" id="vol-name" placeholder="John Doe" required>
-                                </div>
                                 <div class="form-group"
                                     style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                                     <div>
-                                        <label>Shift Date</label>
+                                        <label>Escort Date</label>
                                         <input type="date" class="input-dark" id="vol-date" required>
                                     </div>
                                     <div>
@@ -630,11 +626,28 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Expertise / Notes</label>
-                                    <textarea class="input-dark" id="vol-notes" style="height: 80px; resize: none;"
-                                        placeholder="E.g. Senior care specialist..."></textarea>
+                                    <label>Preferred Location</label>
+                                    <input type="text" class="input-dark" id="vol-location"
+                                        placeholder="Hospital, area, or facility" required>
                                 </div>
-                                <button type="submit" class="btn-premium btn-indigo-outline">Submit
+                                <div class="form-group"
+                                    style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
+                                    <div>
+                                        <label>Capacity</label>
+                                        <input type="number" class="input-dark" id="vol-pax" placeholder="1" value="1">
+                                    </div>
+                                    <div>
+                                        <label>Contact Phone</label>
+                                        <input type="tel" class="input-dark" id="vol-phone"
+                                            placeholder="Your active number">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Additional Notes</label>
+                                    <textarea class="input-dark" id="vol-notes" style="height: 80px; resize: none;"
+                                        placeholder="Constraints or references..."></textarea>
+                                </div>
+                                <button type="submit" class="btn-premium btn-indigo-outline">Register
                                     Availability</button>
                             </form>
                         </div>
@@ -642,23 +655,18 @@
 
                     <div class="glass-box" id="req-form-container" style="display: none;">
                         <div class="box-header" style="background: rgba(251, 113, 133, 0.05);">
-                            <h2><i class="fas fa-heart" style="color: var(--rose-600);"></i> Request Support</h2>
+                            <h2><i class="fas fa-heart" style="color: var(--rose-600);"></i> Request Escort</h2>
                         </div>
                         <div class="form-body">
                             <form id="req-form">
-                                <div class="form-group">
-                                    <label>Requester Name</label>
-                                    <input type="text" class="input-dark" id="req-name" placeholder="Client Name"
-                                        required>
-                                </div>
                                 <div class="form-group"
-                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                    style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
                                     <div>
-                                        <label>Event Date</label>
+                                        <label>Date</label>
                                         <input type="date" class="input-dark" id="req-date" required>
                                     </div>
                                     <div>
-                                        <label>Required Time</label>
+                                        <label>Time Window</label>
                                         <div style="display: flex; align-items: center; gap: 8px;">
                                             <input type="time" class="input-dark" id="req-start"
                                                 style="flex: 1; min-width: 0;" required>
@@ -668,11 +676,37 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Requirements</label>
-                                    <textarea class="input-dark" id="req-notes" style="height: 80px; resize: none;"
+                                    <label>Hospital / Clinic</label>
+                                    <input type="text" class="input-dark" id="req-hospital"
+                                        placeholder="Name of health facility" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Reason for Appointment</label>
+                                    <input type="text" class="input-dark" id="req-reason"
+                                        placeholder="e.g. Regular checkup, Dialysis" required>
+                                </div>
+                                <div class="form-group"
+                                    style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
+                                    <div>
+                                        <label>Patient Age</label>
+                                        <input type="number" class="input-dark" id="req-age" placeholder="70">
+                                    </div>
+                                    <div>
+                                        <label>Contact Phone</label>
+                                        <input type="tel" class="input-dark" id="req-phone" placeholder="Mobile number">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Medical Details</label>
+                                    <textarea class="input-dark" id="req-medical" style="height: 60px; resize: none;"
+                                        placeholder="Mobility constraints, medications..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Additional Instructions</label>
+                                    <textarea class="input-dark" id="req-notes" style="height: 60px; resize: none;"
                                         placeholder="Any specific needs?"></textarea>
                                 </div>
-                                <button type="submit" class="btn-premium btn-rose-outline">Send Request</button>
+                                <button type="submit" class="btn-premium btn-rose-outline">Submit Request</button>
                             </form>
                         </div>
                     </div>
@@ -793,14 +827,19 @@
             const data = {
                 providerId: auth.currentUser.uid,
                 providerEmail: auth.currentUser.email,
-                name: document.getElementById('vol-name').value,
-                notes: document.getElementById('vol-notes').value,
                 date: document.getElementById('vol-date').value,
                 fromTime: document.getElementById('vol-start').value,
                 toTime: document.getElementById('vol-end').value,
+                location: document.getElementById('vol-location').value,
+                maxPax: Number(document.getElementById('vol-pax').value) || 1,
+                contactPhone: document.getElementById('vol-phone').value,
+                notes: document.getElementById('vol-notes').value,
                 createdAt: new Date().toISOString(),
                 status: 'available',
-                location: 'Main Hospital'
+                patientConfirmed: false,
+                volunteerConfirmed: false,
+                patientCompleted: false,
+                volunteerCompleted: false
             };
             await addDoc(collection(db, 'escort', 'availability', 'entries'), data);
             e.target.reset();
@@ -812,13 +851,16 @@
             const data = {
                 userId: auth.currentUser.uid,
                 userEmail: auth.currentUser.email,
-                caregiverName: document.getElementById('req-name').value,
-                notes: document.getElementById('req-notes').value,
                 date: document.getElementById('req-date').value,
                 time: document.getElementById('req-start').value,
                 endTime: document.getElementById('req-end').value,
+                hospital: document.getElementById('req-hospital').value,
+                appointmentReason: document.getElementById('req-reason').value,
+                age: Number(document.getElementById('req-age').value) || null,
+                contactPhone: document.getElementById('req-phone').value,
+                medicalDetails: document.getElementById('req-medical').value,
+                additionalNotes: document.getElementById('req-notes').value,
                 status: 'pending',
-                hospital: 'Main Hospital',
                 createdAt: new Date().toISOString()
             };
             await addDoc(collection(db, 'escort', 'request', 'entries'), data);

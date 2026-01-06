@@ -1014,11 +1014,9 @@
             grid.innerHTML = sorted.map(r => {
                 const displayName = r.caregiverName || r.userEmail?.split('@')[0] || 'Anonymous';
                 let action = '';
-                if (r.status === 'pending') {
-                    action = `<button class="btn-sm" onclick="openMatchModal('${r.id}')">Verify Match</button>`;
-                } else if (r.status === 'matched') {
-                    action = `<button class="btn-sm" style="border-color:var(--warning); color:var(--warning)" onclick="openRateModal('${r.id}')">Finalize Shift</button>`;
-                } else {
+                if (r.status === 'confirmed') {
+                    action = `<button class="btn-sm" style="border-color:var(--success); color:var(--success)" onclick="adminCompleteJob('${r.id}', '${r.matchedAvailabilityId}')">Complete Job</button>`;
+                } else if (r.status === 'completed') {
                     action = `<span style="color:var(--success); font-weight:800; font-size: 0.8rem;"><i class="fas fa-check-circle"></i> Fulfilled</span>`;
                 }
 
@@ -1041,7 +1039,7 @@
                         </div>
                         <div class="card-actions" style="gap: 10px;">
                             ${action}
-                             <button class="btn-sm" style="border:0; color:var(--text-dim)" onclick="deleteEntry('request', '${r.id}')">Delete</button>
+                             <button class="btn-sm" style="border-color:var(--danger); color:var(--danger)" onclick="deleteEntry('request', '${r.id}')">Remove</button>
                         </div>
                     </div>
                 `;
@@ -1103,45 +1101,15 @@
             resetRating();
         };
 
-        document.getElementById('confirm-rate-btn').onclick = async () => {
-            if (selectedRating === 0) return alert("Select a rating to finalize.");
-
-            const requestId = activeRatingRequest.id;
-            const providerId = activeRatingRequest.matchedProviderId;
-
-            try {
-                // 1. Update the Request entry 
-                await updateDoc(doc(db, 'escort', 'request', 'entries', requestId), {
-                    status: 'completed',
-                    rating: selectedRating
-                });
-
-                // 2. Update the Provider's Global Profile Rating
-                if (providerId && providerId !== 'guest') {
-                    const userRef = doc(db, 'users', providerId);
-                    const userSnap = await getDoc(userRef);
-
-                    if (userSnap.exists()) {
-                        const userData = userSnap.data();
-                        const currentRating = userData.rating || 0;
-                        const currentCount = userData.ratingCount || 0;
-
-                        const newCount = currentCount + 1;
-                        const newAverage = ((currentRating * currentCount + selectedRating) / newCount).toFixed(2);
-
-                        await updateDoc(userRef, {
-                            rating: parseFloat(newAverage),
-                            ratingCount: newCount
-                        });
-                        console.log(`Global rating updated for provider ${providerId}`);
-                    }
+        window.adminCompleteJob = async (reqId, availId) => {
+            if (confirm('Manually mark this assignment as COMPLETED? Both parties will be notified.')) {
+                try {
+                    await updateDoc(doc(db, 'escort', 'request', 'entries', reqId), { status: 'completed' });
+                    await updateDoc(doc(db, 'escort', 'availability', 'entries', availId), { status: 'completed' });
+                    alert("Job status updated to completed.");
+                } catch (err) {
+                    alert("Error: " + err.message);
                 }
-
-                closeModal('rate-modal');
-                alert("Shift finalized and provider ranking updated!");
-            } catch (err) {
-                console.error("Finalization error:", err);
-                alert("Error finalizing shift: " + err.message);
             }
         };
 

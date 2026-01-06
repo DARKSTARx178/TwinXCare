@@ -221,39 +221,103 @@ const executeMatch = async (reqId: string, reqData: any, availId: string, availD
 
 /**
  * Transitions a match from 'matched' to 'confirmed' (locked-in).
- * This usually happens when one or both parties agree to the introduction.
+ * Both parties must confirm before the status changes.
  */
-export const lockInJob = async (reqId: string, availId: string) => {
-    console.log(`🔐 LOCKING IN JOB: Req ${reqId} + Avail ${availId}`);
+export const lockInJob = async (reqId: string, availId: string, role: 'patient' | 'volunteer') => {
+    console.log(`🔐 LOCKING IN JOB (By ${role}): Req ${reqId} + Avail ${availId}`);
     try {
-        await updateDoc(doc(db, 'escort', 'request', 'entries', reqId), {
-            status: 'confirmed'
-        });
-        await updateDoc(doc(db, 'escort', 'availability', 'entries', availId), {
-            status: 'confirmed'
-        });
+        const reqRef = doc(db, 'escort', 'request', 'entries', reqId);
+        const availRef = doc(db, 'escort', 'availability', 'entries', availId);
 
-        // Notify both parties of the firm commitment
-        const reqSnap = await getDoc(doc(db, 'escort', 'request', 'entries', reqId));
-        const availSnap = await getDoc(doc(db, 'escort', 'availability', 'entries', availId));
+        const updateData: any = {};
+        if (role === 'patient') updateData.patientConfirmed = true;
+        else updateData.volunteerConfirmed = true;
 
-        if (reqSnap.exists() && availSnap.exists()) {
-            const reqData = reqSnap.data();
-            const availData = availSnap.data();
+        await updateDoc(reqRef, updateData);
+        await updateDoc(availRef, updateData);
+
+        const updatedReq = await getDoc(reqRef);
+        const reqData = updatedReq.data();
+
+        if (reqData?.patientConfirmed && reqData?.volunteerConfirmed) {
+            await updateDoc(reqRef, { status: 'confirmed' });
+            await updateDoc(availRef, { status: 'confirmed' });
 
             const patientToken = await getUserPushToken(reqData.userId);
-            const providerToken = await getUserPushToken(availData.providerId);
+            const providerToken = await getUserPushToken(reqData.matchedProviderId);
+            const msg = `Introduction complete! Your match for ${reqData.date} is now officially CONFIRMED by both parties.`;
 
-            const msg = `Assignment Confirmed! Your escort for ${reqData.date} is now officially locked in.`;
-
-            if (patientToken) await sendPushNotification(patientToken, 'Job Locked In! 🔒', msg);
-            if (providerToken) await sendPushNotification(providerToken, 'Job Locked In! 🔒', msg);
+            if (patientToken) await sendPushNotification(patientToken, 'Job Fully Confirmed! ✅', msg);
+            if (providerToken) await sendPushNotification(providerToken, 'Job Fully Confirmed! ✅', msg);
+            await sendLocalNotification('Job Fully Confirmed! ✅', 'Both parties have agreed.');
+        } else if (reqData) {
+            // Notify the other party that one person has confirmed
+            const otherToken = role === 'patient' ? await getUserPushToken(reqData.matchedProviderId) : await getUserPushToken(reqData.userId);
+            const otherMsg = `${role === 'patient' ? 'The Patient' : 'The Volunteer'} has confirmed the match. Please confirm on your end to lock it in.`;
+            if (otherToken) await sendPushNotification(otherToken, 'Match Confirmation Pending', otherMsg);
+            await sendLocalNotification('Confirmation Sent', 'Waiting for the other party to confirm.');
         }
-
-        await sendLocalNotification('Job Locked In! 🔒', 'The assignment is now officially confirmed.');
         return true;
     } catch (e) {
         console.error('❌ Error locking in job:', e);
+        return false;
+    }
+};
+
+/**
+ * Marks a job as completed. Both parties must end the job before the status changes to gray 'completed'.
+ */
+export const completeJob = async (reqId: string, availId: string, role: 'patient' | 'volunteer', rating?: number) => {
+    console.log(`🏁 COMPLETING JOB (By ${role}): Req ${reqId} + Avail ${availId}`);
+    try {
+        const reqRef = doc(db, 'escort', 'request', 'entries', reqId);
+        const availRef = doc(db, 'escort', 'availability', 'entries', availId);
+
+        const updateData: any = {};
+        if (role === 'patient') {
+            updateData.patientCompleted = true;
+            if (rating) updateData.volunteerRating = rating;
+        } else {
+            updateData.volunteerCompleted = true;
+            if (rating) updateData.patientRating = rating;
+        }
+
+        await updateDoc(reqRef, updateData);
+        await updateDoc(availRef, updateData);
+
+        // Apply rating to the user profile immediately if provided
+        if (rating) {
+            const reqSnap = await getDoc(reqRef);
+            const reqData = reqSnap.data();
+            const targetId = role === 'patient' ? reqData?.matchedProviderId : reqData?.userId;
+
+            if (targetId) {
+                const userRef = doc(db, 'users', targetId);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    const ud = userSnap.data();
+                    const curR = ud.rating || 0;
+                    const curC = ud.ratingCount || 0;
+                    const newCount = curC + 1;
+                    const newAvg = (curR * curC + rating) / newCount;
+                    await updateDoc(userRef, { rating: newAvg, ratingCount: newCount });
+                }
+            }
+        }
+
+        const updatedReq = await getDoc(reqRef);
+        const reqData = updatedReq.data();
+
+        if (reqData?.patientCompleted && reqData?.volunteerCompleted) {
+            await updateDoc(reqRef, { status: 'completed' });
+            await updateDoc(availRef, { status: 'completed' });
+            await sendLocalNotification('Assignment Completed! 🏁', 'Job is now officially closed.');
+        } else {
+            await sendLocalNotification('Success', 'Your completion has been recorded. Waiting for counterpart.');
+        }
+        return true;
+    } catch (e) {
+        console.error('❌ Error completing job:', e);
         return false;
     }
 };

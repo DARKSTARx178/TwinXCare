@@ -87,25 +87,57 @@ export default function EscortAvailability() {
   // Reanimated Slider State
   const translateX = useSharedValue(0);
 
+  const [selectedRating, setSelectedRating] = useState(0);
+
   const onConfirm = async () => {
     if (!jobId || !jobData) return;
     const reqId = type === 'request' ? jobId : jobData.matchedRequestId;
     const availId = type === 'availability' ? jobId : jobData.matchedAvailabilityId;
+    const myRole = type === 'request' ? 'patient' : 'volunteer';
 
     if (!reqId || !availId) {
       Alert.alert("Error", "Could not find linked companion for this job.");
+      translateX.value = withSpring(0);
       return;
     }
 
-    const success = await lockInJob(reqId, availId);
+    const success = await lockInJob(reqId, availId, myRole);
     if (success) {
-      setJobData({ ...jobData, status: 'confirmed' });
+      // Refresh local data
+      const path = type === 'availability' ? 'escort/availability/entries' : 'escort/request/entries';
+      const jSnap = await getDoc(doc(db, path, jobId));
+      if (jSnap.exists()) setJobData(jSnap.data());
+
       await refreshMySlots();
-      Alert.alert("Success", "Job has been locked in and confirmed!");
+      Alert.alert("Recorded", "Confirmation recorded. The job will be locked when both parties agree.");
     } else {
-      Alert.alert("Error", "Failed to confirm job. Please try again.");
-      translateX.value = withSpring(0);
+      Alert.alert("Error", "Failed to confirm. Please try again.");
     }
+    translateX.value = withSpring(0);
+  };
+
+  const onComplete = async () => {
+    if (!jobId || !jobData) return;
+    const reqId = type === 'request' ? jobId : jobData.matchedRequestId;
+    const availId = type === 'availability' ? jobId : jobData.matchedAvailabilityId;
+    const myRole = type === 'request' ? 'patient' : 'volunteer';
+
+    if (selectedRating === 0) {
+      Alert.alert("Rating Required", "Please select a rating before ending the job.");
+      translateX.value = withSpring(0);
+      return;
+    }
+
+    const success = await completeJob(reqId, availId, myRole, selectedRating);
+    if (success) {
+      const path = type === 'availability' ? 'escort/availability/entries' : 'escort/request/entries';
+      const jSnap = await getDoc(doc(db, path, jobId));
+      if (jSnap.exists()) setJobData(jSnap.data());
+      Alert.alert("Recorded", "Job completion recorded. Status will update once both parties finish.");
+    } else {
+      Alert.alert("Error", "Failed to complete job.");
+    }
+    translateX.value = withSpring(0);
   };
 
   const panGesture = Gesture.Pan()
@@ -118,7 +150,8 @@ export default function EscortAvailability() {
     .onEnd(() => {
       if (translateX.value > HITTING_POINT * 0.8) {
         translateX.value = withSpring(HITTING_POINT);
-        runOnJS(onConfirm)();
+        if (jobData?.status === 'matched') runOnJS(onConfirm)();
+        else if (jobData?.status === 'confirmed') runOnJS(onComplete)();
       } else {
         translateX.value = withSpring(0);
       }
@@ -265,28 +298,75 @@ export default function EscortAvailability() {
 
             {jobData?.status === 'matched' && (
               <View style={{ marginTop: 40 }}>
-                <Text style={[styles.label, { color: theme.textDim, textAlign: 'center', marginBottom: 20 }]}>Slide to Confirm Job</Text>
-
-                <View style={styles.sliderContainer}>
-                  <Animated.View style={[styles.sliderTrack, animatedTrackStyle]}>
-                    <Text style={[styles.sliderHint, { color: theme.textDim }]}>Confirming...</Text>
-                  </Animated.View>
-
-                  <GestureDetector gesture={panGesture}>
-                    <Animated.View style={[styles.sliderKnob, animatedKnobStyle]}>
-                      <Ionicons name="arrow-forward" size={24} color="#000" />
-                    </Animated.View>
-                  </GestureDetector>
-                </View>
+                {(type === 'request' ? jobData?.patientConfirmed : jobData?.volunteerConfirmed) ? (
+                  <View style={styles.confirmedBox}>
+                    <Ionicons name="time" size={32} color={theme.primary} />
+                    <Text style={{ fontWeight: '800', color: theme.text, marginTop: 10 }}>WAITING FOR COUNTERPART</Text>
+                    <Text style={{ fontSize: 13, color: theme.textDim, textAlign: 'center', marginTop: 5 }}>
+                      You have confirmed. Status will update once the other person slides to agree.
+                    </Text>
+                  </View>
+                ) : (
+                  <>
+                    <Text style={[styles.label, { color: theme.textDim, textAlign: 'center', marginBottom: 20 }]}>Slide to Agree & Confirm Match</Text>
+                    <View style={styles.sliderContainer}>
+                      <Animated.View style={[styles.sliderTrack, animatedTrackStyle]}>
+                        <Text style={[styles.sliderHint, { color: theme.textDim }]}>Confirming...</Text>
+                      </Animated.View>
+                      <GestureDetector gesture={panGesture}>
+                        <Animated.View style={[styles.sliderKnob, animatedKnobStyle]}>
+                          <Ionicons name="arrow-forward" size={24} color="#000" />
+                        </Animated.View>
+                      </GestureDetector>
+                    </View>
+                  </>
+                )}
               </View>
             )}
 
             {jobData?.status === 'confirmed' && (
-              <View style={[styles.confirmedBox, { backgroundColor: '#ecfdf5' }]}>
-                <Ionicons name="checkmark-circle" size={40} color="#10b981" />
-                <Text style={{ fontWeight: '800', color: '#065f46', marginTop: 10 }}>JOB LOCKED IN</Text>
-                <Text style={{ fontSize: 13, color: '#065f46', textAlign: 'center', marginTop: 5 }}>
-                  You are officially scheduled for this assignment. TwinXCare will notify you if anything changes.
+              <View style={{ marginTop: 40 }}>
+                {(type === 'request' ? jobData?.patientCompleted : jobData?.volunteerCompleted) ? (
+                  <View style={styles.confirmedBox}>
+                    <Ionicons name="hourglass" size={32} color={theme.primary} />
+                    <Text style={{ fontWeight: '800', color: theme.text, marginTop: 10 }}>COMPLETION RECORDED</Text>
+                    <Text style={{ fontSize: 13, color: theme.textDim, textAlign: 'center', marginTop: 5 }}>
+                      Job will close once both parties finish.
+                    </Text>
+                  </View>
+                ) : (
+                  <>
+                    <Text style={[styles.label, { color: theme.textDim, textAlign: 'center', marginBottom: 10 }]}>Rate your Experience</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 30 }}>
+                      {[1, 2, 3, 4, 5].map(v => (
+                        <TouchableOpacity key={v} onPress={() => setSelectedRating(v)}>
+                          <Ionicons name={selectedRating >= v ? "star" : "star-outline"} size={32} color={selectedRating >= v ? "#f59e0b" : theme.textDim} />
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    <Text style={[styles.label, { color: theme.textDim, textAlign: 'center', marginBottom: 20 }]}>Slide to End Job</Text>
+                    <View style={styles.sliderContainer}>
+                      <Animated.View style={[styles.sliderTrack, animatedTrackStyle]}>
+                        <Text style={[styles.sliderHint, { color: theme.textDim }]}>Ending Job...</Text>
+                      </Animated.View>
+                      <GestureDetector gesture={panGesture}>
+                        <Animated.View style={[styles.sliderKnob, animatedKnobStyle]}>
+                          <Ionicons name="power" size={24} color="#000" />
+                        </Animated.View>
+                      </GestureDetector>
+                    </View>
+                  </>
+                )}
+              </View>
+            )}
+
+            {jobData?.status === 'completed' && (
+              <View style={[styles.confirmedBox, { backgroundColor: '#f1f5f9' }]}>
+                <Ionicons name="flag" size={40} color="#64748b" />
+                <Text style={{ fontWeight: '800', color: '#334155', marginTop: 10 }}>ASSIGNMENT COMPLETED</Text>
+                <Text style={{ fontSize: 13, color: '#64748b', textAlign: 'center', marginTop: 5 }}>
+                  Thank you for using TwinXCare. This case is now closed.
                 </Text>
               </View>
             )}
@@ -678,5 +758,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 8,
+    letterSpacing: 0.5,
   }
 });

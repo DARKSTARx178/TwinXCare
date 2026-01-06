@@ -402,6 +402,7 @@
             backdrop-filter: blur(5px);
         }
 
+        .badge-available,
         .badge-pending {
             color: var(--danger);
             background: rgba(239, 68, 68, 0.1);
@@ -902,7 +903,7 @@
                             ${isMatched ? `<div class="detail-item" style="color:var(--success)"><i class="fas fa-user-check"></i> Matched with: ${r.matchedProviderName || 'Assigned Companion'}</div>` : ''}
                         </div>
                         <div class="card-actions">
-                             <button class="btn-sm" style="border:0; color:var(--text-dim)" onclick="deleteEntry('request', '${r.id}')">${isDone ? 'Clear Log' : 'Cancel Request'}</button>
+                             <button class="btn-sm" style="border-color:var(--danger); color:var(--danger)" onclick="deleteEntry('request', '${r.id}')">Remove</button>
                         </div>
                     </div>
                 `;

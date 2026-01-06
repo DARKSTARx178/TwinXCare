@@ -101,17 +101,19 @@ export default function EscortAvailability() {
       return;
     }
 
+    // Optimistic Update
+    setJobData((prev: any) => ({ ...prev, [myRole === 'patient' ? 'patientConfirmed' : 'volunteerConfirmed']: true }));
+
     const success = await lockInJob(reqId, availId, myRole);
     if (success) {
-      // Refresh local data
       const path = type === 'availability' ? 'escort/availability/entries' : 'escort/request/entries';
       const jSnap = await getDoc(doc(db, path, jobId));
       if (jSnap.exists()) setJobData(jSnap.data());
 
       await refreshMySlots();
-      Alert.alert("Recorded", "Confirmation recorded. The job will be locked when both parties agree.");
     } else {
       Alert.alert("Error", "Failed to confirm. Please try again.");
+      setJobData((prev: any) => ({ ...prev, [myRole === 'patient' ? 'patientConfirmed' : 'volunteerConfirmed']: false }));
     }
     translateX.value = withSpring(0);
   };
@@ -128,14 +130,17 @@ export default function EscortAvailability() {
       return;
     }
 
+    // Optimistic Update
+    setJobData((prev: any) => ({ ...prev, [myRole === 'patient' ? 'patientCompleted' : 'volunteerCompleted']: true }));
+
     const success = await completeJob(reqId, availId, myRole, selectedRating);
     if (success) {
       const path = type === 'availability' ? 'escort/availability/entries' : 'escort/request/entries';
       const jSnap = await getDoc(doc(db, path, jobId));
       if (jSnap.exists()) setJobData(jSnap.data());
-      Alert.alert("Recorded", "Job completion recorded. Status will update once both parties finish.");
     } else {
       Alert.alert("Error", "Failed to complete job.");
+      setJobData((prev: any) => ({ ...prev, [myRole === 'patient' ? 'patientCompleted' : 'volunteerCompleted']: false }));
     }
     translateX.value = withSpring(0);
   };

@@ -218,13 +218,17 @@ export default function EscortAvailability() {
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <Text style={[styles.cardHeading, { color: theme.text, marginBottom: 0 }]}>Assignment Overview</Text>
               <View style={[styles.statusBadge, {
-                backgroundColor: jobData?.status === 'confirmed' ? '#ecfdf5' :
-                  jobData?.status === 'matched' ? '#fffbeb' : '#f8fafc'
+                backgroundColor:
+                  jobData?.status === 'confirmed' ? '#ecfdf5' :
+                    jobData?.status === 'matched' ? '#fffbeb' :
+                      (jobData?.status === 'available' || jobData?.status === 'pending') ? '#fef2f2' : '#f8fafc'
               }]}>
                 <Text style={{
                   fontSize: 10, fontWeight: '800',
-                  color: jobData?.status === 'confirmed' ? '#10b981' :
-                    jobData?.status === 'matched' ? '#f59e0b' : '#94a3b8'
+                  color:
+                    jobData?.status === 'confirmed' ? '#10b981' :
+                      jobData?.status === 'matched' ? '#f59e0b' :
+                        (jobData?.status === 'available' || jobData?.status === 'pending') ? '#ef4444' : '#94a3b8'
                 }}>
                   {jobData?.status?.toUpperCase() || 'UNKNOWN'}
                 </Text>
@@ -456,13 +460,17 @@ export default function EscortAvailability() {
                     <Text style={[styles.slotSub, { color: theme.textDim }]}>{slot.date} • {slot.fromTime}</Text>
                   </View>
                   <View style={[styles.statusTag, {
-                    backgroundColor: slot.status === 'confirmed' ? '#ecfdf5' :
-                      slot.status === 'matched' ? '#fffbeb' : '#f8fafc'
+                    backgroundColor:
+                      slot.status === 'confirmed' ? '#ecfdf5' :
+                        slot.status === 'matched' ? '#fffbeb' :
+                          (slot.status === 'available' || slot.status === 'pending') ? '#fef2f2' : '#f8fafc'
                   }]}>
                     <Text style={{
                       fontSize: 9, fontWeight: '800',
-                      color: slot.status === 'confirmed' ? '#10b981' :
-                        slot.status === 'matched' ? '#f59e0b' : '#94a3b8'
+                      color:
+                        slot.status === 'confirmed' ? '#10b981' :
+                          slot.status === 'matched' ? '#f59e0b' :
+                            (slot.status === 'available' || slot.status === 'pending') ? '#ef4444' : '#94a3b8'
                     }}>
                       {slot.status.toUpperCase()}
                     </Text>

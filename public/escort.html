@@ -403,12 +403,18 @@
         }
 
         .badge-pending {
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .badge-matched {
             color: var(--warning);
             background: rgba(245, 158, 11, 0.1);
             border: 1px solid rgba(245, 158, 11, 0.2);
         }
 
-        .badge-matched {
+        .badge-confirmed {
             color: var(--success);
             background: rgba(16, 185, 129, 0.1);
             border: 1px solid rgba(16, 185, 129, 0.2);
@@ -855,7 +861,7 @@
                                     <div class="card-sub">${isMatched ? 'Matched with Client' : 'Waiting for Match'}</div>
                                 </div>
                             </div>
-                            <span class="badge-glass ${isMatched ? 'badge-matched' : 'badge-pending'}">${isMatched ? 'Matched' : 'Open'}</span>
+                            <span class="badge-glass badge-${v.status}">${v.status}</span>
                         </div>
                         <div class="card-details">
                             <div class="detail-item"><i class="fas fa-calendar"></i> ${formatDate(v.date)}</div>

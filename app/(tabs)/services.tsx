@@ -78,11 +78,20 @@ export default function Services() {
   };
 
   const renderStatusBadge = (status: string) => {
-    let color = '#94a3b8';
+    let color = '#94a3b8'; // Default Slate (Completed/Unknown)
     let bgColor = '#f8fafc';
-    if (status === 'matched') { color = '#10b981'; bgColor = '#ecfdf5'; }
-    if (status === 'confirmed') { color = '#065f46'; bgColor = '#dcfce7'; }
-    if (status === 'pending' || status === 'available') { color = '#f59e0b'; bgColor = '#fffbeb'; }
+
+    const s = status.toLowerCase();
+
+    if (s === 'pending' || s === 'available') {
+      color = '#ef4444'; bgColor = '#fef2f2'; // Red
+    } else if (s === 'matched') {
+      color = '#f59e0b'; bgColor = '#fffbeb'; // Orange
+    } else if (s === 'confirmed') {
+      color = '#10b981'; bgColor = '#ecfdf5'; // Green
+    } else if (s === 'completed') {
+      color = '#94a3b8'; bgColor = '#f8fafc'; // Gray
+    }
 
     return (
       <View style={[styles.statusBadge, { backgroundColor: bgColor }]}>

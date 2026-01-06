@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matchmaking</title>
+    <title>TwinXCare - Escort Portal</title>
     <!-- Fonts & Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link
@@ -464,91 +464,6 @@
             color: #000;
         }
 
-        /* Modals - RESTORED PREMIUM GLASS */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(8px);
-            z-index: 2000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-        }
-
-        .modal {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 32px;
-            width: 100%;
-            max-width: 550px;
-            padding: 2.5rem;
-            position: relative;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-header h3 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .modal-header p {
-            color: var(--text-dim);
-            margin-bottom: 2rem;
-        }
-
-        .modal-options {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            max-height: 400px;
-            overflow-y: auto;
-            margin-bottom: 2rem;
-        }
-
-        .option-item {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border);
-            padding: 1.25rem;
-            border-radius: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .option-item:hover {
-            border-color: var(--primary);
-            background: rgba(255, 255, 255, 0.06);
-        }
-
-        .option-item.occupied {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
-        /* Rating Stars */
-        .star-row {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin: 2rem 0;
-        }
-
-        .star-box {
-            font-size: 2.5rem;
-            color: #334155;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .star-box.active {
-            color: var(--warning);
-            text-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
-        }
-
         /* Auth Screen */
         #auth-view {
             display: flex;
@@ -582,11 +497,11 @@
 <body>
     <div id="loader">
         <div class="spinner"></div>
-        <p style="margin-top: 1.5rem; color: var(--text-dim); font-weight: 600;">Secure Handshake...</p>
+        <p style="margin-top: 1.5rem; color: var(--text-dim); font-weight: 600;">Connecting to Care Portal...</p>
     </div>
 
     <nav>
-        <a href="#" class="logo">
+        <a href="index.html" class="logo">
             <i class="fas fa-heart-pulse logo-icon"></i>
             <h1>TwinXCare</h1>
         </a>
@@ -604,21 +519,22 @@
         <!-- Auth View -->
         <section id="auth-view">
             <div class="login-card">
-                <i class="fas fa-fingerprint" style="font-size: 3rem; color: var(--primary); margin-bottom: 2rem;"></i>
-                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 1rem;">Admin Gate</h2>
-                <p style="color: var(--text-dim); margin-bottom: 3rem;">Authorized coordination access only.</p>
+                <i class="fas fa-user-circle" style="font-size: 3rem; color: var(--primary); margin-bottom: 2rem;"></i>
+                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 1rem;">Escort Portal</h2>
+                <p style="color: var(--text-dim); margin-bottom: 3rem;">Sign in to manage your care requests and
+                    availability.</p>
                 <form id="login-form">
                     <div class="form-group" style="text-align: left;">
-                        <label>Identity</label>
-                        <input type="email" id="login-email" class="input-dark" placeholder="admin@care.com" required>
+                        <label>Email Address</label>
+                        <input type="email" id="login-email" class="input-dark" placeholder="your@email.com" required>
                     </div>
                     <div class="form-group" style="text-align: left;">
-                        <label>Access Key</label>
+                        <label>Password</label>
                         <input type="password" id="login-pass" class="input-dark" placeholder="••••••••" required>
                     </div>
                     <button type="submit" class="btn-premium"
                         style="background: var(--primary); color: #000; margin-top: 1.5rem;">
-                        <i class="fas fa-unlock"></i> Open Dashboard
+                        <i class="fas fa-sign-in-alt"></i> Sign In
                     </button>
                 </form>
             </div>
@@ -630,38 +546,38 @@
             <div class="stats-row">
                 <div class="stat-card">
                     <div class="stat-icon" style="background: rgba(129, 173, 231, 0.1); color: var(--primary);">
-                        <i class="fas fa-user-shield"></i>
+                        <i class="fas fa-user-clock"></i>
                     </div>
                     <div class="stat-data">
-                        <div class="label">Total Providers</div>
+                        <div class="label">My Shifts</div>
                         <div class="value" id="stat-vol">0</div>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);">
-                        <i class="fas fa-hourglass-half"></i>
+                        <i class="fas fa-heart"></i>
                     </div>
                     <div class="stat-data">
-                        <div class="label">Unmatched Needs</div>
+                        <div class="label">Active Requests</div>
                         <div class="value" id="stat-pending">0</div>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
-                        <i class="fas fa-link"></i>
+                        <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="stat-data">
-                        <div class="label">Live Matches</div>
+                        <div class="label">Completed</div>
                         <div class="value" id="stat-matches">0</div>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon" style="background: rgba(98, 184, 234, 0.1); color: var(--accent);">
-                        <i class="fas fa-check-double"></i>
+                        <i class="fas fa-star"></i>
                     </div>
                     <div class="stat-data">
-                        <div class="label">Success Rate</div>
-                        <div class="value" id="stat-rate">0%</div>
+                        <div class="label">Avg Rating</div>
+                        <div class="value" id="stat-rate">0.0</div>
                     </div>
                 </div>
             </div>
@@ -671,7 +587,8 @@
                 <div class="control-panel">
                     <div class="glass-box">
                         <div class="box-header" style="background: rgba(129, 140, 248, 0.05);">
-                            <h2><i class="fas fa-plus-circle" style="color: var(--indigo-600);"></i> Provider Entry</h2>
+                            <h2><i class="fas fa-plus-circle" style="color: var(--indigo-600);"></i> Add Availability
+                            </h2>
                         </div>
                         <div class="form-body">
                             <form id="vol-form">
@@ -694,11 +611,11 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Expertise / Specialization</label>
-                                    <textarea class="input-dark" id="vol-notes"
-                                        style="height: 80px; resize: none;"></textarea>
+                                    <label>Expertise / Notes</label>
+                                    <textarea class="input-dark" id="vol-notes" style="height: 80px; resize: none;"
+                                        placeholder="E.g. Senior care specialist..."></textarea>
                                 </div>
-                                <button type="submit" class="btn-premium btn-indigo-outline">Register
+                                <button type="submit" class="btn-premium btn-indigo-outline">Submit
                                     Availability</button>
                             </form>
                         </div>
@@ -706,7 +623,7 @@
 
                     <div class="glass-box">
                         <div class="box-header" style="background: rgba(251, 113, 133, 0.05);">
-                            <h2><i class="fas fa-heart" style="color: var(--rose-600);"></i> Support Request</h2>
+                            <h2><i class="fas fa-heart" style="color: var(--rose-600);"></i> Request Support</h2>
                         </div>
                         <div class="form-body">
                             <form id="req-form">
@@ -731,10 +648,10 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Requirements</label>
-                                    <textarea class="input-dark" id="req-notes"
-                                        style="height: 80px; resize: none;"></textarea>
+                                    <textarea class="input-dark" id="req-notes" style="height: 80px; resize: none;"
+                                        placeholder="Any specific needs?"></textarea>
                                 </div>
-                                <button type="submit" class="btn-premium btn-rose-outline">Queue Request</button>
+                                <button type="submit" class="btn-premium btn-rose-outline">Send Request</button>
                             </form>
                         </div>
                     </div>
@@ -744,32 +661,19 @@
                 <div class="data-panel">
                     <div class="glass-box">
                         <div class="box-header">
-                            <h2><i class="fas fa-user-check"></i> Available Providers</h2>
-                            <div style="display: flex; gap: 10px;">
-                                <div style="position: relative;">
-                                    <input type="text" id="vol-search" class="input-dark"
-                                        style="padding-left: 35px; width: 220px; font-size: 0.8rem;"
-                                        placeholder="Search names...">
-                                    <i class="fas fa-search"
-                                        style="position: absolute; left: 12px; top: 50%; translate: 0 -50%; font-size: 0.8rem; color: var(--text-dim);"></i>
-                                </div>
-                                <button class="logout-btn" style="padding: 0.5rem;"
-                                    onclick="exportData('volunteers')"><i class="fas fa-file-csv"></i></button>
-                            </div>
+                            <h2><i class="fas fa-user-check"></i> My Availability Shifts</h2>
                         </div>
                         <div id="vol-grid" class="entry-grid">
-                            <!-- Cards Load Here -->
+                            <!-- User's availability entries will load here -->
                         </div>
                     </div>
 
                     <div class="glass-box">
                         <div class="box-header">
-                            <h2><i class="fas fa-clipboard-list"></i> Pending Care Queue</h2>
-                            <button class="logout-btn" style="padding: 0.5rem;" onclick="exportData('requests')"><i
-                                    class="fas fa-file-csv"></i></button>
+                            <h2><i class="fas fa-clipboard-list"></i> My Care Requests</h2>
                         </div>
                         <div id="req-grid" class="entry-grid">
-                            <!-- Cards Load Here -->
+                            <!-- User's care requests will load here -->
                         </div>
                     </div>
                 </div>
@@ -777,47 +681,10 @@
         </section>
     </div>
 
-    <!-- Match Overlay -->
-    <div id="match-modal" class="modal-overlay">
-        <div class="modal">
-            <div class="modal-header">
-                <h3><i class="fas fa-link"></i> Smart Match</h3>
-                <p id="match-subtitle"></p>
-            </div>
-            <div id="match-options" class="modal-options"></div>
-            <button class="btn-premium" style="background: rgba(255,255,255,0.05); color: white;"
-                onclick="closeModal('match-modal')">Discard</button>
-        </div>
-    </div>
-
-    <!-- Rating Overlay -->
-    <div id="rate-modal" class="modal-overlay">
-        <div class="modal" style="text-align: center;">
-            <div class="modal-header">
-                <h3>Close Interaction</h3>
-                <p id="rate-subtitle"></p>
-            </div>
-            <div class="star-row">
-                <i class="fas fa-star star-box" data-val="1"></i>
-                <i class="fas fa-star star-box" data-val="2"></i>
-                <i class="fas fa-star star-box" data-val="3"></i>
-                <i class="fas fa-star star-box" data-val="4"></i>
-                <i class="fas fa-star star-box" data-val="5"></i>
-            </div>
-            <div style="display: flex; gap: 1rem;">
-                <button class="btn-premium" style="background: var(--success); color: #000;"
-                    id="confirm-rate-btn">Finalize & Log</button>
-                <button class="btn-premium"
-                    style="background: transparent; border-color: var(--border); color: var(--text-dim);"
-                    onclick="closeModal('rate-modal')">Back</button>
-            </div>
-        </div>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // APP CONFIGURATION
         const firebaseConfig = {
@@ -834,11 +701,8 @@
         const db = getFirestore(app);
 
         // SYSTEM STATE
-        let volunteers = [];
-        let requests = [];
-        let volSearch = '';
-        let activeRatingRequest = null;
-        let selectedRating = 0;
+        let myVolunteers = [];
+        let myRequests = [];
 
         const loader = document.getElementById('loader');
         const authView = document.getElementById('auth-view');
@@ -851,7 +715,7 @@
                 dashboardView.style.display = 'block';
                 authView.style.display = 'none';
                 logoutBtn.classList.remove('hidden');
-                syncData();
+                syncUserData(user.uid);
             } else {
                 dashboardView.style.display = 'none';
                 authView.style.display = 'flex';
@@ -870,13 +734,17 @@
         logoutBtn.onclick = () => signOut(auth);
 
         // DATA SYNC
-        function syncData() {
-            onSnapshot(collection(db, 'escort', 'availability', 'entries'), (snap) => {
-                volunteers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        function syncUserData(uid) {
+            // Only fetch entries owned by this user
+            const volQuery = query(collection(db, 'escort', 'availability', 'entries'), where("providerId", "==", uid));
+            const reqQuery = query(collection(db, 'escort', 'request', 'entries'), where("userId", "==", uid));
+
+            onSnapshot(volQuery, (snap) => {
+                myVolunteers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderEntries();
             });
-            onSnapshot(collection(db, 'escort', 'request', 'entries'), (snap) => {
-                requests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            onSnapshot(reqQuery, (snap) => {
+                myRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderEntries();
             });
         }
@@ -884,16 +752,18 @@
         // ENTRY SUBMISSIONS
         document.getElementById('vol-form').onsubmit = async (e) => {
             e.preventDefault();
+            if (!auth.currentUser) return;
             const data = {
-                providerId: auth?.currentUser?.uid ?? 'guest',
-                providerEmail: auth?.currentUser?.email ?? 'guest',
+                providerId: auth.currentUser.uid,
+                providerEmail: auth.currentUser.email,
+                name: document.getElementById('vol-name').value,
                 notes: document.getElementById('vol-notes').value,
                 date: document.getElementById('vol-date').value,
                 fromTime: document.getElementById('vol-start').value,
                 toTime: document.getElementById('vol-end').value,
                 createdAt: new Date().toISOString(),
                 status: 'available',
-                location: 'Main Hospital' // Defaulting for simple entries
+                location: 'Main Hospital'
             };
             await addDoc(collection(db, 'escort', 'availability', 'entries'), data);
             e.target.reset();
@@ -901,16 +771,17 @@
 
         document.getElementById('req-form').onsubmit = async (e) => {
             e.preventDefault();
+            if (!auth.currentUser) return;
             const data = {
-                userId: auth?.currentUser?.uid ?? 'guest',
-                userEmail: auth?.currentUser?.email ?? 'guest',
-                caregiverName: document.getElementById('req-name').value, // Used in UI
+                userId: auth.currentUser.uid,
+                userEmail: auth.currentUser.email,
+                caregiverName: document.getElementById('req-name').value,
                 notes: document.getElementById('req-notes').value,
                 date: document.getElementById('req-date').value,
                 time: document.getElementById('req-start').value,
                 endTime: document.getElementById('req-end').value,
                 status: 'pending',
-                hospital: 'Main Hospital', // Defaulting
+                hospital: 'Main Hospital',
                 createdAt: new Date().toISOString()
             };
             await addDoc(collection(db, 'escort', 'request', 'entries'), data);
@@ -925,36 +796,33 @@
         }
 
         function updateStats() {
-            const unmatched = requests.filter(r => r.status === 'pending').length;
-            const live = requests.filter(r => r.status === 'matched').length;
-            const doneCount = requests.filter(r => r.status === 'completed').length;
-            const rate = requests.length ? Math.round((doneCount / requests.length) * 100) : 0;
+            const pendingCount = myRequests.filter(r => r.status === 'pending' || r.status === 'matched').length;
+            const doneCount = myRequests.filter(r => r.status === 'completed').length;
 
-            document.getElementById('stat-vol').innerText = volunteers.length;
-            document.getElementById('stat-pending').innerText = unmatched;
-            document.getElementById('stat-matches').innerText = live;
-            document.getElementById('stat-rate').innerText = rate + '%';
+            // Calculate avg rating as a provider
+            const ratings = myRequests.filter(r => r.matchedProviderId === auth.currentUser?.uid && r.status === 'completed' && r.rating);
+            const avg = ratings.length ? (ratings.reduce((sx, r) => sx + r.rating, 0) / ratings.length).toFixed(1) : "0.0";
+
+            document.getElementById('stat-vol').innerText = myVolunteers.length;
+            document.getElementById('stat-pending').innerText = pendingCount;
+            document.getElementById('stat-matches').innerText = doneCount;
+            document.getElementById('stat-rate').innerText = avg;
         }
 
         function renderVolunteers() {
             const grid = document.getElementById('vol-grid');
-            const sorted = volunteers.filter(v => (v.name || v.providerEmail || '').toLowerCase().includes(volSearch.toLowerCase()))
-                .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+            const sorted = myVolunteers.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
             grid.innerHTML = sorted.map(v => {
-                const displayName = v.name || v.providerEmail?.split('@')[0] || 'Unknown';
                 const isMatched = v.status === 'matched';
-                const ratings = requests.filter(r => r.matchedProviderId === v.providerId && r.status === 'completed' && r.rating);
-                const avg = ratings.length ? (ratings.reduce((sx, r) => sx + r.rating, 0) / ratings.length).toFixed(1) : null;
-
                 return `
                     <div class="entry-card">
                         <div class="card-top">
                             <div class="card-user">
-                                <div class="avatar-circle">${displayName[0]}</div>
+                                <div class="avatar-circle">V</div>
                                 <div>
-                                    <div class="card-name">${displayName}</div>
-                                    <div class="card-sub">${isMatched ? 'On Assignment' : 'Standby'}</div>
+                                    <div class="card-name">My Assignment</div>
+                                    <div class="card-sub">${isMatched ? 'Matched with Client' : 'Waiting for Match'}</div>
                                 </div>
                             </div>
                             <span class="badge-glass ${isMatched ? 'badge-matched' : 'badge-pending'}">${isMatched ? 'Matched' : 'Open'}</span>
@@ -962,40 +830,32 @@
                         <div class="card-details">
                             <div class="detail-item"><i class="fas fa-calendar"></i> ${formatDate(v.date)}</div>
                             <div class="detail-item"><i class="fas fa-clock"></i> ${v.fromTime} - ${v.toTime}</div>
-                            ${avg ? `<div class="detail-item" style="color:var(--warning)"><i class="fas fa-star"></i> Provider Rating: ${avg}</div>` : ''}
-                            <div class="detail-item" style="font-style: italic; opacity: 0.7;"><i class="fas fa-quote-left"></i> ${v.notes || 'No specialized notes'}</div>
+                            <div class="detail-item" style="font-style: italic; opacity: 0.7;"><i class="fas fa-quote-left"></i> ${v.notes || 'No notes'}</div>
                         </div>
                         <div class="card-actions">
                              <button class="btn-sm" style="border-color:var(--danger); color:var(--danger)" onclick="deleteEntry('availability', '${v.id}')">Remove</button>
                         </div>
                     </div>
                 `;
-            }).join('') || '<div style="padding: 2rem; color: var(--text-dim);">No active providers logged.</div>';
+            }).join('') || '<div style="padding: 2rem; color: var(--text-dim);">You have no availability shifts logged.</div>';
         }
 
         function renderRequests() {
             const grid = document.getElementById('req-grid');
-            const sorted = requests.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+            const sorted = myRequests.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
             grid.innerHTML = sorted.map(r => {
-                const displayName = r.caregiverName || r.userEmail?.split('@')[0] || 'Anonymous';
-                let action = '';
-                if (r.status === 'pending') {
-                    action = `<button class="btn-sm" onclick="openMatchModal('${r.id}')">Verify Match</button>`;
-                } else if (r.status === 'matched') {
-                    action = `<button class="btn-sm" style="border-color:var(--warning); color:var(--warning)" onclick="openRateModal('${r.id}')">Finalize Shift</button>`;
-                } else {
-                    action = `<span style="color:var(--success); font-weight:800; font-size: 0.8rem;"><i class="fas fa-check-circle"></i> Fulfilled</span>`;
-                }
+                const isMatched = r.status === 'matched';
+                const isDone = r.status === 'completed';
 
                 return `
-                    <div class="entry-card" style="${r.status === 'completed' ? 'opacity: 0.6' : ''}">
+                    <div class="entry-card" style="${isDone ? 'opacity: 0.6' : ''}">
                         <div class="card-top">
                             <div class="card-user">
                                 <div class="avatar-circle" style="color: var(--rose-600);"><i class="fas fa-heart"></i></div>
                                 <div>
-                                    <div class="card-name">${displayName}</div>
-                                    <div class="card-sub">Request ID: #${r.id.substring(0, 6)}</div>
+                                    <div class="card-name">${r.caregiverName || 'My Request'}</div>
+                                    <div class="card-sub">${isMatched ? 'Provider Assigned' : (isDone ? 'Service Provided' : 'Searching for Provider')}</div>
                                 </div>
                             </div>
                             <span class="badge-glass badge-${r.status}">${r.status}</span>
@@ -1003,103 +863,22 @@
                         <div class="card-details">
                             <div class="detail-item"><i class="fas fa-calendar-day"></i> ${formatDate(r.date)}</div>
                             <div class="detail-item"><i class="fas fa-clock"></i> ${r.time} - ${r.endTime}</div>
-                            <div class="detail-item"><i class="fas fa-scroll"></i> ${r.notes || 'Standard care requested'}</div>
+                            ${isMatched ? `<div class="detail-item" style="color:var(--success)"><i class="fas fa-user-check"></i> Matched with: ${r.matchedProviderName || 'Assigned Companion'}</div>` : ''}
                         </div>
-                        <div class="card-actions" style="gap: 10px;">
-                            ${action}
-                             <button class="btn-sm" style="border:0; color:var(--text-dim)" onclick="deleteEntry('request', '${r.id}')">Delete</button>
+                        <div class="card-actions">
+                             <button class="btn-sm" style="border:0; color:var(--text-dim)" onclick="deleteEntry('request', '${r.id}')">${isDone ? 'Clear Log' : 'Cancel Request'}</button>
                         </div>
                     </div>
                 `;
-            }).join('') || '<div style="padding: 2rem; color: var(--text-dim);">Queue is empty.</div>';
-        }
-
-        // INTERACTIVE LOGIC
-        window.openMatchModal = (reqId) => {
-            const req = requests.find(r => r.id === reqId);
-            const list = document.getElementById('match-options');
-            document.getElementById('match-subtitle').innerText = `Assigning support for ${req.caregiverName || req.userEmail} on ${formatDate(req.date)}`;
-
-            // Availability Cross-check
-            const matches = volunteers.filter(v => {
-                if (v.date !== req.date) return false;
-                return v.fromTime <= req.time && v.toTime >= req.endTime;
-            });
-
-            list.innerHTML = matches.length ? matches.map(v => {
-                const occupied = v.status === 'matched';
-                const displayName = v.name || v.providerEmail?.split('@')[0] || 'Unknown';
-                return `
-                    <div class="option-item ${occupied ? 'occupied' : ''}" onclick="confirmMatch('${req.id}', '${v.id}', '${v.providerId}', '${v.providerEmail}')">
-                        <div>
-                            <div style="font-weight: 800;">${displayName}</div>
-                            <div style="font-size: 0.8rem; color: var(--text-dim);">${v.fromTime} - ${v.toTime}</div>
-                        </div>
-                        ${occupied ? '<span style="font-size:0.7rem; color:var(--danger);">Engaged</span>' : '<i class="fas fa-plus-circle" style="color: var(--primary);"></i>'}
-                    </div>
-                `;
-            }).join('') : '<div style="text-align:center; padding: 2rem; color: var(--text-dim);">No overlapping provider windows found for this request.</div>';
-
-            document.getElementById('match-modal').style.display = 'flex';
-        };
-
-        window.confirmMatch = async (reqId, availId, providerId, providerEmail) => {
-            // Update Request
-            await updateDoc(doc(db, 'escort', 'request', 'entries', reqId), {
-                status: 'matched',
-                matchedAvailabilityId: availId,
-                matchedProviderId: providerId,
-                matchedProviderName: providerEmail
-            });
-            // Update Availability
-            await updateDoc(doc(db, 'escort', 'availability', 'entries', availId), {
-                status: 'matched',
-                matchedRequestId: reqId,
-                matchedUserId: requests.find(r => r.id === reqId)?.userId
-            });
-            closeModal('match-modal');
-        };
-
-        window.openRateModal = (reqId) => {
-            activeRatingRequest = requests.find(r => r.id === reqId);
-            const vol = volunteers.find(v => v.id === activeRatingRequest.matchedAvailabilityId);
-            const displayName = vol?.name || activeRatingRequest.matchedProviderName?.split('@')[0] || 'the provider';
-            document.getElementById('rate-subtitle').innerText = `How would you rate ${displayName}'s service for ${activeRatingRequest.caregiverName || activeRatingRequest.userEmail}?`;
-            document.getElementById('rate-modal').style.display = 'flex';
-            resetRating();
-        };
-
-        document.getElementById('confirm-rate-btn').onclick = async () => {
-            if (selectedRating === 0) return alert("Select a rating to finalize.");
-            await updateDoc(doc(db, 'escort', 'request', 'entries', activeRatingRequest.id), { status: 'completed', rating: selectedRating });
-            closeModal('rate-modal');
-        };
-
-        // RATING UI
-        document.querySelectorAll('.star-box').forEach(s => {
-            s.onclick = () => {
-                selectedRating = parseInt(s.dataset.val);
-                document.querySelectorAll('.star-box').forEach(st => st.classList.toggle('active', parseInt(st.dataset.val) <= selectedRating));
-            };
-        });
-
-        function resetRating() {
-            selectedRating = 0;
-            document.querySelectorAll('.star-box').forEach(s => s.classList.remove('active'));
+            }).join('') || '<div style="padding: 2rem; color: var(--text-dim);">No personal care requests found.</div>';
         }
 
         // UTILS
-        window.closeModal = (id) => document.getElementById(id).style.display = 'none';
         window.deleteEntry = async (type, id) => {
-            if (confirm('Permanently scrub this record?')) {
+            if (confirm('Permanently remove this entry?')) {
                 const path = type === 'availability' ? 'escort/availability/entries' : 'escort/request/entries';
                 await deleteDoc(doc(db, path, id));
             }
-        };
-
-        document.getElementById('vol-search').oninput = (e) => {
-            volSearch = e.target.value;
-            renderVolunteers();
         };
 
         function formatDate(s) {
@@ -1112,15 +891,6 @@
             setTimeout(() => loader.style.visibility = 'hidden', 500);
         }
 
-        window.exportData = (type) => {
-            const data = type === 'volunteers' ? volunteers : requests;
-            if (!data.length) return;
-            const link = document.createElement('a');
-            const csv = "data:text/csv;charset=utf-8," + [Object.keys(data[0]).join(','), ...data.map(r => Object.values(r).join(','))].join('\n');
-            link.href = encodeURI(csv);
-            link.download = `${type}_export_${Date.now()}.csv`;
-            link.click();
-        };
     </script>
 </body>
 

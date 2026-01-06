@@ -591,6 +591,9 @@
             <h1>TwinXCare</h1>
         </a>
         <div class="nav-actions">
+            <button class="logout-btn" onclick="location.reload()" title="Refresh Page">
+                <i class="fas fa-sync-alt"></i>
+            </button>
             <span id="offline-label" class="badge-glass badge-pending hidden">
                 <i class="fas fa-wifi-slash"></i> Offline Sync
             </span>
@@ -765,8 +768,15 @@
                     <div class="glass-box">
                         <div class="box-header">
                             <h2><i class="fas fa-clipboard-list"></i> Pending Care Queue</h2>
-                            <button class="logout-btn" style="padding: 0.5rem;" onclick="exportData('requests')"><i
-                                    class="fas fa-file-csv"></i></button>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn-sm" style="background: var(--primary); color: #000;"
+                                    onclick="autoMatchAll()">
+                                    <i class="fas fa-magic"></i> Auto-Match
+                                </button>
+                                <button class="logout-btn" style="padding: 0.5rem;" onclick="exportData('requests')">
+                                    <i class="fas fa-file-csv"></i>
+                                </button>
+                            </div>
                         </div>
                         <div id="req-grid" class="entry-grid">
                             <!-- Cards Load Here -->
@@ -1120,6 +1130,50 @@
             link.href = encodeURI(csv);
             link.download = `${type}_export_${Date.now()}.csv`;
             link.click();
+        };
+
+        // PARSE TIME HELPER
+        function parseTime(timeStr) {
+            if (!timeStr) return 0;
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        // AUTO-MATCH ALL LOGIC (Matching matchingService.ts)
+        window.autoMatchAll = async () => {
+            const pendingReqs = requests.filter(r => r.status === 'pending');
+            const availableVols = volunteers.filter(v => v.status === 'available');
+
+            if (!pendingReqs.length || !availableVols.length) {
+                alert("No pending requests or available providers found.");
+                return;
+            }
+
+            let matchCount = 0;
+            for (const req of pendingReqs) {
+                const reqStart = parseTime(req.time);
+                const reqEnd = req.endTime ? parseTime(req.endTime) : reqStart + 60;
+
+                // Find first available volunteer for the same date and overlapping time
+                const match = availableVols.find(v => {
+                    if (v.status !== 'available') return false; // Skip if already claimed in this loop
+                    if (v.date !== req.date) return false;
+
+                    const vStart = parseTime(v.fromTime);
+                    const vEnd = parseTime(v.toTime);
+
+                    return reqStart >= vStart && reqEnd <= vEnd;
+                });
+
+                if (match) {
+                    // Execute Match
+                    await window.confirmMatch(req.id, match.id, match.providerId, match.providerEmail);
+                    match.status = 'matched'; // Mark as claimed for this run
+                    matchCount++;
+                }
+            }
+
+            alert(`Auto-match complete! Successfully linked ${matchCount} pair(s).`);
         };
     </script>
 </body>

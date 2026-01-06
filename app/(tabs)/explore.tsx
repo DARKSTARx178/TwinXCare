@@ -166,7 +166,7 @@ export default function Explore() {
           <View style={styles.headerArea}>
             <Text style={[styles.screenTitle, { color: theme.text }]}>Discover</Text>
             <Text style={[styles.screenSubtitle, { color: theme.textDim }]}>
-              Explore tailored health equipment and professional services
+              Explore advanced medical equipment and professional services
             </Text>
 
             <View style={[styles.searchBox, { backgroundColor: theme.unselectedTab }]}>

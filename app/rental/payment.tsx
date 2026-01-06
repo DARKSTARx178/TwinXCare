@@ -352,7 +352,7 @@ export default function PaymentPage() {
 
       <View style={styles.securitySeal}>
         <Ionicons name="lock-closed-outline" size={14} color={theme.textDim} />
-        <Text style={[styles.securityText, { color: theme.textDim }]}>Secure SSL Encrypted Payment</Text>
+        <Text style={[styles.securityText, { color: theme.textDim }]}>Secure SSL Encrypted Payment (not really secure or real)</Text>
       </View>
     </View>
   );

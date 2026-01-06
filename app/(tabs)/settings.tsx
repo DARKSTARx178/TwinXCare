@@ -134,9 +134,6 @@ const SettingsScreen = () => {
           <Ionicons name="settings-sharp" size={32} color={colors.primary} />
         </View>
         <Text style={[styles.headerText, { color: colors.text }]}>{labels.header}</Text>
-        <Text style={[styles.subHeaderText, { color: colors.text + '80' }]}>
-          Personalize your care experience and interface
-        </Text>
       </View>
 
       {/* Accessibility Presets */}
@@ -172,7 +169,7 @@ const SettingsScreen = () => {
 
       {/* Core Settings */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Core Preferences</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferences</Text>
 
         <View style={[styles.controlCard, { backgroundColor: colors.unselectedTab }]}>
           <View style={styles.controlRow}>
@@ -232,7 +229,7 @@ const SettingsScreen = () => {
         {showAdvanced && (
           <View style={[styles.advancedPanel, { backgroundColor: colors.unselectedTab }]}>
             <Text style={[styles.devNote, { color: colors.text + '70' }]}>
-              Modify individual design tokens. Changes here bypass standard presets.
+              Modify individual design tokens. Changes here bypass standard presets. Not stable.
             </Text>
             {COLOR_KEYS.map((key) => (
               <View key={key} style={styles.tokenRow}>

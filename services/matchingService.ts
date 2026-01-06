@@ -318,6 +318,29 @@ export const finalizeEscortJob = async (reqId: string, availId: string, role: 'p
         return true;
     } catch (e) {
         console.error('❌ Error completing job:', e);
-        return false;
+    }
+};
+
+/**
+ * Manually triggers the matching engine for all pending requests.
+ * Useful for admins to force a re-check of connections.
+ */
+export const triggerManualMatching = async () => {
+    console.log('🔄 Triggering Manual Matching...');
+    try {
+        const q = query(collection(db, 'escort', 'request', 'entries'), where('status', '==', 'pending'));
+        const snapshot = await getDocs(q);
+        console.log(`Found ${snapshot.size} pending requests to re-evaluate.`);
+
+        let matchCount = 0;
+        for (const docSnap of snapshot.docs) {
+            await checkMatchForRequest(docSnap.id, docSnap.data());
+            matchCount++;
+        }
+        await sendLocalNotification('Matching Engine finished', `Checked ${matchCount} pending requests.`);
+        return matchCount;
+    } catch (e) {
+        console.error('Error in manual matching:', e);
+        return 0;
     }
 };

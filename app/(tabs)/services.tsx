@@ -1,13 +1,14 @@
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
+import { triggerManualMatching } from '@/services/matchingService';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Services() {
   const { theme } = useContext(ThemeContext);
@@ -113,7 +114,9 @@ export default function Services() {
         </View>
         <Text style={[styles.title, { color: theme.text }]}>Care Dashboard</Text>
         <Text style={[styles.subtitle, { color: theme.textDim }]}>
-          Monitor and manage your active support requests
+          {(userRole === 'admin' || userType === 'escort')
+            ? 'Volunteer and escort patients'
+            : 'Monitor the status of your escort requests'}
         </Text>
       </View>
 
@@ -126,12 +129,16 @@ export default function Services() {
           </View>
           <TouchableOpacity
             style={[styles.adminCard, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
-            onPress={() => router.push('/admin/admin_escort_match')}
+            onPress={async () => {
+              const count = await triggerManualMatching();
+              Alert.alert('Matching Complete', `Engine re-evaluated ${count} pending requests.`);
+              onRefresh();
+            }}
             activeOpacity={0.8}
           >
-            <Ionicons name="git-network-outline" size={24} color={theme.primary} />
-            <Text style={[styles.adminCardText, { color: theme.primary }]}>Launch Matching Engine</Text>
-            <Ionicons name="chevron-forward" size={18} color={theme.primary} />
+            <Ionicons name="refresh-circle-outline" size={24} color={theme.primary} />
+            <Text style={[styles.adminCardText, { color: theme.primary }]}>Reload Matching Engine</Text>
+            <Ionicons name="play" size={18} color={theme.primary} />
           </TouchableOpacity>
         </View>
       )}
@@ -140,7 +147,7 @@ export default function Services() {
       {((userType === 'standard') || (userRole === 'admin') || (!userType && !userRole)) && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Patient Support</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Patient Requests</Text>
             <TouchableOpacity onPress={() => router.push('/escorts/require-escort')}>
               <View style={[styles.addButton, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}>
                 <Ionicons name="add" size={20} color={theme.primary} />

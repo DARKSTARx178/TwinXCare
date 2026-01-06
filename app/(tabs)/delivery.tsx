@@ -104,9 +104,9 @@ export default function DeliveryPage() {
         <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
           <Ionicons name="receipt-outline" size={32} color={theme.primary} />
         </View>
-        <Text style={[styles.title, { color: theme.text }]}>Order Tracker</Text>
+        <Text style={[styles.title, { color: theme.text }]}>Delivery Tracker</Text>
         <Text style={[styles.subtitle, { color: theme.textDim }]}>
-          Real-time updates on your equipment and services
+          Real-time updates on your equipment delivery status
         </Text>
       </View>
 

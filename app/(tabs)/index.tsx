@@ -37,18 +37,18 @@ export default function HomeScreen() {
 
       <View style={styles.headerContainer}>
         <Text style={[styles.title, { fontSize: responsiveText(textSize + 14), color: theme.text }]}>{t.home}</Text>
-        <Text style={[styles.subtitle, { fontSize: responsiveText(textSize - 2), color: theme.textDim }]}>Premium Care Services</Text>
+        <Text style={[styles.subtitle, { fontSize: responsiveText(textSize - 2), color: theme.textDim }]}>Welcome</Text>
       </View>
 
       <View style={styles.row}>
-        <TouchableOpacity onPress={() => router.push('/explore')} style={[styles.card, { backgroundColor: theme.surface, width: screenWidth / 2 - 30, borderWidth: 1, borderColor: theme.border }]}>
+        <TouchableOpacity onPress={() => router.push('/explore')} style={[styles.card, { backgroundColor: theme.surface, width: screenWidth / 2 - 40, borderWidth: 1, borderColor: theme.border }]}>
           <View style={[styles.iconContainer, { backgroundColor: theme.primaryGlow }]}>
             <MaterialCommunityIcons name="hospital-box" size={32} color={theme.primary} />
           </View>
           <Text style={[styles.cardText, { fontSize: responsiveText(textSize - 2), color: theme.text, fontWeight: '600' }]}>{t.bookEquipment}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push('/services')} style={[styles.card, { backgroundColor: theme.surface, width: screenWidth / 2 - 30, borderWidth: 1, borderColor: theme.border }]}>
+        <TouchableOpacity onPress={() => router.push('/services')} style={[styles.card, { backgroundColor: theme.surface, width: screenWidth / 2 - 40, borderWidth: 1, borderColor: theme.border }]}>
           <View style={[styles.iconContainer, { backgroundColor: theme.primaryGlow }]}>
             <MaterialCommunityIcons name="car-side" size={32} color={theme.primary} />
           </View>

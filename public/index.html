@@ -1,25 +1,334 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>TwinXCare - Healthcare Made Simple</title>
-    <meta name="description" content="TwinXCare is a revolutionary healthcare app that connects you with medical professionals and healthcare services.">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <meta name="description"
+        content="TwinXCare is a revolutionary healthcare app that connects you with medical professionals and healthcare services.">
+
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
     <style>
-        .showcase {
-            padding: 4rem 0;
-            background: var(--surface);
+        :root {
+            /* Premium Light Theme - Inspired by Escort style */
+            --bg-base: #f8fafc;
+            --bg-card: #ffffff;
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.15);
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --border: rgba(0, 0, 0, 0.05);
+            --glass: rgba(255, 255, 255, 0.8);
+            --indigo-600: #4f46e5;
+            --rose-600: #e11d48;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-premium: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.03) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.03) 0px, transparent 50%);
+        }
+
+        /* Glass Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-base);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        /* Loader */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-base);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.5s ease;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        .logo h1 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .mobile-nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 5rem 2rem;
+            position: relative;
             overflow: hidden;
         }
-        
-        .showcase-container {
-            display: flex;
-            transition: transform 0.3s ease;
-            max-width: 800px;
+
+        .container {
+            max-width: 1200px;
             margin: 0 auto;
         }
-        
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-text h1 {
+            font-size: 4rem;
+            line-height: 1.1;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--text-main), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-text p {
+            font-size: 1.25rem;
+            color: var(--text-dim);
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+        }
+
+        .app-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .app-store-button img,
+        .play-store-button img {
+            height: 48px;
+            border-radius: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .app-store-button:hover img,
+        .play-store-button:hover img {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .hero-image {
+            position: relative;
+        }
+
+        .hero-image img {
+            width: 100%;
+            height: auto;
+            border-radius: 32px;
+            box-shadow: var(--shadow-premium);
+            transform: perspective(1000px) rotateY(-5deg);
+            transition: transform 0.5s ease;
+        }
+
+        .hero-image:hover img {
+            transform: perspective(1000px) rotateY(0deg);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 6rem 2rem;
+            background: white;
+        }
+
+        .section-tag {
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 4rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--bg-base);
+            padding: 2.5rem;
+            border-radius: 28px;
+            border: 1px solid var(--border);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.08);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-size: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            color: var(--text-dim);
+            font-size: 1rem;
+        }
+
+        /* Showcase Section */
+        .showcase {
+            padding: 6rem 2rem;
+            background: var(--bg-base);
+            overflow: hidden;
+        }
+
+        .showcase-wrapper {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .showcase-container {
+            display: flex;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         .showcase-slide {
             flex: 0 0 100%;
             padding: 1rem;
@@ -27,70 +336,177 @@
             justify-content: center;
             align-items: center;
         }
-        
+
         .showcase-image {
             max-width: 100%;
             height: auto;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 24px;
+            box-shadow: var(--shadow-premium);
+            border: 8px solid white;
         }
-        
-        .showcase-nav {
+
+        .showcase-controls {
             display: flex;
             justify-content: center;
-            gap: 8px;
-            margin-top: 1rem;
+            align-items: center;
+            gap: 2rem;
+            margin-top: 3rem;
         }
-        
-        .showcase-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #ccc;
-            border: none;
-            padding: 0;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .showcase-dot.active {
-            background: var(--primary);
-            transform: scale(1.2);
-        }
-        
+
         .showcase-button {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             background: white;
-            border: none;
+            border: 1px solid var(--border);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            z-index: 1;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+            color: var(--text-main);
         }
-        
-        .showcase-prev { left: 1rem; }
-        .showcase-next { right: 1rem; }
-        
+
+        .showcase-button:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .showcase-nav {
+            display: flex;
+            gap: 12px;
+        }
+
+        .showcase-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .showcase-dot.active {
+            background: var(--primary);
+            width: 24px;
+            border-radius: 10px;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--text-main);
+            color: white;
+            padding: 5rem 2rem 3rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 4rem;
+        }
+
+        .footer-col h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+
+        .footer-col p {
+            color: #94a3b8;
+            max-width: 300px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+        }
+
+        .footer-col ul li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-col ul a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-col ul a:hover {
+            color: var(--primary);
+        }
+
+        .footer-bottom {
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero-content {
+                gap: 2rem;
+            }
+
+            .hero-text h1 {
+                font-size: 3rem;
+            }
+        }
+
         @media (max-width: 768px) {
-            .showcase-button {
+            .nav-links {
                 display: none;
+            }
+
+            .mobile-nav-toggle {
+                display: block;
+            }
+
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-text p {
+                margin: 0 auto 2.5rem;
+            }
+
+            .app-buttons {
+                justify-content: center;
+            }
+
+            .hero-image {
+                order: -1;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 2.5rem;
             }
         }
     </style>
 </head>
+
 <body>
-    <nav class="navbar">
-        <div class="container nav-container">
+    <!-- Premium Loader -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <p style="margin-top: 1.5rem; color: var(--text-dim); font-weight: 600;">Loading Experience...</p>
+    </div>
+
+    <!-- Glass Navbar -->
+    <nav>
+        <div class="container" style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
             <a href="#" class="logo">
                 <div class="logo-icon">TX</div>
-                <span>TwinXCare</span>
+                <h1>TwinXCare</h1>
             </a>
             <div class="nav-links">
                 <a href="#features" class="nav-link">Features</a>
@@ -98,19 +514,19 @@
                 <a href="#contact" class="nav-link">Contact</a>
             </div>
             <button class="mobile-nav-toggle" aria-label="Toggle navigation">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 12h18M3 6h18M3 18h18"/>
-                </svg>
+                <i class="fas fa-bars"></i>
             </button>
         </div>
     </nav>
 
+    <!-- Hero Section -->
     <section class="hero">
         <div class="container">
             <div class="hero-content">
                 <div class="hero-text">
-                    <h1>Healthcare Made Simple</h1>
-                    <p>Experience a new way of accessing healthcare services through our innovative app. Connect with professionals, access services, and manage your health journey with ease.</p>
+                    <h1>Healthcare <br>Made Simple</h1>
+                    <p>Experience a new way of accessing healthcare services through our innovative app. Connect with
+                        professionals, access services, and manage your health journey with ease.</p>
                     <div class="app-buttons">
                         <a href="#" class="app-store-button">
                             <img src="assets/images/app-store.png" alt="Download on App Store">
@@ -121,115 +537,133 @@
                     </div>
                 </div>
                 <div class="hero-image">
-                    <img src="assets/images/hero-app.png" alt="TwinXCare App Interface">
+                    <img src="assets/images/hero-app.png" alt="TwinXCare App Interface"
+                        onerror="this.src='https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800'">
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- Features Section -->
     <section class="features" id="features">
         <div class="container">
+            <span class="section-tag">Core Capabilities</span>
+            <h2 class="section-title">Why Choose TwinXCare?</h2>
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 14l9-5-9-5-9 5 9 5z"/>
-                            <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
-                        </svg>
+                        <i class="fas fa-bolt"></i>
                     </div>
                     <h3>Easy Access</h3>
-                    <p>Connect with healthcare professionals and services with just a few taps.</p>
+                    <p>Connect with healthcare professionals and services with just a few taps. Our intuitive interface
+                        puts health at your fingertips.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                        </svg>
+                        <i class="fas fa-shield-halved"></i>
                     </div>
                     <h3>Secure & Private</h3>
-                    <p>Your health information is protected with enterprise-grade security.</p>
+                    <p>Your health information is protected with enterprise-grade security. We use end-to-end encryption
+                        for all your medical data.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
-                            <path d="M22 4L12 14.01l-3-3"/>
-                        </svg>
+                        <i class="fas fa-headset"></i>
                     </div>
                     <h3>24/7 Support</h3>
-                    <p>Get assistance whenever you need it with our round-the-clock support team.</p>
+                    <p>Get assistance whenever you need it with our round-the-clock support team. We're always here to
+                        help you navigate your care.</p>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- Showcase Section -->
     <section class="showcase" id="app">
         <div class="container">
-            <h2 class="showcase-title">App Screenshots</h2>
+            <span class="section-tag">Interface Design</span>
+            <h2 class="section-title">Experience the App</h2>
             <div class="showcase-wrapper">
                 <div class="showcase-container">
                     <div class="showcase-slide">
-                        <img src="assets/images/home_page-web.jpeg" alt="App Home Screen" class="showcase-image">
+                        <img src="assets/images/home_page-web.jpeg" alt="App Home Screen" class="showcase-image"
+                            onerror="this.src='https://images.unsplash.com/photo-1551288049-bbbda536639a?auto=format&fit=crop&q=80&w=800'">
                     </div>
                     <div class="showcase-slide">
-                        <img src="assets/images/services_page-web.jpeg" alt="Services Screen" class="showcase-image">
+                        <img src="assets/images/services_page-web.jpeg" alt="Services Screen" class="showcase-image"
+                            onerror="this.src='https://images.unsplash.com/photo-1586773860418-d3b3a998ce6d?auto=format&fit=crop&q=80&w=800'">
                     </div>
                     <div class="showcase-slide">
-                        <img src="assets/images/equipment_page-web.jpeg" alt="Equipment Screen" class="showcase-image">
+                        <img src="assets/images/equipment_page-web.jpeg" alt="Equipment Screen" class="showcase-image"
+                            onerror="this.src='https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800'">
                     </div>
                 </div>
                 <div class="showcase-controls">
                     <button class="showcase-button showcase-prev" aria-label="Previous slide">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M15 18l-6-6 6-6"/>
-                        </svg>
+                        <i class="fas fa-chevron-left"></i>
                     </button>
                     <div class="showcase-nav"></div>
                     <button class="showcase-button showcase-next" aria-label="Next slide">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 18l6-6-6-6"/>
-                        </svg>
+                        <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- Footer -->
     <footer id="contact">
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col">
-                    <h4>About TwinXCare</h4>
+                    <a href="#" class="logo" style="margin-bottom: 1.5rem;">
+                        <div class="logo-icon" style="background: white; color: var(--primary);">TX</div>
+                        <h1 style="color: white;">TwinXCare</h1>
+                    </a>
                     <p>We're revolutionizing healthcare access through innovative technology and dedicated service.</p>
                 </div>
                 <div class="footer-col">
-                    <h4>Contact</h4>
+                    <h4>Contact Us</h4>
                     <ul>
-                        <li><a href="mailto:support@twinxcare.com">massive.productions.co@gmail.com</a></li>
+                        <li><a href="mailto:massive.productions.co@gmail.com"><i class="fas fa-envelope"
+                                    style="margin-right: 8px;"></i> Email Support</a></li>
+                        <li><a href="#"><i class="fas fa-location-dot" style="margin-right: 8px;"></i> Global
+                                Offices</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
                     <h4>Follow Us</h4>
-                    <ul>
-                        <li><a href="#">Twitter</a></li>
-                        <li><a href="#">Facebook</a></li>
-                        <li><a href="#">Instagram</a></li>
-                    </ul>
+                    <div style="display: flex; gap: 1rem;">
+                        <a href="#" style="color: white; font-size: 1.2rem;"><i class="fab fa-twitter"></i></a>
+                        <a href="#" style="color: white; font-size: 1.2rem;"><i class="fab fa-facebook"></i></a>
+                        <a href="#" style="color: white; font-size: 1.2rem;"><i class="fab fa-instagram"></i></a>
+                    </div>
                 </div>
+            </div>
+            <div class="footer-bottom">
+                &copy; 2026 TwinXCare. All rights reserved. Designed for healthcare excellence.
             </div>
         </div>
     </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Loader
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }, 800);
+
+            // Carousel Logic
             const showcase = document.querySelector('.showcase-container');
             const slides = document.querySelectorAll('.showcase-slide');
             const dotsNav = document.querySelector('.showcase-nav');
             const prevButton = document.querySelector('.showcase-prev');
             const nextButton = document.querySelector('.showcase-next');
-            
+
             let currentSlide = 0;
-            
+
             // Create navigation dots
             slides.forEach((_, index) => {
                 const dot = document.createElement('button');
@@ -238,44 +672,44 @@
                 dot.addEventListener('click', () => goToSlide(index));
                 dotsNav.appendChild(dot);
             });
-            
+
             function goToSlide(index) {
                 showcase.style.transform = `translateX(-${index * 100}%)`;
                 currentSlide = index;
                 updateDots();
             }
-            
+
             function updateDots() {
                 document.querySelectorAll('.showcase-dot').forEach((dot, index) => {
                     dot.classList.toggle('active', index === currentSlide);
                 });
             }
-            
+
             function nextSlide() {
                 currentSlide = (currentSlide + 1) % slides.length;
                 goToSlide(currentSlide);
             }
-            
+
             function prevSlide() {
                 currentSlide = (currentSlide - 1 + slides.length) % slides.length;
                 goToSlide(currentSlide);
             }
-            
+
             if (prevButton) prevButton.addEventListener('click', prevSlide);
             if (nextButton) nextButton.addEventListener('click', nextSlide);
-            
+
             // Touch events
             let touchStartX = 0;
             let touchEndX = 0;
-            
+
             showcase.addEventListener('touchstart', e => {
                 touchStartX = e.touches[0].clientX;
-            });
-            
+            }, { passive: true });
+
             showcase.addEventListener('touchmove', e => {
                 touchEndX = e.touches[0].clientX;
-            });
-            
+            }, { passive: true });
+
             showcase.addEventListener('touchend', () => {
                 const diff = touchStartX - touchEndX;
                 if (Math.abs(diff) > 50) {
@@ -286,10 +720,11 @@
                     }
                 }
             });
-            
+
             // Auto-advance
             setInterval(nextSlide, 5000);
         });
     </script>
 </body>
+
 </html>

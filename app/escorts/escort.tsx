@@ -1,6 +1,6 @@
 import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
-import { checkMatchForAvailability, lockInJob } from '@/services/matchingService';
+import { checkMatchForAvailability, finalizeEscortJob, lockInJob } from '@/services/matchingService';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -124,7 +124,7 @@ export default function EscortAvailability() {
     const availId = type === 'availability' ? jobId : jobData.matchedAvailabilityId;
     const myRole = type === 'request' ? 'patient' : 'volunteer';
 
-    if (selectedRating === 0) {
+    if (myRole === 'patient' && selectedRating === 0) {
       Alert.alert("Rating Required", "Please select a rating before ending the job.");
       translateX.value = withSpring(0);
       return;
@@ -133,7 +133,7 @@ export default function EscortAvailability() {
     // Optimistic Update
     setJobData((prev: any) => ({ ...prev, [myRole === 'patient' ? 'patientCompleted' : 'volunteerCompleted']: true }));
 
-    const success = await completeJob(reqId, availId, myRole, selectedRating);
+    const success = await finalizeEscortJob(reqId, availId, myRole, selectedRating);
     if (success) {
       const path = type === 'availability' ? 'escort/availability/entries' : 'escort/request/entries';
       const jSnap = await getDoc(doc(db, path, jobId));
@@ -193,7 +193,11 @@ export default function EscortAvailability() {
         contactPhone,
         notes,
         createdAt: serverTimestamp(),
-        status: 'available'
+        status: 'available',
+        patientConfirmed: false,
+        volunteerConfirmed: false,
+        patientCompleted: false,
+        volunteerCompleted: false
       });
 
       const availData = {
@@ -333,22 +337,26 @@ export default function EscortAvailability() {
               <View style={{ marginTop: 40 }}>
                 {(type === 'request' ? jobData?.patientCompleted : jobData?.volunteerCompleted) ? (
                   <View style={styles.confirmedBox}>
-                    <Ionicons name="hourglass" size={32} color={theme.primary} />
-                    <Text style={{ fontWeight: '800', color: theme.text, marginTop: 10 }}>COMPLETION RECORDED</Text>
+                    <Ionicons name="time" size={32} color={theme.primary} />
+                    <Text style={{ fontWeight: '800', color: theme.text, marginTop: 10 }}>WAITING FOR COUNTERPART</Text>
                     <Text style={{ fontSize: 13, color: theme.textDim, textAlign: 'center', marginTop: 5 }}>
-                      Job will close once both parties finish.
+                      You have ended the job. Status will update once the other person confirms completion.
                     </Text>
                   </View>
                 ) : (
                   <>
-                    <Text style={[styles.label, { color: theme.textDim, textAlign: 'center', marginBottom: 10 }]}>Rate your Experience</Text>
-                    <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 30 }}>
-                      {[1, 2, 3, 4, 5].map(v => (
-                        <TouchableOpacity key={v} onPress={() => setSelectedRating(v)}>
-                          <Ionicons name={selectedRating >= v ? "star" : "star-outline"} size={32} color={selectedRating >= v ? "#f59e0b" : theme.textDim} />
-                        </TouchableOpacity>
-                      ))}
-                    </View>
+                    {type === 'request' && (
+                      <>
+                        <Text style={[styles.label, { color: theme.textDim, textAlign: 'center', marginBottom: 10 }]}>Rate your Experience</Text>
+                        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 30 }}>
+                          {[1, 2, 3, 4, 5].map(v => (
+                            <TouchableOpacity key={v} onPress={() => setSelectedRating(v)}>
+                              <Ionicons name={selectedRating >= v ? "star" : "star-outline"} size={32} color={selectedRating >= v ? "#f59e0b" : theme.textDim} />
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </>
+                    )}
 
                     <Text style={[styles.label, { color: theme.textDim, textAlign: 'center', marginBottom: 20 }]}>Slide to End Job</Text>
                     <View style={styles.sliderContainer}>

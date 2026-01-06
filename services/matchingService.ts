@@ -267,7 +267,7 @@ export const lockInJob = async (reqId: string, availId: string, role: 'patient' 
 /**
  * Marks a job as completed. Both parties must end the job before the status changes to gray 'completed'.
  */
-export const completeJob = async (reqId: string, availId: string, role: 'patient' | 'volunteer', rating?: number) => {
+export const finalizeEscortJob = async (reqId: string, availId: string, role: 'patient' | 'volunteer', rating?: number) => {
     console.log(`🏁 COMPLETING JOB (By ${role}): Req ${reqId} + Avail ${availId}`);
     try {
         const reqRef = doc(db, 'escort', 'request', 'entries', reqId);

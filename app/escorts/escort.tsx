@@ -4,7 +4,7 @@ import { checkMatchForAvailability } from '@/services/matchingService';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, getDoc, doc } from 'firebase/firestore';
 import React, { useContext, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -24,6 +24,22 @@ export default function EscortAvailability() {
   const [contactPhone, setContactPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [userRating, setUserRating] = useState<number | null>(null);
+  const [ratingCount, setRatingCount] = useState(0);
+
+  React.useEffect(() => {
+    const fetchRating = async () => {
+      if (auth.currentUser) {
+        const uDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+        if (uDoc.exists()) {
+          const data = uDoc.data();
+          setUserRating(data.rating ?? null);
+          setRatingCount(data.ratingCount ?? 0);
+        }
+      }
+    };
+    fetchRating();
+  }, []);
 
   const formatDate = (d: Date) => d.toISOString().split('T')[0];
   const formatTime = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -94,6 +110,14 @@ export default function EscortAvailability() {
           <Ionicons name="calendar-outline" size={32} color={theme.primary} />
         </View>
         <Text style={[styles.title, { color: theme.text }]}>Volunteer Availability</Text>
+        {userRating !== null && (
+          <View style={styles.ratingRow}>
+            <Ionicons name="star" size={16} color="#f59e0b" />
+            <Text style={[styles.ratingText, { color: theme.text }]}>
+              {userRating.toFixed(1)} ({ratingCount} reviews)
+            </Text>
+          </View>
+        )}
         <Text style={[styles.subtitle, { color: theme.textDim }]}>
           Offer your assistance to patients in need
         </Text>
@@ -340,5 +364,19 @@ const styles = StyleSheet.create({
   submitText: {
     fontWeight: '800',
     fontSize: 16,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  ratingText: {
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

@@ -22,6 +22,8 @@ export default function Services() {
   const [myRequests, setMyRequests] = useState<any[]>([]);
   const [myAvailabilities, setMyAvailabilities] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [userRating, setUserRating] = useState<number | null>(null);
+  const [ratingCount, setRatingCount] = useState(0);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -33,6 +35,8 @@ export default function Services() {
             const data: any = userDoc.data();
             setUserRole(data.role ?? null);
             setUserType(data.userType ?? null);
+            setUserRating(data.rating ?? null);
+            setRatingCount(data.ratingCount ?? 0);
             fetchUserData(u.uid, data.role, data.userType);
           }
         } catch (err) {
@@ -168,7 +172,15 @@ export default function Services() {
       {(userType === 'escort' || userRole === 'admin') && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Volunteer Slots</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Volunteer Slots</Text>
+              {userRating !== null && (
+                <View style={styles.inlineRating}>
+                  <Ionicons name="star" size={12} color="#f59e0b" />
+                  <Text style={styles.inlineRatingText}>{userRating.toFixed(1)}</Text>
+                </View>
+              )}
+            </View>
             <TouchableOpacity onPress={() => router.push('/escorts/escort')}>
               <View style={[styles.addButton, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}>
                 <Ionicons name="add" size={20} color={theme.primary} />
@@ -326,5 +338,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
-  }
+  },
+  inlineRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  inlineRatingText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#f59e0b',
+  },
 });

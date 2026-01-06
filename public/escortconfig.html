@@ -827,7 +827,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // APP CONFIGURATION
         const firebaseConfig = {
@@ -1081,8 +1081,44 @@
 
         document.getElementById('confirm-rate-btn').onclick = async () => {
             if (selectedRating === 0) return alert("Select a rating to finalize.");
-            await updateDoc(doc(db, 'escort', 'request', 'entries', activeRatingRequest.id), { status: 'completed', rating: selectedRating });
-            closeModal('rate-modal');
+
+            const requestId = activeRatingRequest.id;
+            const providerId = activeRatingRequest.matchedProviderId;
+
+            try {
+                // 1. Update the Request entry 
+                await updateDoc(doc(db, 'escort', 'request', 'entries', requestId), {
+                    status: 'completed',
+                    rating: selectedRating
+                });
+
+                // 2. Update the Provider's Global Profile Rating
+                if (providerId && providerId !== 'guest') {
+                    const userRef = doc(db, 'users', providerId);
+                    const userSnap = await getDoc(userRef);
+
+                    if (userSnap.exists()) {
+                        const userData = userSnap.data();
+                        const currentRating = userData.rating || 0;
+                        const currentCount = userData.ratingCount || 0;
+
+                        const newCount = currentCount + 1;
+                        const newAverage = ((currentRating * currentCount + selectedRating) / newCount).toFixed(2);
+
+                        await updateDoc(userRef, {
+                            rating: parseFloat(newAverage),
+                            ratingCount: newCount
+                        });
+                        console.log(`Global rating updated for provider ${providerId}`);
+                    }
+                }
+
+                closeModal('rate-modal');
+                alert("Shift finalized and provider ranking updated!");
+            } catch (err) {
+                console.error("Finalization error:", err);
+                alert("Error finalizing shift: " + err.message);
+            }
         };
 
         // RATING UI

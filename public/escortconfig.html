@@ -685,14 +685,10 @@
                         </div>
                         <div class="form-body">
                             <form id="vol-form">
-                                <div class="form-group">
-                                    <label>Display Name</label>
-                                    <input type="text" class="input-dark" id="vol-name" placeholder="John Doe" required>
-                                </div>
                                 <div class="form-group"
                                     style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                                     <div>
-                                        <label>Shift Date</label>
+                                        <label>Escort Date</label>
                                         <input type="date" class="input-dark" id="vol-date" required>
                                     </div>
                                     <div>
@@ -706,9 +702,26 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Expertise / Specialization</label>
-                                    <textarea class="input-dark" id="vol-notes"
-                                        style="height: 80px; resize: none;"></textarea>
+                                    <label>Preferred Location</label>
+                                    <input type="text" class="input-dark" id="vol-location"
+                                        placeholder="Hospital, area, or facility" required>
+                                </div>
+                                <div class="form-group"
+                                    style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
+                                    <div>
+                                        <label>Capacity</label>
+                                        <input type="number" class="input-dark" id="vol-pax" placeholder="1" value="1">
+                                    </div>
+                                    <div>
+                                        <label>Contact Phone</label>
+                                        <input type="tel" class="input-dark" id="vol-phone"
+                                            placeholder="Provider number">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Additional Notes</label>
+                                    <textarea class="input-dark" id="vol-notes" style="height: 80px; resize: none;"
+                                        placeholder="Expertise, constraints..."></textarea>
                                 </div>
                                 <button type="submit" class="btn-premium btn-indigo-outline">Register
                                     Availability</button>
@@ -722,19 +735,14 @@
                         </div>
                         <div class="form-body">
                             <form id="req-form">
-                                <div class="form-group">
-                                    <label>Requester Name</label>
-                                    <input type="text" class="input-dark" id="req-name" placeholder="Client Name"
-                                        required>
-                                </div>
                                 <div class="form-group"
-                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                    style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
                                     <div>
-                                        <label>Event Date</label>
+                                        <label>Date</label>
                                         <input type="date" class="input-dark" id="req-date" required>
                                     </div>
                                     <div>
-                                        <label>Required Time</label>
+                                        <label>Time Window</label>
                                         <div style="display: flex; align-items: center; gap: 8px;">
                                             <input type="time" class="input-dark" id="req-start"
                                                 style="flex: 1; min-width: 0;" required>
@@ -744,9 +752,35 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Requirements</label>
-                                    <textarea class="input-dark" id="req-notes"
-                                        style="height: 80px; resize: none;"></textarea>
+                                    <label>Hospital / Clinic</label>
+                                    <input type="text" class="input-dark" id="req-hospital"
+                                        placeholder="Name of health facility" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Reason for Appointment</label>
+                                    <input type="text" class="input-dark" id="req-reason"
+                                        placeholder="e.g. Regular checkup" required>
+                                </div>
+                                <div class="form-group"
+                                    style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
+                                    <div>
+                                        <label>Patient Age</label>
+                                        <input type="number" class="input-dark" id="req-age" placeholder="70">
+                                    </div>
+                                    <div>
+                                        <label>Contact Phone</label>
+                                        <input type="tel" class="input-dark" id="req-phone" placeholder="Client number">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Medical Details</label>
+                                    <textarea class="input-dark" id="req-medical" style="height: 60px; resize: none;"
+                                        placeholder="Mobility, medications..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Additional Instructions</label>
+                                    <textarea class="input-dark" id="req-notes" style="height: 60px; resize: none;"
+                                        placeholder="Specific needs..."></textarea>
                                 </div>
                                 <button type="submit" class="btn-premium btn-rose-outline">Queue Request</button>
                             </form>
@@ -921,13 +955,19 @@
             const data = {
                 providerId: auth?.currentUser?.uid ?? 'guest',
                 providerEmail: auth?.currentUser?.email ?? 'guest',
-                notes: document.getElementById('vol-notes').value,
                 date: document.getElementById('vol-date').value,
                 fromTime: document.getElementById('vol-start').value,
                 toTime: document.getElementById('vol-end').value,
+                location: document.getElementById('vol-location').value,
+                maxPax: Number(document.getElementById('vol-pax').value) || 1,
+                contactPhone: document.getElementById('vol-phone').value,
+                notes: document.getElementById('vol-notes').value,
                 createdAt: new Date().toISOString(),
                 status: 'available',
-                location: 'Main Hospital' // Defaulting for simple entries
+                patientConfirmed: false,
+                volunteerConfirmed: false,
+                patientCompleted: false,
+                volunteerCompleted: false
             };
             await addDoc(collection(db, 'escort', 'availability', 'entries'), data);
             e.target.reset();
@@ -938,13 +978,16 @@
             const data = {
                 userId: auth?.currentUser?.uid ?? 'guest',
                 userEmail: auth?.currentUser?.email ?? 'guest',
-                caregiverName: document.getElementById('req-name').value, // Used in UI
-                notes: document.getElementById('req-notes').value,
                 date: document.getElementById('req-date').value,
                 time: document.getElementById('req-start').value,
                 endTime: document.getElementById('req-end').value,
+                hospital: document.getElementById('req-hospital').value,
+                appointmentReason: document.getElementById('req-reason').value,
+                age: Number(document.getElementById('req-age').value) || null,
+                contactPhone: document.getElementById('req-phone').value,
+                medicalDetails: document.getElementById('req-medical').value,
+                additionalNotes: document.getElementById('req-notes').value,
                 status: 'pending',
-                hospital: 'Main Hospital', // Defaulting
                 createdAt: new Date().toISOString()
             };
             await addDoc(collection(db, 'escort', 'request', 'entries'), data);
@@ -996,8 +1039,9 @@
                         <div class="card-details">
                             <div class="detail-item"><i class="fas fa-calendar"></i> ${formatDate(v.date)}</div>
                             <div class="detail-item"><i class="fas fa-clock"></i> ${v.fromTime} - ${v.toTime}</div>
+                            <div class="detail-item"><i class="fas fa-map-marker-alt"></i> ${v.location || 'Anywhere'} (Max ${v.maxPax || 1} Pax)</div>
                             ${avg ? `<div class="detail-item" style="color:var(--warning)"><i class="fas fa-star"></i> Provider Rating: ${avg}</div>` : ''}
-                            <div class="detail-item" style="font-style: italic; opacity: 0.7;"><i class="fas fa-quote-left"></i> ${v.notes || 'No specialized notes'}</div>
+                            <div class="detail-item" style="font-style: italic; opacity: 0.7;"><i class="fas fa-quote-left"></i> ${v.notes || 'No notes'}</div>
                         </div>
                         <div class="card-actions">
                              <button class="btn-sm" style="border-color:var(--danger); color:var(--danger)" onclick="deleteEntry('availability', '${v.id}')">Remove</button>
@@ -1012,7 +1056,7 @@
             const sorted = requests.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
             grid.innerHTML = sorted.map(r => {
-                const displayName = r.caregiverName || r.userEmail?.split('@')[0] || 'Anonymous';
+                const displayName = r.userEmail?.split('@')[0] || 'Anonymous';
                 let action = '';
                 if (r.status === 'confirmed') {
                     action = `<button class="btn-sm" style="border-color:var(--success); color:var(--success)" onclick="adminCompleteJob('${r.id}', '${r.matchedAvailabilityId}')">Complete Job</button>`;
@@ -1027,7 +1071,7 @@
                                 <div class="avatar-circle" style="color: var(--rose-600);"><i class="fas fa-heart"></i></div>
                                 <div>
                                     <div class="card-name">${displayName}</div>
-                                    <div class="card-sub">Request ID: #${r.id.substring(0, 6)}</div>
+                                    <div class="card-sub">${r.hospital || 'Medical Request'}</div>
                                 </div>
                             </div>
                             <span class="badge-glass badge-${r.status}">${r.status}</span>
@@ -1035,7 +1079,8 @@
                         <div class="card-details">
                             <div class="detail-item"><i class="fas fa-calendar-day"></i> ${formatDate(r.date)}</div>
                             <div class="detail-item"><i class="fas fa-clock"></i> ${r.time} - ${r.endTime}</div>
-                            <div class="detail-item"><i class="fas fa-scroll"></i> ${r.notes || 'Standard care requested'}</div>
+                            <div class="detail-item"><i class="fas fa-notes-medical"></i> ${r.appointmentReason || 'Checkup'}</div>
+                            <div class="detail-item"><i class="fas fa-scroll"></i> ${r.additionalNotes || r.notes || 'Standard care requested'}</div>
                         </div>
                         <div class="card-actions" style="gap: 10px;">
                             ${action}

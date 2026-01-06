@@ -933,8 +933,8 @@
                             <div class="card-user">
                                 <div class="avatar-circle" style="color: var(--rose-600);"><i class="fas fa-heart"></i></div>
                                 <div>
-                                    <div class="card-name">${r.caregiverName || 'My Request'}</div>
-                                    <div class="card-sub">${isMatched ? 'Provider Assigned' : (isDone ? 'Service Provided' : 'Searching for Provider')}</div>
+                                    <div class="card-name">Medical Request</div>
+                                    <div class="card-sub">${r.hospital || 'Hospital'} • ${r.appointmentReason || 'Appointment'}</div>
                                 </div>
                             </div>
                             <span class="badge-glass badge-${r.status}">${r.status}</span>
@@ -942,6 +942,7 @@
                         <div class="card-details">
                             <div class="detail-item"><i class="fas fa-calendar-day"></i> ${formatDate(r.date)}</div>
                             <div class="detail-item"><i class="fas fa-clock"></i> ${r.time} - ${r.endTime}</div>
+                             <div class="detail-item" style="font-style: italic; opacity: 0.7;"><i class="fas fa-quote-left"></i> ${r.additionalNotes || r.notes || 'No instructions'}</div>
                             ${isMatched ? `<div class="detail-item" style="color:var(--success)"><i class="fas fa-user-check"></i> Matched with: ${r.matchedProviderName || 'Assigned Companion'}</div>` : ''}
                         </div>
                         <div class="card-actions">

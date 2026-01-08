@@ -674,6 +674,42 @@
                         <div class="value" id="stat-rate">0%</div>
                     </div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                    <div class="stat-data">
+                        <div class="label">Pending Queue</div>
+                        <div class="value" id="stat-queue">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <div class="stat-data">
+                        <div class="label">Jobs Completed</div>
+                        <div class="value" id="stat-completed">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-data">
+                        <div class="label">Global Rating</div>
+                        <div class="value" id="stat-global-rate">0.0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(129, 140, 248, 0.1); color: var(--indigo-600);">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="stat-data">
+                        <div class="label">Utilization</div>
+                        <div class="value" id="stat-utilization">0%</div>
+                    </div>
+                </div>
             </div>
 
             <div class="dashboard-grid">
@@ -1007,14 +1043,30 @@
             const totalRequests = requests.length;
             const activeMatches = requests.filter(r => r.status === 'matched').length;
             const completedMatches = requests.filter(r => r.status === 'completed').length;
+            const pendingReqs = requests.filter(r => r.status === 'pending').length;
 
             // Success Rate (Completed / Total)
             const rate = totalRequests ? Math.round((completedMatches / totalRequests) * 100) : 0;
+
+            // Global Rating
+            const ratedReqs = requests.filter(r => r.status === 'completed' && r.rating);
+            const globalRate = ratedReqs.length ? (ratedReqs.reduce((acc, r) => acc + r.rating, 0) / ratedReqs.length).toFixed(1) : "0.0";
+
+            // Utilization (Matched Providers / Total Available Slots)
+            // Note: 'matched' providers are those with status='matched'
+            const matchedVols = volunteers.filter(v => v.status === 'matched').length;
+            const utilization = volunteers.length ? Math.round((matchedVols / volunteers.length) * 100) : 0;
 
             document.getElementById('stat-vol').innerText = uniqueProviders;
             document.getElementById('stat-pending').innerText = totalRequests;
             document.getElementById('stat-matches').innerText = activeMatches;
             document.getElementById('stat-rate').innerText = rate + '%';
+
+            // New Stats
+            document.getElementById('stat-queue').innerText = pendingReqs;
+            document.getElementById('stat-completed').innerText = completedMatches;
+            document.getElementById('stat-global-rate').innerText = globalRate;
+            document.getElementById('stat-utilization').innerText = utilization + '%';
         }
 
         function renderVolunteers() {

@@ -160,53 +160,7 @@
             padding: 0 2rem;
         }
 
-        /* Stats Bar - PREMIUM STYLING */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 3rem;
-        }
 
-        .stat-card {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1.25rem;
-            transition: transform 0.3s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-icon {
-            width: 54px;
-            height: 54px;
-            border-radius: 18px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.4rem;
-        }
-
-        .stat-data .label {
-            color: var(--text-dim);
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 2px;
-        }
-
-        .stat-data .value {
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: white;
-        }
 
         /* Layout */
         .dashboard-grid {
@@ -559,45 +513,7 @@
                 </p>
             </div>
 
-            <!-- Stats -->
-            <div class="stats-row">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(129, 173, 231, 0.1); color: var(--primary);">
-                        <i class="fas fa-user-clock"></i>
-                    </div>
-                    <div class="stat-data">
-                        <div class="label">My Shifts</div>
-                        <div class="value" id="stat-vol">0</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);">
-                        <i class="fas fa-heart"></i>
-                    </div>
-                    <div class="stat-data">
-                        <div class="label">Active Requests</div>
-                        <div class="value" id="stat-pending">0</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-data">
-                        <div class="label">Completed</div>
-                        <div class="value" id="stat-matches">0</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(98, 184, 234, 0.1); color: var(--accent);">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="stat-data">
-                        <div class="label">Avg Rating</div>
-                        <div class="value" id="stat-rate">0.0</div>
-                    </div>
-                </div>
-            </div>
+
 
             <div class="dashboard-grid">
                 <!-- Sidebar Controls -->
@@ -869,24 +785,12 @@
 
         // RENDERING LOGIC
         function renderEntries() {
-            updateStats();
+
             renderVolunteers();
             renderRequests();
         }
 
-        function updateStats() {
-            const pendingCount = myRequests.filter(r => r.status === 'pending' || r.status === 'matched').length;
-            const doneCount = myRequests.filter(r => r.status === 'completed').length;
 
-            // Calculate avg rating as a provider
-            const ratings = myRequests.filter(r => r.matchedProviderId === auth.currentUser?.uid && r.status === 'completed' && r.rating);
-            const avg = ratings.length ? (ratings.reduce((sx, r) => sx + r.rating, 0) / ratings.length).toFixed(1) : "0.0";
-
-            document.getElementById('stat-vol').innerText = myVolunteers.length;
-            document.getElementById('stat-pending').innerText = pendingCount;
-            document.getElementById('stat-matches').innerText = doneCount;
-            document.getElementById('stat-rate').innerText = avg;
-        }
 
         function renderVolunteers() {
             const grid = document.getElementById('vol-grid');

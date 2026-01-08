@@ -278,6 +278,13 @@ export default function EscortAvailability() {
             </View>
 
             <View style={styles.detailBox}>
+              <View style={[styles.detailRow, { marginBottom: 15 }]}>
+                <Ionicons name="finger-print" size={20} color={theme.primary} />
+                <View>
+                  <Text style={[styles.detailLabel, { color: theme.textDim }]}>REFERENCE ID</Text>
+                  <Text style={[styles.detailValue, { color: theme.text, fontSize: 13, fontFamily: 'Courier' }]}>{jobId}</Text>
+                </View>
+              </View>
               <View style={styles.detailRow}>
                 <Ionicons name="location" size={20} color={theme.primary} />
                 <View>
@@ -549,8 +556,10 @@ export default function EscortAvailability() {
                   onPress={() => router.setParams({ jobId: slot.id, type: 'availability' })}
                 >
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.slotTitle, { color: theme.text }]}>{slot.location}</Text>
+                    <Text style={[styles.slotTitle, { color: theme.text }]}>{slot.location || 'No Location'}</Text>
+                    <Text style={[styles.slotSub, { color: theme.textDim, fontSize: 10, marginTop: 4 }]}>ID: {slot.id}</Text>
                     <Text style={[styles.slotSub, { color: theme.textDim }]}>{slot.date} • {slot.fromTime}</Text>
+                    {slot.notes ? <Text style={[styles.slotSub, { color: theme.textDim, fontStyle: 'italic' }]} numberOfLines={1}>{slot.notes}</Text> : null}
                   </View>
                   <View style={[styles.statusTag, {
                     backgroundColor:

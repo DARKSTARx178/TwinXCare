@@ -1088,6 +1088,7 @@
                                 <div>
                                     <div class="card-name">${displayName}</div>
                                     <div class="card-sub">${isMatched ? 'On Assignment' : 'Standby'}</div>
+                                    <div style="font-size: 0.65rem; color: var(--text-dim); margin-top:2px;">ID: ${v.id}</div> 
                                 </div>
                             </div>
                             <span class="badge-glass badge-${v.status}">${v.status === 'confirmed' ? 'confirmed' : (v.status === 'matched' ? 'matched' : 'available')}</span>
@@ -1096,6 +1097,7 @@
                             <div class="detail-item"><i class="fas fa-calendar"></i> ${formatDate(v.date)}</div>
                             <div class="detail-item"><i class="fas fa-clock"></i> ${v.fromTime} - ${v.toTime}</div>
                             <div class="detail-item"><i class="fas fa-map-marker-alt"></i> ${v.location || 'Anywhere'} (Max ${v.maxPax || 1} Pax)</div>
+                            <div class="detail-item"><i class="fas fa-phone"></i> ${v.contactPhone || 'No Phone'}</div>
                             ${avg ? `<div class="detail-item" style="color:var(--warning)"><i class="fas fa-star"></i> Provider Rating: ${avg}</div>` : ''}
                             <div class="detail-item" style="font-style: italic; opacity: 0.7;"><i class="fas fa-quote-left"></i> ${v.notes || 'No notes'}</div>
                         </div>
@@ -1128,6 +1130,7 @@
                                 <div>
                                     <div class="card-name">${displayName}</div>
                                     <div class="card-sub">${r.hospital || 'Medical Request'}</div>
+                                    <div style="font-size: 0.65rem; color: var(--text-dim); margin-top:2px;">ID: ${r.id}</div>
                                 </div>
                             </div>
                             <span class="badge-glass badge-${r.status}">${r.status}</span>
@@ -1136,7 +1139,10 @@
                             <div class="detail-item"><i class="fas fa-calendar-day"></i> ${formatDate(r.date)}</div>
                             <div class="detail-item"><i class="fas fa-clock"></i> ${r.time} - ${r.endTime}</div>
                             <div class="detail-item"><i class="fas fa-notes-medical"></i> ${r.appointmentReason || 'Checkup'}</div>
-                            <div class="detail-item"><i class="fas fa-scroll"></i> ${r.additionalNotes || r.notes || 'Standard care requested'}</div>
+                             ${r.age ? `<div class="detail-item"><i class="fas fa-user-circle"></i> Age: ${r.age}</div>` : ''}
+                            <div class="detail-item"><i class="fas fa-phone"></i> ${r.contactPhone || 'No Phone'}</div>
+                            ${r.medicalDetails ? `<div class="detail-item"><i class="fas fa-scroll"></i> Meds: ${r.medicalDetails}</div>` : ''}
+                            <div class="detail-item"><i class="fas fa-comment-dots"></i> ${r.additionalNotes || r.notes || 'Standard care requested'}</div>
                         </div>
                         <div class="card-actions" style="gap: 10px;">
                             ${action}

@@ -806,6 +806,7 @@
                                 <div>
                                     <div class="card-name">My Assignment</div>
                                     <div class="card-sub">${isMatched ? 'Matched with Client' : 'Waiting for Match'}</div>
+                                    <div style="font-size: 0.65rem; color: var(--text-dim); margin-top:2px;">ID: ${v.id}</div> 
                                 </div>
                             </div>
                             <span class="badge-glass badge-${v.status}">${v.status}</span>
@@ -813,6 +814,7 @@
                         <div class="card-details">
                             <div class="detail-item"><i class="fas fa-calendar"></i> ${formatDate(v.date)}</div>
                             <div class="detail-item"><i class="fas fa-clock"></i> ${v.fromTime} - ${v.toTime}</div>
+                            <div class="detail-item"><i class="fas fa-map-marker-alt"></i> ${v.location || 'Anywhere'} (Max ${v.maxPax || 1} Pax)</div>
                             <div class="detail-item" style="font-style: italic; opacity: 0.7;"><i class="fas fa-quote-left"></i> ${v.notes || 'No notes'}</div>
                         </div>
                         <div class="card-actions">
@@ -839,6 +841,7 @@
                                 <div>
                                     <div class="card-name">Medical Request</div>
                                     <div class="card-sub">${r.hospital || 'Hospital'} • ${r.appointmentReason || 'Appointment'}</div>
+                                    <div style="font-size: 0.65rem; color: var(--text-dim); margin-top:2px;">ID: ${r.id}</div>
                                 </div>
                             </div>
                             <span class="badge-glass badge-${r.status}">${r.status}</span>
@@ -846,6 +849,8 @@
                         <div class="card-details">
                             <div class="detail-item"><i class="fas fa-calendar-day"></i> ${formatDate(r.date)}</div>
                             <div class="detail-item"><i class="fas fa-clock"></i> ${r.time} - ${r.endTime}</div>
+                            ${r.age ? `<div class="detail-item"><i class="fas fa-user"></i> Patient Age: ${r.age}</div>` : ''}
+                            ${r.medicalDetails ? `<div class="detail-item"><i class="fas fa-notes-medical"></i> Details: ${r.medicalDetails}</div>` : ''}
                              <div class="detail-item" style="font-style: italic; opacity: 0.7;"><i class="fas fa-quote-left"></i> ${r.additionalNotes || r.notes || 'No instructions'}</div>
                             ${isMatched ? `<div class="detail-item" style="color:var(--success)"><i class="fas fa-user-check"></i> Matched with: ${r.matchedProviderName || 'Assigned Companion'}</div>` : ''}
                         </div>

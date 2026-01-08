@@ -643,7 +643,7 @@
                         <i class="fas fa-user-shield"></i>
                     </div>
                     <div class="stat-data">
-                        <div class="label">Total Providers</div>
+                        <div class="label">Active Providers</div>
                         <div class="value" id="stat-vol">0</div>
                     </div>
                 </div>
@@ -652,7 +652,7 @@
                         <i class="fas fa-hourglass-half"></i>
                     </div>
                     <div class="stat-data">
-                        <div class="label">Unmatched Needs</div>
+                        <div class="label">Total Requests</div>
                         <div class="value" id="stat-pending">0</div>
                     </div>
                 </div>
@@ -661,7 +661,7 @@
                         <i class="fas fa-link"></i>
                     </div>
                     <div class="stat-data">
-                        <div class="label">Live Matches</div>
+                        <div class="label">Active Matches</div>
                         <div class="value" id="stat-matches">0</div>
                     </div>
                 </div>
@@ -1002,14 +1002,18 @@
         }
 
         function updateStats() {
-            const unmatched = requests.filter(r => r.status === 'pending').length;
-            const live = requests.filter(r => r.status === 'matched').length;
-            const doneCount = requests.filter(r => r.status === 'completed').length;
-            const rate = requests.length ? Math.round((doneCount / requests.length) * 100) : 0;
+            // System-wide Performance Metrics
+            const uniqueProviders = new Set(volunteers.map(v => v.providerId)).size;
+            const totalRequests = requests.length;
+            const activeMatches = requests.filter(r => r.status === 'matched').length;
+            const completedMatches = requests.filter(r => r.status === 'completed').length;
 
-            document.getElementById('stat-vol').innerText = volunteers.length;
-            document.getElementById('stat-pending').innerText = unmatched;
-            document.getElementById('stat-matches').innerText = live;
+            // Success Rate (Completed / Total)
+            const rate = totalRequests ? Math.round((completedMatches / totalRequests) * 100) : 0;
+
+            document.getElementById('stat-vol').innerText = uniqueProviders;
+            document.getElementById('stat-pending').innerText = totalRequests;
+            document.getElementById('stat-matches').innerText = activeMatches;
             document.getElementById('stat-rate').innerText = rate + '%';
         }
 

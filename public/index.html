@@ -123,17 +123,21 @@
         }
 
         .logo-icon {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: white;
+            /* background: linear-gradient(135deg, var(--primary), var(--accent)); Removed background for image logo */
+            /* color: white; */
             width: 40px;
             height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 700;
-            box-shadow: 0 4px 15px var(--primary-glow);
+            /* border-radius: 12px; */
+            /* box-shadow: 0 4px 15px var(--primary-glow); */
+        }
+
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
 
         .logo h1 {
@@ -321,7 +325,7 @@
 
         .showcase-wrapper {
             position: relative;
-            max-width: 900px;
+            max-width: 500px;
             margin: 0 auto;
         }
 
@@ -507,7 +511,9 @@
     <nav>
         <div class="container" style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
             <a href="#" class="logo">
-                <div class="logo-icon">TX</div>
+                <div class="logo-icon">
+                    <img src="./assets/images/logo_all-white.png" alt="TwinXCare Logo">
+                </div>
                 <h1>TwinXCare</h1>
             </a>
             <div class="nav-links">
@@ -621,7 +627,9 @@
             <div class="footer-grid">
                 <div class="footer-col">
                     <a href="#" class="logo" style="margin-bottom: 1.5rem;">
-                        <div class="logo-icon" style="background: white; color: var(--primary);">TX</div>
+                        <div class="logo-icon">
+                            <img src="./assets/images/logo_all-white.png" alt="TwinXCare Logo">
+                        </div>
                         <h1 style="color: white;">TwinXCare</h1>
                     </a>
                     <p>We're revolutionizing healthcare access through innovative technology and dedicated service.</p>

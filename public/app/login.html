@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Login</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <meta name="theme-color" content="#F8FAFC">
+    <style>
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 50px;
+            left: 20px;
+            z-index: 10;
+            padding: 8px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.03);
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            padding: 32px;
+            border-radius: 32px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .logo-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 40px;
+            background: rgba(129, 173, 231, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 24px;
+            color: var(--primary);
+            font-size: 40px;
+        }
+
+        .title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        .input-wrapper {
+            text-align: left;
+            margin-bottom: 16px;
+        }
+
+        .label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+            display: block;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 0 16px;
+            background: #F1F5F9;
+        }
+
+        .input-icon {
+            margin-right: 10px;
+            color: var(--text-dim);
+            font-size: 20px;
+        }
+
+        .input {
+            flex: 1;
+            padding: 14px 0;
+            font-size: 1rem;
+            font-weight: 500;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text);
+            font-family: inherit;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            border: 2px solid var(--primary);
+            background: var(--surface);
+            color: var(--primary);
+            font-size: 1rem;
+            font-weight: 800;
+            margin-top: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        .error-container {
+            width: 100%;
+            padding: 12px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: none;
+        }
+
+        .footer-link {
+            margin-top: 24px;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: block;
+        }
+
+        .footer-link span {
+            color: var(--primary);
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="javascript:history.back()" class="back-button">
+            <i class="mdi mdi-arrow-left" style="font-size: 24px;"></i>
+        </a>
+
+        <div class="card">
+            <div class="logo-circle">
+                <i class="mdi mdi-shield-check"></i>
+            </div>
+
+            <div class="title">Welcome Back</div>
+            <div class="subtitle">Please sign in to your TwinXCare account</div>
+
+            <div id="error-box" class="error-container"></div>
+
+            <form id="login-form">
+                <div class="input-wrapper">
+                    <label class="label">Email Address</label>
+                    <div class="input-container">
+                        <i class="mdi mdi-email-outline input-icon"></i>
+                        <input type="email" id="email" class="input" placeholder="admin@twinxcare.com" required>
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <label class="label">Password</label>
+                    <div class="input-container">
+                        <i class="mdi mdi-lock-outline input-icon"></i>
+                        <input type="password" id="password" class="input" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit" id="btn-submit">Sign In</button>
+            </form>
+
+            <a href="/app/register.html" class="footer-link">
+                Don't have an account? <span>Register</span>
+            </a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, signInWithEmailAndPassword } from '/app/firebase.js';
+
+        const loginForm = document.getElementById('login-form');
+        const errorBox = document.getElementById('error-box');
+        const btnSubmit = document.getElementById('btn-submit');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorBox.style.display = 'none';
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = 'Signing In...';
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                window.location.href = '/app/profile.html';
+            } catch (err) {
+                console.error(err);
+                errorBox.innerText = err.message || 'Login failed. Please try again.';
+                errorBox.style.display = 'block';
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = 'Sign In';
+            }
+        });
+    </script>
+</body>
+
+</html>

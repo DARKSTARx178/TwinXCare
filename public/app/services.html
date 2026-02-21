@@ -8,89 +8,111 @@
     <link rel="stylesheet" href="/app/app.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
-    <meta name="theme-color" content="#121212">
+    <meta name="theme-color" content="#F8FAFC">
 </head>
 
 <body>
 
-    <!-- Main Content -->
     <main class="fade-in">
         <div class="section-title">
             <i class="mdi mdi-car-sports" style="color: var(--primary);"></i>
             Care Services
         </div>
 
-        <input type="text" class="search-bar" placeholder="Search services...">
+        <input type="text" class="search-bar" id="search-input" placeholder="Search services...">
 
-        <!-- Dummy Services List -->
-        <div class="item-card">
-            <div class="icon-container"
-                style="margin: 16px; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: rgba(79, 134, 255, 0.1);">
-                <i class="mdi mdi-ambulance" style="font-size: 30px;"></i>
-            </div>
-            <div class="item-info">
-                <div class="item-brand">TRANSPORT</div>
-                <div class="item-title">Medical Escort</div>
-                <div class="item-bottom">
-                    <div class="item-price">$45/trip</div>
-                </div>
+        <div class="items-grid" id="services-grid">
+            <div style="text-align: center; color: var(--text-dim); padding: 20px; width: 100%;">
+                Loading services...
             </div>
         </div>
-
-        <div class="item-card">
-            <div class="icon-container"
-                style="margin: 16px; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: rgba(79, 255, 134, 0.1); color: var(--success);">
-                <i class="mdi mdi-account-heart" style="font-size: 30px;"></i>
-            </div>
-            <div class="item-info">
-                <div class="item-brand">NURSING</div>
-                <div class="item-title">Home Nursing Care</div>
-                <div class="item-bottom">
-                    <div class="item-price">$120/session</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="item-card">
-            <div class="icon-container"
-                style="margin: 16px; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: rgba(255, 170, 0, 0.1); color: #FFB800;">
-                <i class="mdi mdi-car-side" style="font-size: 30px;"></i>
-            </div>
-            <div class="item-info">
-                <div class="item-brand">TRANSPORT</div>
-                <div class="item-title">Non-Emergency Transport</div>
-                <div class="item-bottom">
-                    <div class="item-price">$30/trip</div>
-                </div>
-            </div>
-        </div>
-
     </main>
 
-    <!-- Bottom Navigation -->
     <nav class="bottom-nav">
-        <a href="/app/index.html" class="nav-item">
-            <i class="mdi mdi-home"></i>
-            <span>Home</span>
-        </a>
-        <a href="/app/explore.html" class="nav-item">
-            <i class="mdi mdi-compass"></i>
-            <span>Explore</span>
-        </a>
-        <a href="/app/services.html" class="nav-item active">
-            <i class="mdi mdi-car-sports"></i>
-            <span>Services</span>
-        </a>
-        <a href="/app/delivery.html" class="nav-item">
-            <i class="mdi mdi-truck-delivery"></i>
-            <span>History</span>
-        </a>
-        <a href="/app/settings.html" class="nav-item">
-            <i class="mdi mdi-cog"></i>
-            <span>Settings</span>
-        </a>
+        <div class="nav-container">
+            <a href="/app/index.html" class="nav-item">
+                <i class="mdi mdi-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="/app/explore.html" class="nav-item">
+                <i class="mdi mdi-compass"></i>
+                <span>Explore</span>
+            </a>
+            <a href="/app/services.html" class="nav-item active">
+                <i class="mdi mdi-car-sports"></i>
+                <span>Services</span>
+            </a>
+            <a href="/app/delivery.html" class="nav-item">
+                <i class="mdi mdi-truck-delivery"></i>
+                <span>History</span>
+            </a>
+            <a href="/app/settings.html" class="nav-item">
+                <i class="mdi mdi-cog"></i>
+                <span>Settings</span>
+            </a>
+        </div>
     </nav>
 
+    <script type="module">
+        import { db, collection, getDocs, convertGoogleDriveLink } from '/app/firebase.js';
+
+        let servicesData = [];
+        const grid = document.getElementById('services-grid');
+        const searchInput = document.getElementById('search-input');
+
+        async function loadServices() {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'services'));
+                servicesData = querySnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        name: data.name || 'Unnamed Service',
+                        company: data.company || 'Care Provider',
+                        price: Number(data.price) || 0,
+                        duration: data.duration || 'Session',
+                        image: convertGoogleDriveLink(data.image)
+                    };
+                });
+                renderServices(servicesData);
+            } catch (e) {
+                console.error("Error loading services:", e);
+                grid.innerHTML = '<div style="color:red; margin:20px;">Failed to load services</div>';
+            }
+        }
+
+        function renderServices(items) {
+            if (items.length === 0) {
+                grid.innerHTML = '<div style="width:100%; text-align:center; padding:40px; color:var(--text-dim);">No items match your search.</div>';
+                return;
+            }
+
+            grid.innerHTML = items.map(item => `
+        <div class="item-card">
+          <img src="${item.image}" alt="${item.name}" class="item-img" onerror="this.src='https://via.placeholder.com/120?text=Service'">
+          <div class="item-info">
+            <div class="item-brand">${item.company}</div>
+            <div class="item-title">${item.name}</div>
+            <div class="item-bottom">
+              <div class="item-price">$${item.price}</div>
+              <div class="stock-badge" style="background: rgba(129, 173, 231, 0.1); color: var(--primary);">${item.duration}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            const filtered = servicesData.filter(item =>
+                item.name.toLowerCase().includes(val) ||
+                item.company.toLowerCase().includes(val)
+            );
+            renderServices(filtered);
+        });
+
+        loadServices();
+    </script>
 </body>
 
 </html>

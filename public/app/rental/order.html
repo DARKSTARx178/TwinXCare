@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Order Equipment</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <meta name="theme-color" content="#F8FAFC">
+    <style>
+        .image-card {
+            width: 100%;
+            height: 320px;
+            border-radius: 32px;
+            overflow: hidden;
+            margin-bottom: 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .price-badge {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 100px;
+            font-weight: 900;
+            font-size: 1.1rem;
+        }
+
+        .header-info {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .brand {
+            color: var(--text-dim);
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .stock-label {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 100px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .stock-label.in-stock {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .stock-label.out-of-stock {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .qty-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .qty-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 20px 24px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            z-index: 1000;
+        }
+
+        .date-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            font-family: inherit;
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="fade-in" style="padding-top: 60px; padding-bottom: 160px;">
+        <a href="javascript:history.back()"
+            style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.05); padding: 8px; border-radius: 12px; color: var(--text); text-decoration: none;">
+            <i class="mdi mdi-arrow-left" style="font-size: 24px;"></i>
+        </a>
+
+        <div class="image-card">
+            <img id="item-image" src="" alt="Equipment">
+            <div class="price-badge" id="item-price"></div>
+        </div>
+
+        <div class="header-info">
+            <div class="title" id="item-name"></div>
+            <div class="brand" id="item-brand"></div>
+            <div class="stock-label" id="item-stock"></div>
+        </div>
+
+        <div class="card">
+            <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 8px;">Description</div>
+            <div style="color: var(--text-dim); line-height: 1.6;" id="item-desc"></div>
+        </div>
+
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 4px;">Quantity</div>
+                <div style="color: var(--text-dim); font-size: 0.85rem;">How many do you need?</div>
+            </div>
+            <div class="qty-controls">
+                <button class="qty-btn" id="btn-minus"><i class="mdi mdi-minus"></i></button>
+                <div style="font-weight: 800; font-size: 1.2rem; min-width: 20px; text-align: center;" id="qty-val">1
+                </div>
+                <button class="qty-btn" id="btn-plus"><i class="mdi mdi-plus"></i></button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 8px;">Rental Period</div>
+            <div style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 16px;" id="rent-days">Selected for 1
+                day</div>
+
+            <div style="display: flex; gap: 16px; align-items: center;">
+                <div style="flex: 1;">
+                    <div
+                        style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px;">
+                        Starts</div>
+                    <input type="date" class="date-input" id="date-start">
+                </div>
+                <i class="mdi mdi-arrow-right" style="color: var(--text-dim);"></i>
+                <div style="flex: 1;">
+                    <div
+                        style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px;">
+                        Ends</div>
+                    <input type="date" class="date-input" id="date-end">
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="bottom-bar">
+        <div style="flex: 1;">
+            <div
+                style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-dim); letter-spacing: 1px;">
+                Est. Total</div>
+            <div style="font-size: 1.5rem; font-weight: 900;" id="total-price">$0.00</div>
+        </div>
+        <button class="btn btn-solid" style="flex: 1.5; margin: 0; padding: 18px;" id="btn-order">SWIPE TO RENT</button>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const docId = urlParams.get('docId') || '';
+        const name = urlParams.get('name') || 'Equipment';
+        const brand = urlParams.get('brand') || 'Brand';
+        const price = Number(urlParams.get('price')) || 0;
+        const stock = Number(urlParams.get('stock')) || 0;
+        const image = urlParams.get('image') || '';
+        const desc = urlParams.get('description') || 'No description available.';
+
+        document.getElementById('item-name').innerText = name;
+        document.getElementById('item-brand').innerText = brand;
+        document.getElementById('item-price').innerText = `$${price}/day`;
+        document.getElementById('item-desc').innerText = desc;
+        document.getElementById('item-image').src = image;
+
+        const stockEl = document.getElementById('item-stock');
+        if (stock > 0) {
+            stockEl.className = 'stock-label in-stock';
+            stockEl.innerText = `${stock} units available`;
+        } else {
+            stockEl.className = 'stock-label out-of-stock';
+            stockEl.innerText = 'Out of stock';
+            document.getElementById('btn-order').disabled = true;
+            document.getElementById('btn-order').innerText = 'UNAVAILABLE';
+            document.getElementById('btn-order').style.opacity = '0.5';
+        }
+
+        let qty = 1;
+        const btnMinus = document.getElementById('btn-minus');
+        const btnPlus = document.getElementById('btn-plus');
+        const qtyVal = document.getElementById('qty-val');
+        const totalPriceEl = document.getElementById('total-price');
+
+        const dtStart = document.getElementById('date-start');
+        const dtEnd = document.getElementById('date-end');
+        const rentDaysEl = document.getElementById('rent-days');
+
+        // Initialize dates to today/tomorrow
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        dtStart.valueAsDate = today;
+        dtEnd.valueAsDate = tomorrow;
+
+        function getDays() {
+            const s = dtStart.valueAsDate || new Date();
+            const e = dtEnd.valueAsDate || new Date();
+            const diff = Math.ceil((e - s) / (1000 * 60 * 60 * 24));
+            return diff > 0 ? diff : 1;
+        }
+
+        function updateTotal() {
+            if (qty <= 1) { qty = 1; btnMinus.disabled = true; } else { btnMinus.disabled = false; }
+            if (qty >= stock) { qty = stock; btnPlus.disabled = true; } else { btnPlus.disabled = false; }
+            qtyVal.innerText = qty;
+
+            const days = getDays();
+            rentDaysEl.innerText = `Selected for ${days} day${days > 1 ? 's' : ''}`;
+            totalPriceEl.innerText = `$${(price * qty * days).toFixed(2)}`;
+        }
+
+        btnMinus.addEventListener('click', () => { qty--; updateTotal(); });
+        btnPlus.addEventListener('click', () => { qty++; updateTotal(); });
+        dtStart.addEventListener('change', () => {
+            if (dtStart.valueAsDate > dtEnd.valueAsDate) dtEnd.valueAsDate = dtStart.valueAsDate;
+            updateTotal();
+        });
+        dtEnd.addEventListener('change', () => {
+            if (dtEnd.valueAsDate < dtStart.valueAsDate) dtEnd.valueAsDate = dtStart.valueAsDate;
+            updateTotal();
+        });
+
+        updateTotal();
+
+        document.getElementById('btn-order').addEventListener('click', () => {
+            const p = new URLSearchParams();
+            p.append('type', 'equipment');
+            p.append('docId', docId);
+            p.append('name', name);
+            p.append('price', price.toString());
+            p.append('quantity', qty.toString());
+            p.append('rentalDays', getDays().toString());
+            p.append('rentalStart', dtStart.value);
+            p.append('rentalEnd', dtEnd.value);
+
+            window.location.href = `/app/rental/payment.html?${p.toString()}`;
+        });
+    </script>
+</body>
+
+</html>

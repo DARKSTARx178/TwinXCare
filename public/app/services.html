@@ -88,7 +88,7 @@
             }
 
             grid.innerHTML = items.map(item => `
-        <div class="item-card">
+        <a href="/app/rental/booking.html?docId=${item.id}&name=${encodeURIComponent(item.name)}&brand=${encodeURIComponent(item.company)}&price=${item.price}&image=${encodeURIComponent(item.image)}" class="item-card" style="text-decoration: none; color: inherit; display: flex;">
           <img src="${item.image}" alt="${item.name}" class="item-img" onerror="this.src='https://via.placeholder.com/120?text=Service'">
           <div class="item-info">
             <div class="item-brand">${item.company}</div>
@@ -98,7 +98,7 @@
               <div class="stock-badge" style="background: rgba(129, 173, 231, 0.1); color: var(--primary);">${item.duration}</div>
             </div>
           </div>
-        </div>
+        </a>
       `).join('');
         }
 

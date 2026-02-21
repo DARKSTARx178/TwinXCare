@@ -91,7 +91,7 @@
             }
 
             grid.innerHTML = items.map(item => `
-        <div class="item-card">
+        <a href="/app/rental/order.html?docId=${item.id}&name=${encodeURIComponent(item.name)}&brand=${encodeURIComponent(item.brand)}&price=${item.price}&stock=${item.stock}&image=${encodeURIComponent(item.image)}" class="item-card" style="text-decoration: none; color: inherit; display: flex;">
           <img src="${item.image}" alt="${item.name}" class="item-img" onerror="this.src='https://via.placeholder.com/120?text=No+Img'">
           <div class="item-info">
             <div class="item-brand">${item.brand}</div>
@@ -101,7 +101,7 @@
               <div class="stock-badge">${item.stock} in Stock</div>
             </div>
           </div>
-        </div>
+        </a>
       `).join('');
         }
 

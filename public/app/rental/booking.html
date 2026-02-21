@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Book Service</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <meta name="theme-color" content="#F8FAFC">
+    <style>
+        .image-card {
+            width: 100%;
+            height: 250px;
+            border-radius: 32px;
+            overflow: hidden;
+            margin-bottom: 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .price-badge {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 100px;
+            font-weight: 900;
+            font-size: 1.1rem;
+        }
+
+        .header-info {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .input {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            border: 1.5px solid var(--border);
+            background: #F1F5F9;
+            color: var(--text);
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .input:focus {
+            border-color: var(--primary);
+        }
+
+        .slot-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .slot-btn {
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .slot-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .slot-btn:disabled {
+            background: #F1F5F9;
+            color: var(--text-dim);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 20px 24px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="fade-in" style="padding-top: 60px; padding-bottom: 160px;">
+        <a href="javascript:history.back()"
+            style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.05); padding: 8px; border-radius: 12px; color: var(--text); text-decoration: none;">
+            <i class="mdi mdi-arrow-left" style="font-size: 24px;"></i>
+        </a>
+
+        <div class="image-card">
+            <img id="item-image" src="" alt="Service">
+            <div class="price-badge" id="item-price"></div>
+        </div>
+
+        <div class="header-info">
+            <div class="title" id="item-name"></div>
+            <div style="color: var(--text-dim); line-height: 1.6; padding: 0 10px;" id="item-desc"></div>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                <i class="mdi mdi-calendar" style="color: var(--primary); margin-right: 8px; font-size: 20px;"></i>
+                <div style="font-weight: 800; font-size: 1.1rem;">Booking Date</div>
+            </div>
+            <select class="input" id="date-select" style="background: #F1F5F9;">
+                <option value="" disabled selected>Select a Date</option>
+            </select>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                <i class="mdi mdi-clock-outline" style="color: var(--primary); margin-right: 8px; font-size: 20px;"></i>
+                <div style="font-weight: 800; font-size: 1.1rem;">Time Slot</div>
+            </div>
+            <div class="slot-grid" id="slot-grid">
+                <div style="color: var(--text-dim);">Select a date first.</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                <i class="mdi mdi-phone-outline" style="color: var(--primary); margin-right: 8px; font-size: 20px;"></i>
+                <div style="font-weight: 800; font-size: 1.1rem;">Contact & Notes</div>
+            </div>
+            <input type="tel" class="input" id="phone-input" placeholder="Your Phone Number">
+            <textarea class="input" id="notes-input" placeholder="Special instructions or notes..." rows="3"
+                style="min-height: 100px; resize: none;"></textarea>
+        </div>
+
+    </main>
+
+    <div class="bottom-bar">
+        <div style="flex: 1;">
+            <div
+                style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-dim); letter-spacing: 1px;">
+                Total Price</div>
+            <div style="font-size: 1.5rem; font-weight: 900;" id="total-price">$0.00</div>
+        </div>
+        <button class="btn btn-solid" style="flex: 1.5; margin: 0; padding: 18px; opacity: 0.5;" id="btn-book"
+            disabled>Complete Booking</button>
+    </div>
+
+    <script type="module">
+        import { db, doc, getDoc } from '/app/firebase.js';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const docId = urlParams.get('docId') || '';
+        const name = urlParams.get('name') || 'Service';
+        const price = Number(urlParams.get('price')) || 0;
+        const image = urlParams.get('image') || '';
+        const desc = urlParams.get('description') || 'No description available.';
+
+        document.getElementById('item-name').innerText = name;
+        document.getElementById('item-price').innerText = `$${price}`;
+        document.getElementById('total-price').innerText = `$${price.toFixed(2)}`;
+        document.getElementById('item-desc').innerText = desc;
+        if (image) document.getElementById('item-image').src = image;
+        else document.getElementById('item-image').style.display = 'none';
+
+        let schedule = [];
+        let uniqueDates = [];
+        let selectedDate = '';
+        let selectedSlot = '';
+
+        const dateSelect = document.getElementById('date-select');
+        const slotGrid = document.getElementById('slot-grid');
+        const btnBook = document.getElementById('btn-book');
+        const phoneInput = document.getElementById('phone-input');
+        const notesInput = document.getElementById('notes-input');
+
+        async function fetchSchedule() {
+            try {
+                const serviceRef = doc(db, 'services', docId);
+                const snap = await getDoc(serviceRef);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (data.schedule && Array.isArray(data.schedule)) {
+                        schedule = data.schedule;
+                        uniqueDates = [...new Set(schedule.map(s => s.date).filter(Boolean))];
+
+                        if (uniqueDates.length > 0) {
+                            dateSelect.innerHTML = `<option value="" disabled>Select Date</option>` +
+                                uniqueDates.map(d => `<option value="${d}">${d}</option>`).join('');
+                            dateSelect.value = uniqueDates[0];
+                            onDateSelected();
+                        } else {
+                            slotGrid.innerHTML = `<div style="color: var(--text-dim);">No schedule available.</div>`;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading schedule", e);
+            }
+        }
+
+        function onDateSelected() {
+            selectedDate = dateSelect.value;
+            selectedSlot = '';
+
+            const slots = schedule.filter(s => s.date === selectedDate);
+            if (slots.length === 0) {
+                slotGrid.innerHTML = `<div style="color: var(--text-dim);">No slots on this date.</div>`;
+                return;
+            }
+
+            slotGrid.innerHTML = slots.map(slot => {
+                const text = `${slot.from} - ${slot.to}`;
+                const isFull = slot.pax === 0;
+                return `
+          <button class="slot-btn ${isFull ? 'full' : ''}" data-slot="${text}" ${isFull ? 'disabled' : ''}>
+            ${text} ${isFull ? '(Full)' : ''}
+          </button>
+        `;
+            }).join('');
+
+            document.querySelectorAll('.slot-btn:not(.full)').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    selectedSlot = e.target.getAttribute('data-slot');
+                    checkForm();
+                });
+            });
+            checkForm();
+        }
+
+        function checkForm() {
+            const phone = phoneInput.value.trim();
+            if (selectedDate && selectedSlot && phone.length > 3) {
+                btnBook.disabled = false;
+                btnBook.style.opacity = '1';
+            } else {
+                btnBook.disabled = true;
+                btnBook.style.opacity = '0.5';
+            }
+        }
+
+        dateSelect.addEventListener('change', onDateSelected);
+        phoneInput.addEventListener('input', checkForm);
+
+        btnBook.addEventListener('click', () => {
+            const p = new URLSearchParams();
+            p.append('type', 'service');
+            p.append('docId', docId);
+            p.append('name', name);
+            p.append('price', price.toString());
+            p.append('bookingDate', selectedDate);
+            p.append('timeSlot', selectedSlot);
+            p.append('phone', phoneInput.value);
+            p.append('notes', notesInput.value);
+
+            window.location.href = `/app/rental/payment.html?${p.toString()}`;
+        });
+
+        if (docId) fetchSchedule();
+    </script>
+</body>
+
+</html>

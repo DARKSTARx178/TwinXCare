@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Deliveries & History</title>
+    <link rel="stylesheet" href="app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <meta name="theme-color" content="#121212">
+</head>
+
+<body>
+
+    <!-- Main Content -->
+    <main class="fade-in">
+        <div class="section-title">
+            <i class="mdi mdi-history" style="color: var(--primary);"></i>
+            My Rentals
+        </div>
+
+        <!-- Dummy History List -->
+        <div class="item-card" style="padding: 16px;">
+            <div style="width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="font-weight: 700; font-size: 1.1rem;">Standard Wheelchair</div>
+                    <div class="status-badge status-pending">In Transit</div>
+                </div>
+                <div style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 8px;">Order #TX-8291</div>
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+                    <i class="mdi mdi-calendar" style="color: var(--primary);"></i>
+                    <span>Oct 24, 2026</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="item-card" style="padding: 16px;">
+            <div style="width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="font-weight: 700; font-size: 1.1rem;">Medical Escort</div>
+                    <div class="status-badge status-delivered">Completed</div>
+                </div>
+                <div style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 8px;">Order #TX-8043</div>
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+                    <i class="mdi mdi-calendar" style="color: var(--primary);"></i>
+                    <span>Oct 15, 2026</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="item-card" style="padding: 16px;">
+            <div style="width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="font-weight: 700; font-size: 1.1rem;">Adjustable Crutches</div>
+                    <div class="status-badge status-delivered">Returned</div>
+                </div>
+                <div style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 8px;">Order #TX-7992</div>
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+                    <i class="mdi mdi-calendar" style="color: var(--primary);"></i>
+                    <span>Sep 02, 2026</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="mdi mdi-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="explore.html" class="nav-item">
+            <i class="mdi mdi-compass"></i>
+            <span>Explore</span>
+        </a>
+        <a href="services.html" class="nav-item">
+            <i class="mdi mdi-car-sports"></i>
+            <span>Services</span>
+        </a>
+        <a href="delivery.html" class="nav-item active">
+            <i class="mdi mdi-truck-delivery"></i>
+            <span>History</span>
+        </a>
+        <a href="settings.html" class="nav-item">
+            <i class="mdi mdi-cog"></i>
+            <span>Settings</span>
+        </a>
+    </nav>
+
+</body>
+
+</html>

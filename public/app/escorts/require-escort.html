@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Request Escort</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <meta name="theme-color" content="#F8FAFC">
+    <style>
+        .header {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 30px;
+        }
+
+        .icon-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: #fdf2f2;
+            color: #ef4444;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+
+        .input-wrapper {
+            margin-bottom: 16px;
+        }
+
+        .label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+
+        .input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 1.5px solid var(--border);
+            background: #F1F5F9;
+            color: var(--text);
+            font-size: 0.95rem;
+            font-weight: 600;
+            box-sizing: border-box;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .input:focus {
+            border-color: var(--primary);
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .flex-1 {
+            flex: 1;
+        }
+
+        .flex-2 {
+            flex: 2;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            border-radius: 18px;
+            background: var(--surface);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            font-size: 1rem;
+            font-weight: 800;
+            margin-top: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.7;
+            background: #F1F5F9;
+            border-color: #E2E8F0;
+            color: #94B3B8;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="fade-in" style="padding-top: 20px; padding-bottom: 60px;">
+        <a href="javascript:history.back()"
+            style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.05); padding: 8px; border-radius: 12px; color: var(--text); text-decoration: none;">
+            <i class="mdi mdi-arrow-left" style="font-size: 24px;"></i>
+        </a>
+
+        <div class="header">
+            <div class="icon-circle"><i class="mdi mdi-medical-bag"></i></div>
+            <div style="font-size: 1.5rem; font-weight: 900;">Request Escort</div>
+            <div style="color: var(--text-dim); font-weight: 500; margin-top: 4px;">Professional assistance for medical
+                appointments</div>
+        </div>
+
+        <div class="card" style="margin-bottom: 20px;">
+            <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 20px;">Timing & Schedule</div>
+
+            <div class="input-wrapper">
+                <div class="label">Appointment Date</div>
+                <input type="date" class="input" id="date-input">
+            </div>
+
+            <div class="row">
+                <div class="input-wrapper flex-1">
+                    <div class="label">Starts At</div>
+                    <input type="time" class="input" id="from-input">
+                </div>
+                <div class="input-wrapper flex-1">
+                    <div class="label">Estimated End</div>
+                    <input type="time" class="input" id="to-input">
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 20px;">
+            <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 20px;">Patient Info</div>
+
+            <div class="input-wrapper">
+                <div class="label">Hospital / Clinic</div>
+                <input type="text" class="input" id="hospital-input" placeholder="Name of health facility">
+            </div>
+
+            <div class="input-wrapper">
+                <div class="label">Reason for Appointment</div>
+                <input type="text" class="input" id="reason-input" placeholder="e.g. Regular checkup, Dialysis">
+            </div>
+
+            <div class="row">
+                <div class="input-wrapper flex-1">
+                    <div class="label">Age</div>
+                    <input type="number" class="input" id="age-input" placeholder="70">
+                </div>
+                <div class="input-wrapper flex-2">
+                    <div class="label">Contact Phone</div>
+                    <input type="tel" class="input" id="phone-input" placeholder="Mobile number">
+                </div>
+            </div>
+
+            <div class="input-wrapper">
+                <div class="label">Medical Details</div>
+                <textarea class="input" id="medical-input" rows="3"
+                    placeholder="Mobility constraints, medications, etc." style="resize: none;"></textarea>
+            </div>
+
+            <div class="input-wrapper">
+                <div class="label">Additional Instructions</div>
+                <textarea class="input" id="notes-input" rows="2" placeholder="Anything else?"
+                    style="resize: none;"></textarea>
+            </div>
+
+            <button class="btn-submit" id="btn-submit">
+                Submit Request <i class="mdi mdi-send"></i>
+            </button>
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, db, collection, addDoc, doc, setDoc } from '/app/firebase.js';
+
+        // Init dates
+        const d = new Date();
+        document.getElementById('date-input').valueAsDate = d;
+        document.getElementById('from-input').value = "09:00";
+        document.getElementById('to-input').value = "11:00";
+
+        const btnSubmit = document.getElementById('btn-submit');
+
+        btnSubmit.addEventListener('click', async () => {
+            const hospital = document.getElementById('hospital-input').value.trim();
+            const reason = document.getElementById('reason-input').value.trim();
+            if (!hospital || !reason) {
+                alert("Please enter hospital and reason.");
+                return;
+            }
+
+            const user = auth.currentUser;
+            if (!user) {
+                alert("Please login first.");
+                return;
+            }
+
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = "Processing...";
+
+            try {
+                const data = {
+                    userId: user.uid,
+                    userEmail: user.email,
+                    date: document.getElementById('date-input').value,
+                    time: document.getElementById('from-input').value,
+                    endTime: document.getElementById('to-input').value,
+                    hospital: hospital,
+                    appointmentReason: reason,
+                    medicalDetails: document.getElementById('medical-input').value,
+                    age: Number(document.getElementById('age-input').value) || null,
+                    contactPhone: document.getElementById('phone-input').value,
+                    additionalNotes: document.getElementById('notes-input').value,
+                    createdAt: new Date().toISOString(),
+                    status: 'pending'
+                };
+
+                const col = collection(db, 'escort/request/entries');
+                await addDoc(col, data);
+
+                // Manual Matching Check (simplified for web client, would normally hit Cloud Function)
+                // Fireball match trigger if possible, or just complete writing
+                alert("Your medical escort request has been submitted successfully.");
+                window.history.back();
+
+            } catch (err) {
+                console.error(err);
+                alert("Failed to submit request.");
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `Submit Request <i class="mdi mdi-send"></i>`;
+            }
+        });
+
+    </script>
+</body>
+
+</html>

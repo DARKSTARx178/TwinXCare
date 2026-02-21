@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Volunteer Availability</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <meta name="theme-color" content="#F8FAFC">
+    <style>
+        .header {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 30px;
+        }
+
+        .icon-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: var(--primary-glow);
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+
+        .input-wrapper {
+            margin-bottom: 16px;
+        }
+
+        .label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+
+        .input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 1.5px solid var(--border);
+            background: #F1F5F9;
+            color: var(--text);
+            font-size: 0.95rem;
+            font-weight: 600;
+            box-sizing: border-box;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .flex-1 {
+            flex: 1;
+        }
+
+        .flex-2 {
+            flex: 2;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            border-radius: 18px;
+            background: var(--surface);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            font-size: 1rem;
+            font-weight: 800;
+            margin-top: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Sliding knob for state matches */
+        .slider-track {
+            background: var(--primary-glow);
+            height: 60px;
+            border-radius: 30px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: 800;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .slider-knob {
+            height: 50px;
+            width: 50px;
+            background: white;
+            border-radius: 25px;
+            position: absolute;
+            left: 5px;
+            top: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: grab;
+            transition: left 0.1s;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="fade-in" style="padding-top: 20px; padding-bottom: 60px;">
+        <a href="javascript:history.back()"
+            style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.05); padding: 8px; border-radius: 12px; color: var(--text); text-decoration: none;">
+            <i class="mdi mdi-arrow-left" style="font-size: 24px;"></i>
+        </a>
+
+        <div class="header">
+            <div class="icon-circle"><i class="mdi mdi-calendar"></i></div>
+            <div style="font-size: 1.5rem; font-weight: 900;" id="page-title">Volunteer Availability</div>
+            <div style="color: var(--text-dim); font-weight: 500; margin-top: 4px;" id="page-subtitle">Offer your
+                assistance to patients</div>
+        </div>
+
+        <!-- Active Job Section (Hidden by default) -->
+        <div class="card" id="job-section" style="display: none; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="font-size: 1.1rem; font-weight: 800;">Assignment Overview</div>
+                <div class="status-badge" id="job-status">STATUS</div>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <i class="mdi mdi-map-marker" style="color: var(--primary); font-size: 20px;"></i>
+                <div>
+                    <div class="label" style="font-size: 0.6rem; margin-bottom: 2px;">Location</div>
+                    <div style="font-size: 0.95rem; font-weight: 700;" id="job-loc">Hospital Name</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <i class="mdi mdi-clock-outline" style="color: var(--primary); font-size: 20px;"></i>
+                <div>
+                    <div class="label" style="font-size: 0.6rem; margin-bottom: 2px;">Date & Time</div>
+                    <div style="font-size: 0.95rem; font-weight: 700;" id="job-time">2026-02-21 • 09:00 - 11:00</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <i class="mdi mdi-text-box-outline" style="color: var(--primary); font-size: 20px;"></i>
+                <div>
+                    <div class="label" style="font-size: 0.6rem; margin-bottom: 2px;">Notes</div>
+                    <div style="font-size: 0.95rem; font-weight: 700;" id="job-notes">None</div>
+                </div>
+            </div>
+
+            <div id="slider-container" style="display: none; text-align: center;">
+                <div class="label" style="margin-top: 20px;" id="slider-label">Slide to Agree</div>
+                <div class="slider-track" id="slider-track">
+                    Confirming...
+                    <div class="slider-knob" id="slider-knob"><i class="mdi mdi-arrow-right"></i></div>
+                </div>
+            </div>
+
+            <div id="waiting-box"
+                style="display: none; text-align: center; background: #FFFBEB; padding: 20px; border-radius: 16px; margin-top: 20px;">
+                <i class="mdi mdi-clock-fast" style="font-size: 32px; color: #F59E0B;"></i>
+                <div style="font-weight: 800; color: #B45309; margin-top: 10px;">WAITING FOR COUNTERPART</div>
+                <div style="font-size: 0.8rem; color: #D97706; margin-top: 4px;">Waiting for other user to agree...
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Section (Visible by default) -->
+        <div id="form-section">
+            <div class="card" style="margin-bottom: 20px;">
+                <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 20px;">Service Schedule</div>
+
+                <div class="input-wrapper">
+                    <div class="label">Escort Date</div>
+                    <input type="date" class="input" id="date-input">
+                </div>
+
+                <div class="row">
+                    <div class="input-wrapper flex-1">
+                        <div class="label">Available From</div>
+                        <input type="time" class="input" id="from-input">
+                    </div>
+                    <div class="input-wrapper flex-1">
+                        <div class="label">Available Until</div>
+                        <input type="time" class="input" id="to-input">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 20px;">
+                <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 20px;">Assignment Details</div>
+
+                <div class="input-wrapper">
+                    <div class="label">Preferred Location</div>
+                    <input type="text" class="input" id="loc-input" placeholder="Hospital, area, or facility">
+                </div>
+
+                <div class="row">
+                    <div class="input-wrapper flex-1">
+                        <div class="label">Capacity</div>
+                        <input type="number" class="input" id="pax-input" placeholder="1">
+                    </div>
+                    <div class="input-wrapper flex-2">
+                        <div class="label">Contact Phone</div>
+                        <input type="tel" class="input" id="phone-input" placeholder="Your active number">
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <div class="label">Additional Notes</div>
+                    <textarea class="input" id="notes-input" rows="2" placeholder="Constraints or references"
+                        style="resize: none;"></textarea>
+                </div>
+
+                <button class="btn-submit" id="btn-submit">
+                    Register Availability <i class="mdi mdi-check-circle-outline"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, db, doc, getDoc, collection, addDoc } from '/app/firebase.js';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const jobId = urlParams.get('jobId');
+        const type = urlParams.get('type');
+
+        if (jobId) {
+            document.getElementById('form-section').style.display = 'none';
+            document.getElementById('job-section').style.display = 'block';
+            document.getElementById('page-title').innerText = 'Assignment Details';
+
+            const path = type === 'availability' ? `escort/availability/entries` : `escort/request/entries`;
+            getDoc(doc(db, path, jobId)).then(snap => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    document.getElementById('job-loc').innerText = data.location || data.hospital || 'Not Specified';
+                    document.getElementById('job-time').innerText = `${data.date} • ${data.fromTime || data.time} - ${data.toTime || data.endTime}`;
+                    document.getElementById('job-notes').innerText = data.notes || data.additionalNotes || 'N/A';
+                    document.getElementById('job-status').innerText = (data.status || 'unknown').toUpperCase();
+
+                    const badge = document.getElementById('job-status');
+                    if (data.status === 'confirmed') badge.style.cssText += 'background:#ecfdf5;color:#10b981;';
+                    else if (data.status === 'matched') badge.style.cssText += 'background:#fffbeb;color:#f59e0b;';
+                    else badge.style.cssText += 'background:#fef2f2;color:#ef4444;';
+
+                    if (data.status === 'matched') {
+                        if ((type === 'request' && data.patientConfirmed) || (type === 'availability' && data.volunteerConfirmed)) {
+                            document.getElementById('waiting-box').style.display = 'block';
+                        } else {
+                            // Show mock slider
+                            document.getElementById('slider-container').style.display = 'block';
+                            // Simple web slider mock logic
+                            const knob = document.getElementById('slider-knob');
+                            knob.onmousedown = () => knob.style.left = 'calc(100% - 55px)'; // fake slide
+                            knob.onmouseup = () => alert('Confirm logic here (Firebase Cloud Function triggered in real application)');
+                        }
+                    }
+                }
+            });
+        } else {
+            // Init dates for form
+            const d = new Date();
+            document.getElementById('date-input').valueAsDate = d;
+            document.getElementById('from-input').value = "09:00";
+            document.getElementById('to-input').value = "11:00";
+
+            const btnSubmit = document.getElementById('btn-submit');
+            btnSubmit.addEventListener('click', async () => {
+                const loc = document.getElementById('loc-input').value.trim();
+                if (!loc) {
+                    alert('Location is required.');
+                    return;
+                }
+
+                const user = auth.currentUser;
+                if (!user) {
+                    alert('Please login first.');
+                    return;
+                }
+
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = "Registering...";
+
+                try {
+                    const col = collection(db, 'escort/availability/entries');
+                    await addDoc(col, {
+                        providerId: user.uid,
+                        providerEmail: user.email,
+                        date: document.getElementById('date-input').value,
+                        fromTime: document.getElementById('from-input').value,
+                        toTime: document.getElementById('to-input').value,
+                        location: loc,
+                        maxPax: Number(document.getElementById('pax-input').value) || 1,
+                        contactPhone: document.getElementById('phone-input').value,
+                        notes: document.getElementById('notes-input').value,
+                        status: 'available',
+                        createdAt: new Date().toISOString()
+                    });
+
+                    alert('Availability submitted successfully.');
+                    window.history.back();
+                } catch (e) {
+                    console.error(e);
+                    alert('Failed to submit.');
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = `Register Availability <i class="mdi mdi-check-circle-outline"></i>`;
+                }
+            });
+        }
+
+    </script>
+</body>
+
+</html>

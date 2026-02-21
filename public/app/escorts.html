@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Escorts Dashboard</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <meta name="theme-color" content="#F8FAFC">
+    <style>
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .icon-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: var(--primary-glow);
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .admin-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            border-radius: 24px;
+            border: 2px solid var(--primary);
+            background: var(--surface);
+            cursor: pointer;
+        }
+
+        .admin-card:active {
+            opacity: 0.8;
+        }
+
+        .btn-add {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            border: 1.5px solid var(--primary);
+            color: var(--primary);
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .item-card {
+            padding: 20px;
+            border-radius: 28px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+
+        .item-card:active {
+            opacity: 0.7;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin-top: 12px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 3px;
+        }
+
+        .status-red {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+
+        .status-red-dot {
+            background: #ef4444;
+        }
+
+        .status-amber {
+            background: #fffbeb;
+            color: #f59e0b;
+        }
+
+        .status-amber-dot {
+            background: #f59e0b;
+        }
+
+        .status-green {
+            background: #ecfdf5;
+            color: #10b981;
+        }
+
+        .status-green-dot {
+            background: #10b981;
+        }
+
+        .status-slate {
+            background: #f8fafc;
+            color: #94a3b8;
+        }
+
+        .status-slate-dot {
+            background: #94a3b8;
+        }
+
+        .match-banner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            margin-top: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .empty-box {
+            border: 2px dashed #e2e8f0;
+            border-radius: 28px;
+            padding: 40px;
+            text-align: center;
+            color: var(--text-dim);
+        }
+
+        .empty-box i {
+            font-size: 40px;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="fade-in" style="padding-bottom: 120px;">
+        <div class="header">
+            <div class="icon-circle"><i class="mdi mdi-shield-account-outline"></i></div>
+            <div style="font-size: 1.6rem; font-weight: 900; color: var(--text);">Care Dashboard</div>
+            <div
+                style="font-size: 0.9rem; font-weight: 500; color: var(--text-dim); max-width: 85%; margin: 4px auto 0;">
+                Monitor the status of your escort roles</div>
+        </div>
+
+        <!-- Admin Tools -->
+        <div id="admin-section" style="display: none; margin-bottom: 32px;">
+            <div class="section-header">
+                <div style="font-size: 1.1rem; font-weight: 800; color: var(--text);">Admin Terminal</div>
+                <i class="mdi mdi-lock" style="color: var(--primary);"></i>
+            </div>
+            <div class="admin-card" onclick="alert('Manual matching triggered.')">
+                <i class="mdi mdi-refresh-circle" style="font-size: 24px; color: var(--primary);"></i>
+                <div style="flex: 1; color: var(--primary); font-weight: 800;">Reload Matching Engine</div>
+                <i class="mdi mdi-play" style="font-size: 18px; color: var(--primary);"></i>
+            </div>
+        </div>
+
+        <!-- Patient Section -->
+        <div id="patient-section" style="margin-bottom: 32px;">
+            <div class="section-header">
+                <div style="font-size: 1.1rem; font-weight: 800; color: var(--text);">Patient Requests</div>
+                <button class="btn-add" onclick="window.location.href='/app/escorts/require-escort.html'">
+                    <i class="mdi mdi-plus" style="font-size: 20px;"></i>
+                </button>
+            </div>
+            <div id="patient-list">
+                <div class="empty-box">
+                    <i class="mdi mdi-text-box-outline"></i>
+                    <div style="font-size: 0.9rem; font-weight: 600; margin-top: 12px;">Loading active requests...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Escort Volunteer Section -->
+        <div id="escort-section" style="margin-bottom: 32px;">
+            <div class="section-header">
+                <div style=" display: flex; align-items: center; gap: 8px;">
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--text);">Volunteer Slots</div>
+                    <div id="rating-pill"
+                        style="display: none; background: rgba(245, 158, 11, 0.1); padding: 2px 8px; border-radius: 8px; align-items: center; gap: 4px; color: #f59e0b; font-size: 0.75rem; font-weight: 800;">
+                        <i class="mdi mdi-star" style="font-size: 12px;"></i> <span id="rating-val">0.0</span>
+                    </div>
+                </div>
+                <button class="btn-add" onclick="window.location.href='/app/escorts/escort.html'">
+                    <i class="mdi mdi-plus" style="font-size: 20px;"></i>
+                </button>
+            </div>
+            <div id="escort-list">
+                <div class="empty-box">
+                    <i class="mdi mdi-calendar-blank-outline"></i>
+                    <div style="font-size: 0.9rem; font-weight: 600; margin-top: 12px;">Loading your availability...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <div class="nav-container">
+            <a href="/app/index.html" class="nav-item">
+                <i class="mdi mdi-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="/app/explore.html" class="nav-item">
+                <i class="mdi mdi-compass-outline"></i>
+                <span>Equipment</span>
+            </a>
+            <a href="/app/escorts.html" class="nav-item active">
+                <i class="mdi mdi-shield-account-outline"></i>
+                <span>Escorts</span>
+            </a>
+            <a href="/app/delivery.html" class="nav-item">
+                <i class="mdi mdi-truck-delivery-outline"></i>
+                <span>History</span>
+            </a>
+            <a href="/app/settings.html" class="nav-item">
+                <i class="mdi mdi-cog-outline"></i>
+                <span>Settings</span>
+            </a>
+        </div>
+    </nav>
+
+    <script type="module">
+        import { auth, db, doc, getDoc, collection, query, where, getDocs, onAuthStateChanged } from '/app/firebase.js';
+
+        const getStatusTheme = (s) => {
+            const v = (s || 'unknown').toLowerCase();
+            if (v === 'pending' || v === 'available') return { cls: 'status-red', dot: 'status-red-dot' };
+            if (v === 'matched') return { cls: 'status-amber', dot: 'status-amber-dot' };
+            if (v === 'confirmed') return { cls: 'status-green', dot: 'status-green-dot' };
+            return { cls: 'status-slate', dot: 'status-slate-dot' };
+        };
+
+        onAuthStateChanged(auth, async (u) => {
+            if (!u) {
+                document.getElementById('patient-list').innerHTML = `<div class="empty-box"><i class="mdi mdi-alert-circle-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">Please log in to view.</div></div>`;
+                document.getElementById('escort-list').innerHTML = `<div class="empty-box"><i class="mdi mdi-alert-circle-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">Please log in to view.</div></div>`;
+                return;
+            }
+
+            try {
+                const uDoc = await getDoc(doc(db, 'users', u.uid));
+                if (!uDoc.exists()) return;
+
+                const uData = uDoc.data();
+                const role = uData.role;
+                const uType = uData.userType;
+
+                if (role === 'admin') document.getElementById('admin-section').style.display = 'block';
+
+                if (uType === 'escort' || role === 'admin') {
+                    if (uData.rating !== undefined) {
+                        const rPill = document.getElementById('rating-pill');
+                        document.getElementById('rating-val').innerText = Number(uData.rating).toFixed(1);
+                        rPill.style.display = 'inline-flex';
+                    }
+                }
+
+                // Hide sections where not applicable
+                if (uType === 'escort' && role !== 'admin') {
+                    document.getElementById('patient-section').style.display = 'none';
+                } else if (uType === 'standard' && role !== 'admin') {
+                    document.getElementById('escort-section').style.display = 'none';
+                }
+
+                // Fetch Requests
+                if (uType === 'standard' || role === 'admin' || !uType) {
+                    const reqSnap = await getDocs(query(collection(db, 'escort/request/entries'), where('userId', '==', u.uid)));
+                    const reqs = reqSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                    if (reqs.length === 0) {
+                        document.getElementById('patient-list').innerHTML = `<div class="empty-box"><i class="mdi mdi-text-box-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">No active escort requests.</div></div>`;
+                    } else {
+                        document.getElementById('patient-list').innerHTML = reqs.map(r => {
+                            const th = getStatusTheme(r.status);
+                            const mBanner = r.status === 'matched'
+                                ? `<div class="match-banner" style="background:var(--primary-glow);color:var(--primary);"><i class="mdi mdi-check-circle"></i> Volunteer Assigned</div>`
+                                : r.status === 'confirmed'
+                                    ? `<div class="match-banner" style="background:#ecfdf5;color:#10b981;"><i class="mdi mdi-lock"></i> Job Confirmed & Locked</div>` : '';
+
+                            return `
+              <div class="item-card" onclick="window.location.href='/app/escorts/escort.html?jobId=${r.id}&type=request'">
+                <div style="font-size: 1rem; font-weight: 800; margin-bottom: 4px;">${r.hospital}</div>
+                <div style="display: flex; gap: 6px; align-items: center; color: var(--text-dim); font-size: 0.8rem; font-weight: 600;">
+                  <i class="mdi mdi-calendar"></i> ${r.date} at ${r.time}
+                </div>
+                <div class="status-badge ${th.cls}">
+                  <div class="status-dot ${th.dot}"></div> ${(r.status || 'Unknown').toUpperCase()}
+                </div>
+                ${mBanner}
+              </div>`;
+                        }).join('');
+                    }
+                }
+
+                // Fetch Availabilities
+                if (uType === 'escort' || role === 'admin') {
+                    const avSnap = await getDocs(query(collection(db, 'escort/availability/entries'), where('providerId', '==', u.uid)));
+                    const avails = avSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                    if (avails.length === 0) {
+                        document.getElementById('escort-list').innerHTML = `<div class="empty-box"><i class="mdi mdi-calendar-blank-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">No availability slots posted.</div></div>`;
+                    } else {
+                        document.getElementById('escort-list').innerHTML = avails.map(a => {
+                            const th = getStatusTheme(a.status);
+                            const mBanner = a.status === 'matched'
+                                ? `<div class="match-banner" style="background:var(--primary-glow);color:var(--primary);"><i class="mdi mdi-heart"></i> Matched with Patient</div>`
+                                : a.status === 'confirmed'
+                                    ? `<div class="match-banner" style="background:#ecfdf5;color:#10b981;"><i class="mdi mdi-lock"></i> Job Confirmed & Locked</div>` : '';
+
+                            return `
+              <div class="item-card" onclick="window.location.href='/app/escorts/escort.html?jobId=${a.id}&type=availability'">
+                <div style="font-size: 1rem; font-weight: 800; margin-bottom: 4px;">${a.location || 'N/A'}</div>
+                <div style="display: flex; gap: 6px; align-items: center; color: var(--text-dim); font-size: 0.8rem; font-weight: 600;">
+                  <i class="mdi mdi-clock-outline"></i> ${a.date} • ${a.fromTime} - ${a.toTime}
+                </div>
+                <div class="status-badge ${th.cls}">
+                  <div class="status-dot ${th.dot}"></div> ${(a.status || 'Unknown').toUpperCase()}
+                </div>
+                ${mBanner}
+              </div>`;
+                        }).join('');
+                    }
+                }
+
+            } catch (e) {
+                console.error(e);
+            }
+        });
+    </script>
+</body>
+
+</html>

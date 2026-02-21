@@ -199,7 +199,7 @@
                     <label class="label">Username</label>
                     <div class="input-container">
                         <i class="mdi mdi-account-outline input-icon"></i>
-                        <input type="text" id="username" class="input" placeholder="John Doe" required>
+                        <input type="text" id="username" class="input" placeholder="Create a username" required>
                     </div>
                 </div>
 
@@ -207,7 +207,7 @@
                     <label class="label">Email Address</label>
                     <div class="input-container">
                         <i class="mdi mdi-email-outline input-icon"></i>
-                        <input type="email" id="email" class="input" placeholder="john@example.com" required>
+                        <input type="email" id="email" class="input" placeholder="Enter your email" required>
                     </div>
                 </div>
 
@@ -215,7 +215,7 @@
                     <label class="label">Password</label>
                     <div class="input-container">
                         <i class="mdi mdi-lock-outline input-icon"></i>
-                        <input type="password" id="password" class="input" placeholder="••••••••" required>
+                        <input type="password" id="password" class="input" placeholder="Create a password" required>
                     </div>
                 </div>
 
@@ -236,52 +236,58 @@
     </div>
 
     <script type="module">
-    import { auth, db, createUserWithEmailAndPassword, doc, setDoc } from '/app/firebase.js';
+        import { auth, db, createUserWithEmailAndPassword, doc, setDoc } from '/app/firebase.js';
 
-    let selectedType = 'standard';
-    window.setType = (type) => {
-      selectedType = type;
-      document.getElementById('type-standard').className = type === 'standard' ? 'type-btn active' : 'type-btn';
-      document.getElementById('type-escort').className = type === 'escort' ? 'type-btn active' : 'type-btn';
-    };
+        let selectedType = 'standard';
+        window.setType = (type) => {
+            selectedType = type;
+            document.getElementById('type-standard').className = type === 'standard' ? 'type-btn active' : 'type-btn';
+            document.getElementById('type-escort').className = type === 'escort' ? 'type-btn active' : 'type-btn';
+        };
 
-    const registerForm = document.getElementById('register-form');
-    const errorBox = document.getElementById('error-box');
-    const btnSubmit = document.getElementById('btn-submit');
+        const registerForm = document.getElementById('register-form');
+        const errorBox = document.getElementById('error-box');
+        const btnSubmit = document.getElementById('btn-submit');
 
-    registerForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      errorBox.style.display = 'none';
-      btnSubmit.disabled = true;
-      btnSubmit.innerText = 'Creating Account...';
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorBox.style.display = 'none';
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = 'Creating Account...';
 
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value;
 
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
 
-        await setDoc(doc(db, 'users', user.uid), {
-          username,
-          email,
-          role: 'user',
-          userType: selectedType,
-          createdAt: new Date().toISOString(),
-          history: [],
-          booking: []
+                await setDoc(doc(db, 'users', user.uid), {
+                    username,
+                    email,
+                    role: 'user',
+                    userType: selectedType,
+                    createdAt: new Date().toISOString(),
+                    history: [],
+                    booking: []
+                });
+
+                // Redirect back to referrer if it's within the app, otherwise index.html
+                const referrer = document.referrer;
+                if (referrer && referrer.includes(window.location.origin) && !referrer.includes('login.html') && !referrer.includes('register.html')) {
+                    window.location.href = referrer;
+                } else {
+                    window.location.href = '/app/index.html';
+                }
+            } catch (err) {
+                console.error(err);
+                errorBox.innerText = err.message || 'Registration failed.';
+                errorBox.style.display = 'block';
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = 'Create Account';
+            }
         });
-
-        window.location.href = '/app/profile.html';
-      } catch (err) {
-        console.error(err);
-        errorBox.innerText = err.message || 'Registration failed.';
-        errorBox.style.display = 'block';
-        btnSubmit.disabled = false;
-        btnSubmit.innerText = 'Create Account';
-      }
-    });
     </script>
 </body>
 

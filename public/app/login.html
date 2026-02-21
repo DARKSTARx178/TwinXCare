@@ -189,7 +189,7 @@
                     <label class="label">Password</label>
                     <div class="input-container">
                         <i class="mdi mdi-lock-outline input-icon"></i>
-                        <input type="password" id="password" class="input" placeholder="••••••••" required>
+                        <input type="password" id="password" class="input" placeholder="Enter your password" required>
                     </div>
                 </div>
 
@@ -220,7 +220,14 @@
 
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                window.location.href = '/app/profile.html';
+
+                // Redirect back to referrer if it's within the app, otherwise index.html
+                const referrer = document.referrer;
+                if (referrer && referrer.includes(window.location.origin) && !referrer.includes('login.html') && !referrer.includes('register.html')) {
+                    window.location.href = referrer;
+                } else {
+                    window.location.href = '/app/index.html';
+                }
             } catch (err) {
                 console.error(err);
                 errorBox.innerText = err.message || 'Login failed. Please try again.';

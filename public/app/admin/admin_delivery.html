@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Dispatch Center</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <meta name="theme-color" content="#F8FAFC">
+    <style>
+        .admin-header {
+            margin-top: 80px;
+            margin-bottom: 30px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .icon-circle {
+            width: 80px;
+            height: 80px;
+            background: var(--primary-glow);
+            border-radius: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            color: var(--primary);
+            font-size: 40px;
+        }
+
+        .order-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .order-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .order-name {
+            font-weight: 800;
+            font-size: 1rem;
+        }
+
+        .qty-badge {
+            background: #F1F5F9;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-dim);
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .order-details {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin-bottom: 16px;
+        }
+
+        .eta-section {
+            margin-bottom: 16px;
+        }
+
+        .eta-label {
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .eta-input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .eta-input-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: #F1F5F9;
+            border-radius: 14px;
+            padding: 0 12px;
+        }
+
+        .eta-input {
+            border: none;
+            background: transparent;
+            height: 40px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            width: 100%;
+            outline: none;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 25px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--background);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <a href="./index.html" class="back-btn">
+        <i class="mdi mdi-arrow-left"></i>
+    </a>
+
+    <main class="fade-in">
+        <div class="admin-header">
+            <div class="icon-circle">
+                <i class="mdi mdi-truck-delivery"></i>
+            </div>
+            <h1>Dispatch Center</h1>
+            <p>Order Fulfillment & Delivery Monitoring</p>
+        </div>
+
+        <input type="text" id="search-input" class="search-bar" placeholder="Search by Transaction ID...">
+
+        <div id="order-list" style="margin-bottom: 40px;">
+            <!-- Orders populated here -->
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, onAuthStateChanged, db, doc, getDoc, collection, getDocs, updateDoc } from '/app/firebase.js';
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = '/app/login.html';
+                return;
+            }
+
+            try {
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                if (userDoc.exists() && userDoc.data().role === 'admin') {
+                    fetchAllOrders();
+                } else {
+                    alert('Unauthorized access. Admin privileges required.');
+                    window.location.href = '/app/index.html';
+                }
+            } catch (e) {
+                console.error(e);
+                window.location.href = '/app/index.html';
+            }
+        });
+
+        async function fetchAllOrders() {
+            try {
+                const usersSnap = await getDocs(collection(db, 'users'));
+                const list = document.getElementById('order-list');
+                list.innerHTML = '';
+
+                const orders = [];
+                usersSnap.forEach(userDoc => {
+                    const data = userDoc.data();
+                    const history = data.history || [];
+                    history.forEach(order => {
+                        orders.push({
+                            ...order,
+                            userId: userDoc.id,
+                            userEmail: data.email || 'Unknown',
+                            userHistory: history
+                        });
+                    });
+                });
+
+                // Sort by date (desc)
+                orders.sort((a, b) => b.transactionId > a.transactionId ? 1 : -1);
+
+                orders.forEach(order => {
+                    const isCompleted = order.status === 'Completed';
+                    const el = document.createElement('div');
+                    el.className = 'order-card';
+                    el.innerHTML = `
+                        <div class="card-header">
+                            <div class="order-title">
+                                <span class="order-name">${order.name}</span>
+                                <span class="qty-badge">x${order.quantity}</span>
+                            </div>
+                            <div class="status-pill" style="background: ${isCompleted ? '#ecfdf5' : '#fff7ed'}; color: ${isCompleted ? '#065f46' : '#9a3412'}">
+                                <div class="status-dot" style="background: ${isCompleted ? '#10b981' : '#f97316'}"></div>
+                                ${order.status}
+                            </div>
+                        </div>
+                        <div class="order-details">
+                            <div class="detail-item"><i class="mdi mdi-barcode"></i> ID: ${order.transactionId}</div>
+                            <div class="detail-item"><i class="mdi mdi-account-outline"></i> ${order.userEmail}</div>
+                            <div class="detail-item"><i class="mdi mdi-map-marker-outline"></i> ${order.deliveryAddress}</div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="eta-section">
+                            <label class="eta-label">ESTIMATED DELIVERY</label>
+                            <div class="eta-input-row">
+                                <div class="eta-input-wrapper">
+                                    <i class="mdi mdi-clock-outline" style="color: var(--primary); margin-right: 8px;"></i>
+                                    <input type="text" id="eta-${order.transactionId}" class="eta-input" value="${order.deliveryEta || ''}" placeholder="Set arrival time...">
+                                </div>
+                                <button class="btn" style="padding: 10px; font-size: 0.8rem; width: auto; min-width: 80px;" onclick="updateEta('${order.userId}', '${order.transactionId}', document.getElementById('eta-${order.transactionId}').value)">Update</button>
+                            </div>
+                        </div>
+                        <button class="btn" onclick="toggleStatus('${order.userId}', '${order.transactionId}', '${order.status}')">
+                            ${isCompleted ? 'Revert to Incomplete' : 'Mark Completed'}
+                        </button>
+                    `;
+                    list.appendChild(el);
+                });
+
+                document.getElementById('loader').style.display = 'none';
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        window.updateEta = async (userId, transactionId, newEta) => {
+            try {
+                const userRef = doc(db, 'users', userId);
+                const userSnap = await getDoc(userRef);
+                const history = userSnap.data().history || [];
+                const updatedHistory = history.map(o => {
+                    if (o.transactionId === transactionId) return { ...o, deliveryEta: newEta };
+                    return o;
+                });
+                await updateDoc(userRef, { history: updatedHistory });
+                alert('Delivery info updated');
+                fetchAllOrders();
+            } catch (e) {
+                alert('Update failed');
+            }
+        };
+
+        window.toggleStatus = async (userId, transactionId, currentStatus) => {
+            const newStatus = currentStatus === 'Completed' ? 'Incomplete' : 'Completed';
+            if (!confirm(`Mark order as ${newStatus}?`)) return;
+
+            try {
+                const userRef = doc(db, 'users', userId);
+                const userSnap = await getDoc(userRef);
+                const history = userSnap.data().history || [];
+                const updatedHistory = history.map(o => {
+                    if (o.transactionId === transactionId) return { ...o, status: newStatus };
+                    return o;
+                });
+                await updateDoc(userRef, { history: updatedHistory });
+                fetchAllOrders();
+            } catch (e) {
+                alert('Update failed');
+            }
+        };
+
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.order-card');
+            cards.forEach(card => {
+                const text = card.innerText.toLowerCase();
+                card.style.display = text.includes(term) ? 'block' : 'none';
+            });
+        });
+    </script>
+</body>
+
+</html>

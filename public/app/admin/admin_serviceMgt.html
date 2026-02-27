@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Service Management</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <meta name="theme-color" content="#F8FAFC">
+    <style>
+        .admin-header {
+            margin-top: 80px;
+            margin-bottom: 30px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .icon-circle {
+            width: 80px;
+            height: 80px;
+            background: var(--primary-glow);
+            border-radius: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            color: var(--primary);
+            font-size: 40px;
+        }
+
+        .admin-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+        }
+
+        .admin-input {
+            background: #F1F5F9;
+            border: none;
+            border-radius: 16px;
+            padding: 14px 16px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .service-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .card-main {
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .service-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: var(--primary-glow);
+            color: var(--primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            margin-right: 14px;
+        }
+
+        .service-info {
+            flex: 1;
+        }
+
+        .service-name {
+            font-weight: 800;
+            font-size: 0.95rem;
+        }
+
+        .service-company {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            font-weight: 600;
+        }
+
+        .service-meta {
+            text-align: right;
+            padding-left: 10px;
+        }
+
+        .service-price {
+            font-weight: 900;
+            font-size: 1rem;
+            color: var(--primary);
+        }
+
+        .service-duration {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--text-dim);
+        }
+
+        .expanded-content {
+            padding: 0 18px 18px;
+            display: none;
+        }
+
+        .expanded-content.active {
+            display: block;
+        }
+
+        .schedule-row {
+            background: #F8FAFC;
+            padding: 12px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .slot-details {
+            font-size: 0.85rem;
+        }
+
+        .slot-date {
+            font-weight: 700;
+        }
+
+        .slot-time {
+            color: var(--text-dim);
+            font-size: 0.75rem;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 25px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--background);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <a href="./index.html" class="back-btn">
+        <i class="mdi mdi-arrow-left"></i>
+    </a>
+
+    <main class="fade-in">
+        <div class="admin-header">
+            <div class="icon-circle">
+                <i class="mdi mdi-calendar-check"></i>
+            </div>
+            <h1>Service Catalog</h1>
+            <p>Management of Healthcare Services</p>
+        </div>
+
+        <div class="admin-section">
+            <h2 class="section-title" style="font-size: 1.1rem; margin-bottom: 16px;">Add New Service</h2>
+            <div class="input-wrapper" style="margin-bottom: 12px;">
+                <label class="input-label">Service Name</label>
+                <input type="text" id="add-name" class="admin-input" placeholder="e.g. Elderly Home Visit">
+            </div>
+            <div class="form-row">
+                <div class="input-wrapper">
+                    <label class="input-label">Price ($)</label>
+                    <input type="number" id="add-price" class="admin-input" placeholder="0.00">
+                </div>
+                <div class="input-wrapper">
+                    <label class="input-label">Duration</label>
+                    <input type="text" id="add-duration" class="admin-input" placeholder="e.g. 60m">
+                </div>
+            </div>
+            <div class="input-wrapper" style="margin-bottom: 12px;">
+                <label class="input-label">Providing Company</label>
+                <input type="text" id="add-company" class="admin-input" placeholder="e.g. CarePro Inc.">
+            </div>
+            <div class="input-wrapper" style="margin-bottom: 12px;">
+                <label class="input-label">Description</label>
+                <textarea id="add-desc" class="admin-input" style="min-height: 80px; resize: vertical;"
+                    placeholder="Detail the service offerings..."></textarea>
+            </div>
+            <button id="add-btn" class="btn">Create Service Listing</button>
+        </div>
+
+        <div class="section-title">Service Registry</div>
+        <div id="service-list" style="margin-bottom: 40px;">
+            <!-- Services populated here -->
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, onAuthStateChanged, db, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc } from '/app/firebase.js';
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = '/app/login.html';
+                return;
+            }
+
+            try {
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                if (userDoc.exists() && userDoc.data().role === 'admin') {
+                    fetchServices();
+                } else {
+                    alert('Unauthorized access. Admin privileges required.');
+                    window.location.href = '/app/index.html';
+                }
+            } catch (e) {
+                console.error(e);
+                window.location.href = '/app/index.html';
+            }
+        });
+
+        async function fetchServices() {
+            try {
+                const snapshot = await getDocs(collection(db, 'services'));
+                const list = document.getElementById('service-list');
+                list.innerHTML = '';
+
+                snapshot.forEach(docSnap => {
+                    const service = docSnap.data();
+                    const id = docSnap.id;
+                    const schedule = service.schedule || [];
+
+                    const el = document.createElement('div');
+                    el.className = 'service-card';
+                    el.innerHTML = `
+                        <div class="card-main" onclick="this.nextElementSibling.classList.toggle('active')">
+                            <div class="service-icon">
+                                <i class="mdi mdi-medical-bag"></i>
+                            </div>
+                            <div class="service-info">
+                                <div class="service-name">${service.name}</div>
+                                <div class="service-company">${service.company}</div>
+                            </div>
+                            <div class="service-meta">
+                                <div class="service-price">$${service.price}</div>
+                                <div class="service-duration">${service.duration}</div>
+                            </div>
+                            <i class="mdi mdi-chevron-down" style="margin-left: 10px; color: var(--text-dim)"></i>
+                        </div>
+                        <div class="expanded-content">
+                            <div style="height: 1px; background: var(--border); margin-bottom: 16px;"></div>
+                            <p style="font-size: 0.85rem; margin-bottom: 16px; color: var(--text-dim)">${service.description}</p>
+                            
+                            <div style="font-weight: 800; font-size: 0.9rem; margin-bottom: 12px;">Manage Schedule</div>
+                            <div class="form-row" style="margin-bottom: 8px;">
+                                <input type="date" id="date-${id}" class="admin-input" style="font-size: 0.8rem;">
+                                <input type="number" id="pax-${id}" class="admin-input" placeholder="Pax" style="font-size: 0.8rem;">
+                            </div>
+                            <div class="form-row" style="margin-bottom: 12px;">
+                                <input type="time" id="from-${id}" class="admin-input" style="font-size: 0.8rem;">
+                                <input type="time" id="to-${id}" class="admin-input" style="font-size: 0.8rem;">
+                            </div>
+                            <button class="btn" style="padding: 10px; font-size: 0.85rem; margin-bottom: 20px;" onclick="addSlot('${id}')">Add Time Slot</button>
+
+                            <div id="schedule-${id}">
+                                ${schedule.map((s, idx) => `
+                                    <div class="schedule-row">
+                                        <div class="slot-details">
+                                            <div class="slot-date">${s.date}</div>
+                                            <div class="slot-time">${s.from} - ${s.to} • ${s.pax} pax</div>
+                                        </div>
+                                        <i class="mdi mdi-close-circle" style="color: #ef4444; font-size: 20px; cursor: pointer;" onclick="deleteSlot('${id}', ${idx})"></i>
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            <button class="btn" style="border-color: #ef4444; color: #ef4444; margin-top: 20px;" onclick="deleteService('${id}')">Delete Service</button>
+                        </div>
+                    `;
+                    list.appendChild(el);
+                });
+
+                document.getElementById('loader').style.display = 'none';
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        window.addSlot = async (id) => {
+            const date = document.getElementById(`date-${id}`).value;
+            const pax = document.getElementById(`pax-${id}`).value;
+            const from = document.getElementById(`from-${id}`).value;
+            const to = document.getElementById(`to-${id}`).value;
+
+            if (!date || !pax || !from || !to) {
+                alert('Fill all schedule fields');
+                return;
+            }
+
+            try {
+                const docRef = doc(db, 'services', id);
+                const docSnap = await getDoc(docRef);
+                const currentSchedule = docSnap.data().schedule || [];
+                const updatedSchedule = [...currentSchedule, { date, pax: Number(pax), from, to }];
+
+                await updateDoc(docRef, { schedule: updatedSchedule });
+                fetchServices();
+            } catch (e) {
+                alert('Failed to add slot');
+            }
+        };
+
+        window.deleteSlot = async (id, index) => {
+            try {
+                const docRef = doc(db, 'services', id);
+                const docSnap = await getDoc(docRef);
+                const currentSchedule = docSnap.data().schedule || [];
+                const updatedSchedule = currentSchedule.filter((_, i) => i !== index);
+
+                await updateDoc(docRef, { schedule: updatedSchedule });
+                fetchServices();
+            } catch (e) {
+                alert('Failed to delete slot');
+            }
+        };
+
+        window.deleteService = async (id) => {
+            if (!confirm('Are you sure you want to delete this service?')) return;
+            try {
+                await deleteDoc(doc(db, 'services', id));
+                fetchServices();
+            } catch (e) {
+                alert('Failed to delete service');
+            }
+        };
+
+        document.getElementById('add-btn').addEventListener('click', async () => {
+            const name = document.getElementById('add-name').value;
+            const price = document.getElementById('add-price').value;
+            const duration = document.getElementById('add-duration').value;
+            const company = document.getElementById('add-company').value;
+            const description = document.getElementById('add-desc').value;
+
+            if (!name || !price || !duration || !company) {
+                alert('Fill all fields');
+                return;
+            }
+
+            try {
+                document.getElementById('loader').style.display = 'flex';
+                await addDoc(collection(db, 'services'), {
+                    name, description, price: Number(price), duration, company, schedule: []
+                });
+                alert('Service added!');
+                location.reload();
+            } catch (e) {
+                alert('Failed to add service');
+                document.getElementById('loader').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+
+</html>

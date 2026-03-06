@@ -203,14 +203,14 @@
     </div>
 
     <script type="module">
-        import { auth, signInWithEmailAndPassword } from '/app/firebase.js';
+        import { auth, onAuthStateChanged, signInWithEmailAndPassword } from '/app/firebase.js';
 
         const loginForm = document.getElementById('login-form');
         const errorBox = document.getElementById('error-box');
         const btnSubmit = document.getElementById('btn-submit');
 
         onAuthStateChanged(auth, (user) => {
-            if (user) window.location.href = '/app/index.html';
+            if (user) window.location.href = '/app/profile.html';
         });
 
         loginForm.addEventListener('submit', async (e) => {
@@ -224,7 +224,7 @@
 
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                window.location.href = '/app/index.html';
+                window.location.href = '/app/profile.html';
             } catch (err) {
                 console.error(err);
                 errorBox.innerText = err.message || 'Login failed. Please try again.';

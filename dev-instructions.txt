@@ -7,8 +7,6 @@ To get the newest version of the app from GitHub, run:
 git fetch origin main
 git reset --hard origin/main
 
-git fetch origin main
-
 If not working, 
 
 git init

@@ -21,30 +21,28 @@ export {
 
 // Utility for formatting google drive links precisely like the native app
 export function convertGoogleDriveLink(link) {
-<<<<<<< HEAD
-    if (!link) return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200';
-    const match = link.match(/\/d\/(.*?)\//);
-    if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
-    return link;
-=======
+    if (!link || typeof link !== 'string') {
+        console.warn('convertGoogleDriveLink: empty or non-string input', link);
+        return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
+    }
+
     console.log('convertGoogleDriveLink input:', link);
-    
-    // Return a working placeholder image
-    // In real app, these would be actual image URLs from database
-    const placeholders = [
-        'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400',
-        'https://images.unsplash.com/photo-1585141905556-38be173ce312?auto=format&fit=crop&q=80&w=400',
-        'https://images.unsplash.com/photo-1579154204601-01d82b27ebee?auto=format&fit=crop&q=80&w=400',
-        'https://images.unsplash.com/photo-1631217314831-c02b2e9de0d6?auto=format&fit=crop&q=80&w=400',
-        'https://images.unsplash.com/photo-1587854692152-cbe660dbde3f?auto=format&fit=crop&q=80&w=400'
-    ];
-    
-    // Use a pseudo-random but consistent image based on input
-    const hash = (link || '').split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
-    const index = Math.abs(hash) % placeholders.length;
-    
-    const result = placeholders[index];
-    console.log('convertGoogleDriveLink output:', result);
-    return result;
->>>>>>> parent of 12dd5f0 (Updated web app functs)
+
+    // Extract Google Drive file id
+    const fileIdMatch = link.match(/(?:\/d\/|id=)([a-zA-Z0-9-_]+)/);
+    if (fileIdMatch && fileIdMatch[1]) {
+        const id = fileIdMatch[1];
+        const result = `https://drive.google.com/uc?export=view&id=${id}`;
+        console.log('convertGoogleDriveLink output:', result);
+        return result;
+    }
+
+    // If a normal URL, return as-is
+    if (link.startsWith('http://') || link.startsWith('https://')) {
+        console.log('convertGoogleDriveLink: returning URL as-is', link);
+        return link;
+    }
+
+    console.warn('convertGoogleDriveLink: fallback to placeholder for', link);
+    return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
 }

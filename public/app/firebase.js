@@ -30,24 +30,64 @@ export function convertGoogleDriveLink(link) {
     const trimmed = link.trim();
     console.log('convertGoogleDriveLink input:', trimmed);
 
-    // If it's already an absolute URL or data URI, return it (special-case Drive links)
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
-        // Handle common Google Drive share formats and convert to a viewable link
-        if (trimmed.includes('drive.google.com') || trimmed.includes('docs.google.com')) {
-            const idMatch = trimmed.match(/(?:\/d\/|id=)([a-zA-Z0-9_-]{10,})/);
-            if (idMatch && idMatch[1]) {
-                const id = idMatch[1];
+    // Quick accept data URIs and clearly direct URLs
+    if (trimmed.startsWith('data:')) return trimmed;
+
+    // Normalize scheme-less urls (e.g., //example.com/path)
+    const maybeUrl = trimmed.startsWith('//') ? `https:${trimmed}` : trimmed;
+
+    // If it's an absolute URL, try to parse and handle known Google formats
+    try {
+        const u = new URL(maybeUrl);
+        const host = u.hostname || '';
+
+        // Drive / Docs links: try to extract file id
+        if (host.includes('drive.google.com') || host.includes('docs.google.com')) {
+            // Common patterns: /file/d/<id>/..., ?id=<id>
+            let id = null;
+            const pathMatch = u.pathname.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
+            if (pathMatch && pathMatch[1]) id = pathMatch[1];
+            if (!id) id = u.searchParams.get('id');
+
+            // Also handle query-like uc?id= or /uc?export=download&id=...
+            if (!id && u.pathname.includes('/uc')) {
+                id = u.searchParams.get('id');
+            }
+
+            if (id) {
                 const result = `https://drive.google.com/uc?export=view&id=${id}`;
                 console.log('convertGoogleDriveLink output (drive):', result);
                 return result;
             }
         }
-        console.log('convertGoogleDriveLink output (as-is):', trimmed);
-        return trimmed;
+
+        // If it's already a googleusercontent direct image, return as-is
+        if (host.includes('googleusercontent.com') || host.includes('ggpht.com') || host.includes('gstatic.com')) {
+            console.log('convertGoogleDriveLink output (direct-host):', maybeUrl);
+            return maybeUrl;
+        }
+
+        // If it looks like a normal http(s) image URL, return it
+        if (u.protocol === 'http:' || u.protocol === 'https:') {
+            console.log('convertGoogleDriveLink output (as-is):', maybeUrl);
+            return maybeUrl;
+        }
+    } catch (e) {
+        // If URL parsing failed, fall through to regex heuristics
+        console.warn('convertGoogleDriveLink: URL parse failed, falling back to heuristics', e);
+    }
+
+    // Heuristic: extract id from common drive patterns even if parsing failed
+    const idMatch = trimmed.match(/(?:\/d\/|id=)([a-zA-Z0-9_-]{10,})/);
+    if (idMatch && idMatch[1]) {
+        const id = idMatch[1];
+        const result = `https://drive.google.com/uc?export=view&id=${id}`;
+        console.log('convertGoogleDriveLink output (regex-drive):', result);
+        return result;
     }
 
     // If the stored value is just an ID-like string, build a Drive view URL
-    const idOnly = link.match(/^([a-zA-Z0-9_-]{10,})$/);
+    const idOnly = trimmed.match(/^([a-zA-Z0-9_-]{10,})$/);
     if (idOnly && idOnly[1]) {
         const result = `https://drive.google.com/uc?export=view&id=${idOnly[1]}`;
         console.log('convertGoogleDriveLink output (idOnly):', result);

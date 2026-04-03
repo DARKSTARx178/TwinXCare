@@ -313,6 +313,8 @@
                 (item.company && item.company.toLowerCase().includes(val))
             );
 
+            console.log('renderItems images:', filtered.map(i => ({ id: i.id, image: i.image })));
+
             countEl.innerText = `${filtered.length} ${currentMode} available`;
 
             if (filtered.length === 0) {

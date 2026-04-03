@@ -1,3 +1,7 @@
 {
-    "cleanUrls": true
+    "cleanUrls": true,
+    "rewrites": [
+        { "source": "/app/admin_equipmentMgt", "destination": "/app/admin/admin_equipmentMgt" },
+        { "source": "/app/admin_equipmentMgt.html", "destination": "/app/admin/admin_equipmentMgt.html" }
+    ]
 }

@@ -185,15 +185,21 @@
         const docId = urlParams.get('docId') || '';
         const name = urlParams.get('name') || 'Service';
         const price = Number(urlParams.get('price')) || 0;
-        const image = urlParams.get('image') || '';
+        const image = decodeURIComponent(urlParams.get('image') || '') || 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
         const desc = urlParams.get('description') || 'No description available.';
 
         document.getElementById('item-name').innerText = name;
         document.getElementById('item-price').innerText = `$${price}`;
         document.getElementById('total-price').innerText = `$${price.toFixed(2)}`;
         document.getElementById('item-desc').innerText = desc;
-        if (image) document.getElementById('item-image').src = image;
-        else document.getElementById('item-image').style.display = 'none';
+        if (image) {
+            document.getElementById('item-image').src = image;
+            document.getElementById('item-image').onerror = () => {
+                document.getElementById('item-image').src = 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
+            };
+        } else {
+            document.getElementById('item-image').src = 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
+        }
 
         let schedule = [];
         let uniqueDates = [];

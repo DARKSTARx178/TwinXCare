@@ -299,7 +299,18 @@
                 }
 
                 // Redirect to Delivery/History page upon success
-                window.location.replace('/app/delivery.html');
+                btn.innerText = "Success! Redirecting...";
+                setTimeout(() => {
+                    // Try primary redirect
+                    window.location.href = '/app/delivery.html';
+                    
+                    // Fallback redirect after a delay if needed
+                    setTimeout(() => {
+                        if (window.location.pathname !== '/app/delivery.html') {
+                            window.location.replace('/app/delivery.html');
+                        }
+                    }, 1000);
+                }, 500);
 
             } catch (err) {
                 console.error(err);

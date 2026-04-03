@@ -206,7 +206,7 @@
         const brand = urlParams.get('brand') || 'Brand';
         const price = Number(urlParams.get('price')) || 0;
         const stock = Number(urlParams.get('stock')) || 0;
-        const image = urlParams.get('image') || '';
+        const image = decodeURIComponent(urlParams.get('image') || '') || 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
         const desc = urlParams.get('description') || 'No description available.';
 
         document.getElementById('item-name').innerText = name;
@@ -214,6 +214,9 @@
         document.getElementById('item-price').innerText = `$${price}/day`;
         document.getElementById('item-desc').innerText = desc;
         document.getElementById('item-image').src = image;
+        document.getElementById('item-image').onerror = () => {
+            document.getElementById('item-image').src = 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
+        };
 
         const stockEl = document.getElementById('item-stock');
         if (stock > 0) {

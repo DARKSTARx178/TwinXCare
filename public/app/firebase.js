@@ -22,8 +22,35 @@ export {
 
 // Utility for formatting google drive links precisely like the native app
 export function convertGoogleDriveLink(link) {
-    if (!link) return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200';
-    const match = link.match(/\/d\/(.*?)\//);
-    if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
-    return link;
+    if (!link || typeof link !== 'string') return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200';
+    
+    // Handle various Google Drive URL formats
+    let fileId = null;
+    
+    // Format 1: https://drive.google.com/file/d/FILE_ID/view or /view?...
+    const match1 = link.match(/\/file\/d\/([a-zA-Z0-9-_]+)/);
+    if (match1) fileId = match1[1];
+    
+    // Format 2: https://drive.google.com/open?id=FILE_ID
+    if (!fileId) {
+        const match2 = link.match(/[?&]id=([a-zA-Z0-9-_]+)/);
+        if (match2) fileId = match2[1];
+    }
+    
+    // Format 3: Direct /d/ format
+    if (!fileId) {
+        const match3 = link.match(/\/d\/([a-zA-Z0-9-_]+)/);
+        if (match3) fileId = match3[1];
+    }
+    
+    if (fileId) {
+        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+    
+    // If it's already a valid URL, return as-is
+    if (link.startsWith('http://') || link.startsWith('https://')) {
+        return link;
+    }
+    
+    return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200';
 }

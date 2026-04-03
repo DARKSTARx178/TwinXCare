@@ -331,8 +331,7 @@
                     return `
             <a href="/app/rental/order.html?docId=${item.id}&name=${encodeURIComponent(item.name)}&brand=${encodeURIComponent(item.brand)}&price=${item.price}&stock=${item.stock}&image=${encodeURIComponent(item.image)}" class="grid-card">
               <div class="image-wrap">
-                <img src="${item.image}" alt="${item.name}" class="card-img" 
-                  onerror="let src=this.src; if(src.includes('lh3')) this.src='https://drive.google.com/uc?export=view&id=${item.image.match(/([a-zA-Z0-9-_]+)=/)?.[1] || ''}'; else this.src='https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200';">
+                <img src="${item.image}" alt="${item.name}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200'">
                 <div class="price-tag">$${item.price}</div>
               </div>
               <div class="card-content">
@@ -349,8 +348,7 @@
                     return `
             <a href="/app/rental/booking.html?docId=${item.id}&name=${encodeURIComponent(item.name)}&brand=${encodeURIComponent(item.company)}&price=${item.price}&image=${encodeURIComponent(item.image)}" class="grid-card">
               <div class="image-wrap">
-                <img src="${item.image}" alt="${item.name}" class="card-img" 
-                  onerror="let src=this.src; if(src.includes('lh3')) this.src='https://drive.google.com/uc?export=view&id=${item.image.match(/([a-zA-Z0-9-_]+)=/)?.[1] || ''}'; else this.src='https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200';">
+                <img src="${item.image}" alt="${item.name}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200'">
                 <div class="price-tag">$${item.price}</div>
               </div>
               <div class="card-content">

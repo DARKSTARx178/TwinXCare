@@ -23,43 +23,26 @@ export {
 export function convertGoogleDriveLink(link) {
     if (!link || typeof link !== 'string') {
         console.warn('convertGoogleDriveLink: empty or non-string input', link);
-        return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200';
+        return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
     }
     
     console.log('convertGoogleDriveLink input:', link);
     
-    // Handle various Google Drive URL formats
-    let fileId = null;
-    
-    // Format 1: https://drive.google.com/file/d/FILE_ID/view or /view?...
-    const match1 = link.match(/\/file\/d\/([a-zA-Z0-9-_]+)/);
-    if (match1) fileId = match1[1];
-    
-    // Format 2: https://drive.google.com/open?id=FILE_ID
-    if (!fileId) {
-        const match2 = link.match(/[?&]id=([a-zA-Z0-9-_]+)/);
-        if (match2) fileId = match2[1];
-    }
-    
-    // Format 3: Direct /d/ format
-    if (!fileId) {
-        const match3 = link.match(/\/d\/([a-zA-Z0-9-_]+)/);
-        if (match3) fileId = match3[1];
-    }
-    
-    if (fileId) {
-        // Use imgproxy-style CORS proxy for better reliability
-        const result = `https://images.weserv.nl/?url=https://drive.google.com/uc?export=view%26id%3D${fileId}&w=400&h=400&fit=cover`;
-        console.log('convertGoogleDriveLink output:', result);
-        return result;
-    }
-    
-    // If it's already a valid URL, return as-is
+    // If it's already a full URL (not a Google Drive link), return as-is
     if (link.startsWith('http://') || link.startsWith('https://')) {
-        console.log('convertGoogleDriveLink: returning as-is', link);
+        // If it's a Google Drive link, convert it
+        if (link.includes('drive.google.com')) {
+            // Extract file ID from various Google Drive formats
+            const fileIdMatch = link.match(/(?:\/d\/|id=)([a-zA-Z0-9-_]+)/);
+            if (fileIdMatch && fileIdMatch[1]) {
+                const fileId = fileIdMatch[1];
+                return `https://drive.google.com/uc?export=download&id=${fileId}`;
+            }
+        }
+        console.log('convertGoogleDriveLink: returning URL as-is', link);
         return link;
     }
     
     console.warn('convertGoogleDriveLink: fallback to placeholder for', link);
-    return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200';
+    return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
 }

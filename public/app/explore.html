@@ -247,7 +247,21 @@
 
         async function fetchData() {
             try {
-                const eqSnap = await getDocs(collection(db, 'equipment'));
+                console.log('Starting to fetch equipment and services data...');
+                
+                // Set a 15 second timeout for Firebase operations
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Data loading timeout')), 15000)
+                );
+
+                const eqPromise = getDocs(collection(db, 'equipment'));
+                const srvPromise = getDocs(collection(db, 'services'));
+                
+                const [eqSnap, srvSnap] = await Promise.race([
+                    Promise.all([eqPromise, srvPromise]),
+                    timeoutPromise
+                ]);
+                
                 equipmentData = eqSnap.docs.map(doc => {
                     const d = doc.data();
                     return {
@@ -262,7 +276,6 @@
 
                 console.log('Loaded equipment:', equipmentData);
 
-                const srvSnap = await getDocs(collection(db, 'services'));
                 servicesData = srvSnap.docs.map(doc => {
                     const d = doc.data();
                     return {
@@ -279,8 +292,15 @@
 
                 renderItems();
             } catch (e) {
-                console.error(e);
-                grid.innerHTML = '<div class="empty-wrap" style="grid-column: 1 / -1; color: red;">Failed to load data</div>';
+                console.error('Error loading data:', e);
+                const errorMsg = e.message.includes('timeout') 
+                    ? 'Taking too long to load. Please check your internet connection.'
+                    : 'Failed to load data. Please try again.';
+                grid.innerHTML = `<div class="empty-wrap" style="grid-column: 1 / -1; color: red; padding: 60px 20px;">
+                    <i class="mdi mdi-wifi-off" style="font-size: 64px; margin-bottom: 16px;"></i>
+                    <div style="font-weight: 800; font-size: 1.1rem;">${errorMsg}</div>
+                    <button onclick="location.reload()" style="margin-top: 16px; padding: 12px 24px; border-radius: 12px; border: none; background: var(--primary); color: white; font-weight: 700; cursor: pointer;">Retry</button>
+                </div>`;
             }
         }
 

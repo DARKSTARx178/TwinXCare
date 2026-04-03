@@ -226,77 +226,83 @@
             btn.disabled = true;
 
             try {
-                const userRef = doc(db, 'users', user.uid);
+                // Set a 20 second timeout for the entire transaction
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Transaction processing timeout')), 20000)
+                );
 
-                if (type === 'equipment') {
-                    const address = document.getElementById('address-input').value.trim();
-                    if (!address) {
-                        alert("Please enter a delivery address.");
-                        btn.innerText = "Complete Transaction";
-                        btn.disabled = false;
-                        return;
-                    }
+                const transactionPromise = (async () => {
+                    const userRef = doc(db, 'users', user.uid);
 
-                    // Update stock
-                    const prodRef = doc(db, 'equipment', docId);
-                    const prodSnap = await getDoc(prodRef);
-                    if (prodSnap.exists()) {
-                        const currentStock = prodSnap.data().stock || 0;
-                        if (currentStock >= qty) {
-                            await updateDoc(prodRef, { stock: currentStock - qty });
+                    if (type === 'equipment') {
+                        const address = document.getElementById('address-input').value.trim();
+                        if (!address) {
+                            throw new Error('Please enter a delivery address.');
                         }
-                    }
 
-                    // Build order data
-                    const transactionId = `${docId.substring(0, 3).toUpperCase()}-${Math.random().toString(36).substr(2, 3).toUpperCase()}`;
-                    const orderData = {
-                        productId: docId,
-                        name: name,
-                        quantity: qty,
-                        rentalDays: days,
-                        rentalStart: urlParams.get('rentalStart'),
-                        rentalEnd: urlParams.get('rentalEnd'),
-                        totalPrice: totalPrice.toFixed(2),
-                        deliveryAddress: address,
-                        orderTime: new Date().toISOString(),
-                        transactionId: transactionId,
-                        status: 'Processing',
-                        createdAt: new Date().toISOString()
-                    };
-
-                    // Save to user history
-                    await setDoc(userRef, { history: arrayUnion(orderData) }, { merge: true });
-
-                } else if (type === 'service') {
-                    // Update Schedule Pax
-                    const srvRef = doc(db, 'services', docId);
-                    const srvSnap = await getDoc(srvRef);
-                    if (srvSnap.exists()) {
-                        const data = srvSnap.data();
-                        const sched = data.schedule || [];
-                        const updatedSched = sched.map(s => {
-                            if (s.date === urlParams.get('bookingDate') && `${s.from} - ${s.to}` === urlParams.get('timeSlot')) {
-                                return { ...s, pax: Math.max((s.pax || 1) - 1, 0) };
+                        // Update stock
+                        const prodRef = doc(db, 'equipment', docId);
+                        const prodSnap = await getDoc(prodRef);
+                        if (prodSnap.exists()) {
+                            const currentStock = prodSnap.data().stock || 0;
+                            if (currentStock >= qty) {
+                                await updateDoc(prodRef, { stock: currentStock - qty });
                             }
-                            return s;
-                        });
-                        await updateDoc(srvRef, { schedule: updatedSched });
+                        }
+
+                        // Build order data
+                        const transactionId = `${docId.substring(0, 3).toUpperCase()}-${Math.random().toString(36).substr(2, 3).toUpperCase()}`;
+                        const orderData = {
+                            productId: docId,
+                            name: name,
+                            quantity: qty,
+                            rentalDays: days,
+                            rentalStart: urlParams.get('rentalStart'),
+                            rentalEnd: urlParams.get('rentalEnd'),
+                            totalPrice: totalPrice.toFixed(2),
+                            deliveryAddress: address,
+                            orderTime: new Date().toISOString(),
+                            transactionId: transactionId,
+                            status: 'Processing',
+                            createdAt: new Date().toISOString()
+                        };
+
+                        // Save to user history
+                        await setDoc(userRef, { history: arrayUnion(orderData) }, { merge: true });
+
+                    } else if (type === 'service') {
+                        // Update Schedule Pax
+                        const srvRef = doc(db, 'services', docId);
+                        const srvSnap = await getDoc(srvRef);
+                        if (srvSnap.exists()) {
+                            const data = srvSnap.data();
+                            const sched = data.schedule || [];
+                            const updatedSched = sched.map(s => {
+                                if (s.date === urlParams.get('bookingDate') && `${s.from} - ${s.to}` === urlParams.get('timeSlot')) {
+                                    return { ...s, pax: Math.max((s.pax || 1) - 1, 0) };
+                                }
+                                return s;
+                            });
+                            await updateDoc(srvRef, { schedule: updatedSched });
+                        }
+
+                        // Build booking data
+                        const bookingData = {
+                            serviceId: docId,
+                            title: name,
+                            description: urlParams.get('notes') || '',
+                            bookingDate: urlParams.get('bookingDate'),
+                            timeSlot: urlParams.get('timeSlot'),
+                            price: price,
+                            createdAt: new Date().toISOString()
+                        };
+
+                        // Save to user bookings
+                        await setDoc(userRef, { booking: arrayUnion(bookingData) }, { merge: true });
                     }
+                })();
 
-                    // Build booking data
-                    const bookingData = {
-                        serviceId: docId,
-                        title: name,
-                        description: urlParams.get('notes') || '',
-                        bookingDate: urlParams.get('bookingDate'),
-                        timeSlot: urlParams.get('timeSlot'),
-                        price: price,
-                        createdAt: new Date().toISOString()
-                    };
-
-                    // Save to user bookings
-                    await setDoc(userRef, { booking: arrayUnion(bookingData) }, { merge: true });
-                }
+                await Promise.race([transactionPromise, timeoutPromise]);
 
                 // Redirect to Delivery/History page upon success
                 btn.innerText = "Success! Redirecting...";
@@ -313,8 +319,11 @@
                 }, 500);
 
             } catch (err) {
-                console.error(err);
-                alert("Failed to process transaction. Please try again.");
+                console.error('Transaction error:', err);
+                const errorMsg = err.message.includes('timeout')
+                    ? 'Transaction is taking too long. Please check your connection and try again.'
+                    : err.message;
+                alert("Failed to process transaction: " + errorMsg);
                 btn.innerHTML = `Complete Transaction <i class="mdi mdi-shield-check"></i>`;
                 btn.disabled = false;
             }

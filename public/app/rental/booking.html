@@ -227,10 +227,25 @@
 
         async function fetchSchedule() {
             try {
+                console.log('Fetching schedule for docId:', docId);
+                
+                if (!docId) {
+                    slotGrid.innerHTML = `<div style="color: var(--text-dim);">Service ID not found. Please go back and try again.</div>`;
+                    return;
+                }
+
+                // Set a 10 second timeout for Firebase
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Schedule loading timeout')), 10000)
+                );
+
                 const serviceRef = doc(db, 'services', docId);
-                const snap = await getDoc(serviceRef);
+                const snap = await Promise.race([getDoc(serviceRef), timeoutPromise]);
+                
                 if (snap.exists()) {
                     const data = snap.data();
+                    console.log('Schedule data:', data);
+                    
                     if (data.schedule && Array.isArray(data.schedule)) {
                         schedule = data.schedule;
                         uniqueDates = [...new Set(schedule.map(s => s.date).filter(Boolean))];
@@ -241,12 +256,18 @@
                             dateSelect.value = uniqueDates[0];
                             onDateSelected();
                         } else {
-                            slotGrid.innerHTML = `<div style="color: var(--text-dim);">No schedule available.</div>`;
+                            slotGrid.innerHTML = `<div style="color: var(--text-dim);">No schedule available for this service.</div>`;
                         }
+                    } else {
+                        slotGrid.innerHTML = `<div style="color: var(--text-dim);">No schedule data found.</div>`;
                     }
+                } else {
+                    console.warn('Service document does not exist:', docId);
+                    slotGrid.innerHTML = `<div style="color: var(--text-dim);">Service not found. Please go back and select a valid service.</div>`;
                 }
             } catch (e) {
-                console.error("Error loading schedule", e);
+                console.error("Error loading schedule:", e);
+                slotGrid.innerHTML = `<div style="color: var(--text-dim);">Unable to load schedule. Please try again. Error: ${e.message}</div>`;
             }
         }
 

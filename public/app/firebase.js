@@ -21,28 +21,8 @@ export {
 
 // Utility for formatting google drive links precisely like the native app
 export function convertGoogleDriveLink(link) {
-    if (!link || typeof link !== 'string') {
-        console.warn('convertGoogleDriveLink: empty or non-string input', link);
-        return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
-    }
-
-    console.log('convertGoogleDriveLink input:', link);
-
-    // Extract Google Drive file id
-    const fileIdMatch = link.match(/(?:\/d\/|id=)([a-zA-Z0-9-_]+)/);
-    if (fileIdMatch && fileIdMatch[1]) {
-        const id = fileIdMatch[1];
-        const result = `https://drive.google.com/uc?export=view&id=${id}`;
-        console.log('convertGoogleDriveLink output:', result);
-        return result;
-    }
-
-    // If a normal URL, return as-is
-    if (link.startsWith('http://') || link.startsWith('https://')) {
-        console.log('convertGoogleDriveLink: returning URL as-is', link);
-        return link;
-    }
-
-    console.warn('convertGoogleDriveLink: fallback to placeholder for', link);
-    return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
+    if (!link) return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200';
+    const match = link.match(/\/d\/(.*?)\//);
+    if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    return link;
 }

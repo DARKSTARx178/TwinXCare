@@ -21,23 +21,39 @@ export {
 
 // Utility for formatting google drive links precisely like the native app
 export function convertGoogleDriveLink(link) {
-    console.log('convertGoogleDriveLink input:', link);
-    
-    // Return a working placeholder image
-    // In real app, these would be actual image URLs from database
-    const placeholders = [
-        'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400',
-        'https://images.unsplash.com/photo-1585141905556-38be173ce312?auto=format&fit=crop&q=80&w=400',
-        'https://images.unsplash.com/photo-1579154204601-01d82b27ebee?auto=format&fit=crop&q=80&w=400',
-        'https://images.unsplash.com/photo-1631217314831-c02b2e9de0d6?auto=format&fit=crop&q=80&w=400',
-        'https://images.unsplash.com/photo-1587854692152-cbe660dbde3f?auto=format&fit=crop&q=80&w=400'
-    ];
-    
-    // Use a pseudo-random but consistent image based on input
-    const hash = (link || '').split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
-    const index = Math.abs(hash) % placeholders.length;
-    
-    const result = placeholders[index];
-    console.log('convertGoogleDriveLink output:', result);
-    return result;
+    const placeholder = 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
+    if (!link || typeof link !== 'string') {
+        console.warn('convertGoogleDriveLink: empty or non-string input', link);
+        return placeholder;
+    }
+
+    const trimmed = link.trim();
+    console.log('convertGoogleDriveLink input:', trimmed);
+
+    // If it's already an absolute URL or data URI, return it (special-case Drive links)
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
+        // Handle common Google Drive share formats and convert to a viewable link
+        if (trimmed.includes('drive.google.com') || trimmed.includes('docs.google.com')) {
+            const idMatch = trimmed.match(/(?:\/d\/|id=)([a-zA-Z0-9_-]{10,})/);
+            if (idMatch && idMatch[1]) {
+                const id = idMatch[1];
+                const result = `https://drive.google.com/uc?export=view&id=${id}`;
+                console.log('convertGoogleDriveLink output (drive):', result);
+                return result;
+            }
+        }
+        console.log('convertGoogleDriveLink output (as-is):', trimmed);
+        return trimmed;
+    }
+
+    // If the stored value is just an ID-like string, build a Drive view URL
+    const idOnly = link.match(/^([a-zA-Z0-9_-]{10,})$/);
+    if (idOnly && idOnly[1]) {
+        const result = `https://drive.google.com/uc?export=view&id=${idOnly[1]}`;
+        console.log('convertGoogleDriveLink output (idOnly):', result);
+        return result;
+    }
+
+    console.warn('convertGoogleDriveLink: fallback to placeholder for', link);
+    return placeholder;
 }

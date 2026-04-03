@@ -199,7 +199,9 @@
         <button class="btn btn-solid" style="flex: 1.5; margin: 0; padding: 18px;" id="btn-order">RENT</button>
     </div>
 
-    <script>
+    <script type="module">
+        import { convertGoogleDriveLink } from '/app/firebase.js';
+
         const urlParams = new URLSearchParams(window.location.search);
         const docId = urlParams.get('docId') || '';
         const name = urlParams.get('name') || 'Equipment';
@@ -207,7 +209,8 @@
         const price = Number(urlParams.get('price')) || 0;
         const stock = Number(urlParams.get('stock')) || 0;
         const rawImage = urlParams.get('image') || '';
-        const image = rawImage ? decodeURIComponent(rawImage) : 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
+        const imageRaw = rawImage ? decodeURIComponent(rawImage) : '';
+        const image = convertGoogleDriveLink(imageRaw);
         const desc = urlParams.get('description') || 'No description available.';
 
         document.getElementById('item-name').innerText = name;

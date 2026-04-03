@@ -283,8 +283,10 @@
                     placeholder="Detailed item description..."></textarea>
             </div>
             <div class="input-wrapper" style="margin-bottom: 20px;">
-                <label class="input-label">Image URL</label>
-                <input type="text" id="add-image" class="admin-input" placeholder="https://example.com/image.jpg">
+                <label class="input-label">Image (URL or file)</label>
+                <input type="text" id="add-image" class="admin-input" placeholder="https://example.com/image.jpg" style="margin-bottom:8px;">
+                <input type="file" id="add-image-file" accept="image/*" class="admin-input" style="padding:8px;">
+                <div style="font-size:0.8rem; color:var(--text-dim); margin-top:6px;">Choose a file to upload or paste an image URL above.</div>
             </div>
             <button id="add-btn" class="btn">
                 Register New Equipment
@@ -303,7 +305,7 @@
     </main>
 
     <script type="module">
-        import { auth, onAuthStateChanged, db, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc } from '/app/firebase.js';
+    import { auth, onAuthStateChanged, db, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, storage, ref, uploadBytes, getDownloadURL } from '/app/firebase.js';
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -400,7 +402,8 @@
             const price = document.getElementById('add-price').value;
             const stock = document.getElementById('add-stock').value;
             const description = document.getElementById('add-desc').value;
-            const image = document.getElementById('add-image').value;
+            const imageUrl = document.getElementById('add-image').value.trim();
+            const imageFileInput = document.getElementById('add-image-file');
 
             if (!name || !brand || !price || !stock) {
                 alert('Please fill all required fields');
@@ -409,12 +412,23 @@
 
             try {
                 document.getElementById('loader').style.display = 'flex';
+                let image = imageUrl || '';
+
+                // If a file was chosen, upload to Firebase Storage and get its download URL
+                if (imageFileInput && imageFileInput.files && imageFileInput.files.length > 0) {
+                    const file = imageFileInput.files[0];
+                    const sRef = ref(storage, `equipment/${Date.now()}_${file.name}`);
+                    const snap = await uploadBytes(sRef, file);
+                    image = await getDownloadURL(snap.ref);
+                }
+
                 await addDoc(collection(db, 'equipment'), {
                     name, brand, price: Number(price), stock: Number(stock), description, image, createdAt: new Date()
                 });
                 alert('Equipment added!');
                 location.reload();
             } catch (e) {
+                console.error(e);
                 alert('Failed to add equipment');
                 document.getElementById('loader').style.display = 'none';
             }

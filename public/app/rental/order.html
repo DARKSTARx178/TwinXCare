@@ -213,9 +213,24 @@
         document.getElementById('item-brand').innerText = brand;
         document.getElementById('item-price').innerText = `$${price}/day`;
         document.getElementById('item-desc').innerText = desc;
-        document.getElementById('item-image').src = image;
-        document.getElementById('item-image').onerror = () => {
-            document.getElementById('item-image').src = 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
+        
+        const imgEl = document.getElementById('item-image');
+        imgEl.src = image;
+        
+        let failureCount = 0;
+        imgEl.onerror = () => {
+            failureCount++;
+            if (failureCount === 1 && image.includes('lh3')) {
+                // Try Google Drive uc endpoint as fallback
+                const fileIdMatch = image.match(/d%3D([a-zA-Z0-9-_]+)/) || image.match(/=w\d+$/) && image.match(/d=([^=]+)/);
+                if (fileIdMatch && fileIdMatch[1]) {
+                    imgEl.src = `https://drive.google.com/uc?export=view&id=${fileIdMatch[1]}`;
+                } else {
+                    imgEl.src = 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
+                }
+            } else {
+                imgEl.src = 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
+            }
         };
 
         const stockEl = document.getElementById('item-stock');

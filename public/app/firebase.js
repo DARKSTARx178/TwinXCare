@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { createUserWithEmailAndPassword, EmailAuthProvider, getAuth, onAuthStateChanged, reauthenticateWithCredential, signInWithEmailAndPassword, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { addDoc, collection, doc, getDoc, getDocs, getFirestore, orderBy, query, serverTimestamp, setDoc, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { addDoc, collection, doc, getDoc, getDocs, getFirestore, orderBy, query, serverTimestamp, setDoc, updateDoc, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBLq5KEYwGoODg-IhX-KD_wq7glWW719d0",
@@ -16,13 +16,17 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 export {
-    addDoc, app, auth, collection, createUserWithEmailAndPassword, db, doc, EmailAuthProvider, getDoc, getDocs, onAuthStateChanged, orderBy, query, reauthenticateWithCredential, serverTimestamp, setDoc,
-    signInWithEmailAndPassword, signOut, updatePassword, where
+    addDoc, app, auth, collection, createUserWithEmailAndPassword, db, doc, EmailAuthProvider, getDoc, getDocs, onAuthStateChanged, orderBy, query, reauthenticateWithCredential, serverTimestamp, setDoc, signInWithEmailAndPassword, signOut, updateDoc, updatePassword, where
 };
 
 // Utility for formatting google drive links precisely like the native app
 export function convertGoogleDriveLink(link) {
-    if (!link || typeof link !== 'string') return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200';
+    if (!link || typeof link !== 'string') {
+        console.warn('convertGoogleDriveLink: empty or non-string input', link);
+        return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200';
+    }
+    
+    console.log('convertGoogleDriveLink input:', link);
     
     // Handle various Google Drive URL formats
     let fileId = null;
@@ -44,13 +48,18 @@ export function convertGoogleDriveLink(link) {
     }
     
     if (fileId) {
-        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+        // Use imgproxy-style CORS proxy for better reliability
+        const result = `https://images.weserv.nl/?url=https://drive.google.com/uc?export=view%26id%3D${fileId}&w=400&h=400&fit=cover`;
+        console.log('convertGoogleDriveLink output:', result);
+        return result;
     }
     
     // If it's already a valid URL, return as-is
     if (link.startsWith('http://') || link.startsWith('https://')) {
+        console.log('convertGoogleDriveLink: returning as-is', link);
         return link;
     }
     
+    console.warn('convertGoogleDriveLink: fallback to placeholder for', link);
     return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200';
 }

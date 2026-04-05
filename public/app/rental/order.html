@@ -206,7 +206,8 @@
         const brand = urlParams.get('brand') || 'Brand';
         const price = Number(urlParams.get('price')) || 0;
         const stock = Number(urlParams.get('stock')) || 0;
-        const image = decodeURIComponent(urlParams.get('image') || '') || 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
+        const rawImage = urlParams.get('image') || '';
+        const image = rawImage ? decodeURIComponent(rawImage) : 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
         const desc = urlParams.get('description') || 'No description available.';
 
         document.getElementById('item-name').innerText = name;

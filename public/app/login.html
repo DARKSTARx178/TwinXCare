@@ -16,16 +16,36 @@
   </div>
 </nav>
 <main class="container" style="padding:2rem 1rem;">
-  <h2>Login</h2>
-  <p>Static placeholder for `login.tsx`. This page is a static HTML fallback for the web app.</p>
-  <form style="max-width:420px;margin-top:1rem;">
-    <label style="display:block;margin-bottom:8px;color:var(--text-dim);">Email</label>
-    <input type="email" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);margin-bottom:12px;">
-    <label style="display:block;margin-bottom:8px;color:var(--text-dim);">Password</label>
-    <input type="password" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);margin-bottom:12px;">
-    <button style="background:linear-gradient(135deg,var(--primary),var(--accent));color:white;padding:10px 16px;border-radius:10px;border:none;">Sign In</button>
-  </form>
-  <p style="margin-top:12px;"><a href="index.html">Back to app home</a></p>
+  <section style="max-width:480px;margin:18px auto;">
+    <h2>Welcome Back</h2>
+    <p style="color:var(--text-dim)">Please sign in to your TwinXCare account</p>
+
+    <div id="loginError" style="color:#ef4444;margin-top:8px;display:none"></div>
+
+    <form id="loginForm" style="margin-top:12px;">
+      <label style="display:block;margin-bottom:8px;color:var(--text-dim);">Email Address</label>
+      <input id="email" type="email" placeholder="admin@twinxcare.com" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);margin-bottom:12px;">
+
+      <label style="display:block;margin-bottom:8px;color:var(--text-dim);">Password</label>
+      <input id="password" type="password" placeholder="••••••••" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);margin-bottom:12px;">
+
+      <button type="button" id="loginBtn" class="btn-app" style="width:100%">Sign In</button>
+    </form>
+
+    <p style="margin-top:12px;">Don't have an account? <a href="register.html">Register</a></p>
+    <p style="margin-top:12px"><a href="index.html">Back to app home</a></p>
+  </section>
+
+  <script>
+    document.getElementById('loginBtn').addEventListener('click', ()=>{
+      const e=document.getElementById('email').value.trim();
+      const p=document.getElementById('password').value.trim();
+      const err=document.getElementById('loginError');
+      if(!e||!p){ err.style.display='block'; err.textContent='Please fill all fields.'; return; }
+      err.style.display='block'; err.textContent='Signing in (demo)...';
+      setTimeout(()=>{ window.location.href='profile.html'; },800);
+    });
+  </script>
 </main>
 <footer>
   <div class="container"><div class="footer-bottom">&copy; 2026 TwinXCare</div></div>

@@ -16,9 +16,79 @@
   </div>
 </nav>
 <main class="container" style="padding:2rem 1rem;">
-  <h2>Bookings</h2>
-  <p>Static placeholder for `bookings.tsx`.</p>
-  <p><a href="index.html">Back to app home</a></p>
+  <section style="max-width:900px;margin:18px auto;">
+    <div style="text-align:center;margin-bottom:12px;">
+      <h2>My Bookings</h2>
+      <p style="color:var(--text-dim)">Active and upcoming appointments</p>
+    </div>
+
+    <div style="display:flex;justify-content:center;margin-bottom:12px;gap:12px;">
+      <button id="loadSamples" class="btn-app">Load Sample Bookings</button>
+      <button id="clearBookings" class="btn-app" style="background:#fff;color:var(--primary);border:1px solid var(--primary);">Clear</button>
+    </div>
+
+    <div id="bookingsList">
+      <div style="text-align:center;padding:48px 12px;color:var(--text-dim);">
+        <div style="font-size:48px;">📅</div>
+        <p style="font-weight:600;margin-top:12px">No bookings found yet.</p>
+        <p style="margin-top:6px;color:var(--text-dim)">Your scheduled services will appear here.</p>
+      </div>
+    </div>
+
+    <template id="bookingTpl">
+      <article class="booking-card">
+        <div class="booking-row">
+          <div>
+            <div class="muted small">SERVICE</div>
+            <div class="strong booking-service">Home Delivery</div>
+            <div class="muted small booking-date">Apr 10, 2026 • 10:30 AM</div>
+          </div>
+          <div style="text-align:right">
+            <div class="muted small">STATUS</div>
+            <div class="strong booking-status">Confirmed</div>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <style>
+      .booking-card{background:var(--bg-soft);border-radius:12px;padding:12px;margin:12px 0;border:1px solid var(--border)}
+      .booking-row{display:flex;justify-content:space-between;align-items:center}
+      .muted{color:var(--text-dim)}.small{font-size:13px}
+      .strong{font-weight:600}
+      @media(max-width:520px){.booking-row{flex-direction:column;align-items:flex-start}.booking-row div[style*="text-align:right"]{width:100%;text-align:left;margin-top:8px}}
+    </style>
+
+    <script>
+      const bookingsList = document.getElementById('bookingsList');
+      const tpl = document.getElementById('bookingTpl');
+      const samples = [
+        {service:'Escort to Appointment',date:'Apr 10, 2026 • 10:30 AM',status:'Confirmed'},
+        {service:'Equipment Delivery',date:'Apr 14, 2026 • 2:00 PM',status:'Scheduled'},
+        {service:'Home Care Visit',date:'Apr 20, 2026 • 9:00 AM',status:'Pending'}
+      ];
+
+      function renderBookings(items){
+        bookingsList.innerHTML='';
+        if(!items.length){
+          bookingsList.innerHTML=`<div style="text-align:center;padding:48px 12px;color:var(--text-dim);"><div style="font-size:48px;">📅</div><p style="font-weight:600;margin-top:12px">No bookings found yet.</p><p style="margin-top:6px;color:var(--text-dim)">Your scheduled services will appear here.</p></div>`;
+          return;
+        }
+        items.forEach(b=>{
+          const node = tpl.content.cloneNode(true);
+          node.querySelector('.booking-service').textContent = b.service;
+          node.querySelector('.booking-date').textContent = b.date;
+          node.querySelector('.booking-status').textContent = b.status;
+          bookingsList.appendChild(node);
+        });
+      }
+
+      document.getElementById('loadSamples').addEventListener('click', ()=> renderBookings(samples));
+      document.getElementById('clearBookings').addEventListener('click', ()=> renderBookings([]));
+    </script>
+
+    <p style="text-align:center;margin-top:18px"><a href="index.html">Back to app home</a></p>
+  </section>
 </main>
 <footer>
   <div class="container"><div class="footer-bottom">&copy; 2026 TwinXCare</div></div>

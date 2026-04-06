@@ -16,9 +16,46 @@
   </div>
 </nav>
 <main class="container" style="padding:2rem 1rem;">
-  <h2>Feedback</h2>
-  <p>Static placeholder for `feedback.tsx`.</p>
-  <p><a href="index.html">Back to app home</a></p>
+  <section style="max-width:780px;margin:18px auto;">
+    <h2>Share Your Feedback</h2>
+    <p style="color:var(--text-dim)">Your experience matters. Tell us how we're doing.</p>
+
+    <div style="margin-top:16px;">
+      <label style="display:block;margin-bottom:8px;color:var(--text-dim)">Overall Rating</label>
+      <div id="stars" style="display:flex;gap:8px;">
+        <button class="star" data-value="1">☆</button>
+        <button class="star" data-value="2">☆</button>
+        <button class="star" data-value="3">☆</button>
+        <button class="star" data-value="4">☆</button>
+        <button class="star" data-value="5">☆</button>
+      </div>
+
+      <label style="display:block;margin-top:14px;color:var(--text-dim)">Your Comments</label>
+      <textarea id="feedbackMsg" style="width:100%;min-height:120px;padding:12px;border-radius:12px;border:1px solid var(--border);"></textarea>
+
+      <div style="margin-top:12px;display:flex;gap:12px;align-items:center">
+        <button id="submitFeedback" class="btn-app">Submit Feedback</button>
+        <div id="fbStatus" style="color:var(--text-dim)"></div>
+      </div>
+    </div>
+
+    <p style="margin-top:18px"><a href="index.html">Back to app home</a></p>
+  </section>
+
+  <script>
+    let rating = 0;
+    document.querySelectorAll('#stars .star').forEach(btn => btn.addEventListener('click', (e) => {
+      rating = Number(btn.dataset.value);
+      document.querySelectorAll('#stars .star').forEach(s=> s.textContent = s.dataset.value <= rating ? '★' : '☆');
+    }));
+    document.getElementById('submitFeedback').addEventListener('click', () => {
+      const msg = document.getElementById('feedbackMsg').value.trim();
+      const st = document.getElementById('fbStatus');
+      if (!msg) { st.textContent = 'Please enter your feedback.'; return; }
+      if (rating === 0) { st.textContent = 'Please select a rating.'; return; }
+      st.textContent = 'Submitting...'; setTimeout(()=>{ st.textContent='Feedback submitted (demo).'; document.getElementById('feedbackMsg').value=''; },800);
+    });
+  </script>
 </main>
 <footer>
   <div class="container"><div class="footer-bottom">&copy; 2026 TwinXCare</div></div>

@@ -16,10 +16,41 @@
   </div>
 </nav>
 <main class="container" style="padding:2rem 1rem;">
-  <h2>Assistance</h2>
-  <p>This is a static web page version of `assistance.tsx`. Replace with the real content when ready.</p>
-  <p><a href="index.html">Back to app home</a></p>
+  <section class="feature-card" style="max-width:780px;margin:24px auto;">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">
+      <div style="width:64px;height:64px;border-radius:20px;background:rgba(129,173,231,0.1);display:flex;align-items:center;justify-content:center;">
+        <i class="fas fa-megaphone" style="color:var(--primary);font-size:28px"></i>
+      </div>
+      <div>
+        <h2 style="margin:0 0 6px 0">Request Assistance</h2>
+        <p style="margin:0;color:var(--text-dim)">Tell us what you need and our team will get back to you.</p>
+      </div>
+    </div>
+
+    <form id="assistanceForm">
+      <label style="display:block;margin-bottom:8px;color:var(--text-dim);font-weight:700">Request Details</label>
+      <textarea id="message" placeholder="Describe how we can help you today..." style="width:100%;min-height:160px;padding:14px;border-radius:16px;border:1px solid var(--border);background:#F1F5F9;font-size:15px"></textarea>
+
+      <div style="display:flex;gap:12px;margin-top:16px;align-items:center">
+        <button type="button" id="sendBtn" class="btn-app" style="padding:10px 18px">Send Request</button>
+        <div id="assistanceStatus" style="color:var(--text-dim)"></div>
+      </div>
+    </form>
+
+    <p style="margin-top:18px;color:var(--text-dim)"><strong>Note:</strong> This static page mimics the app flow. In the full app the message is sent to support and stored in the database.</p>
+    <p><a href="index.html">Back to app home</a></p>
+  </section>
 </main>
+
+<script>
+document.getElementById('sendBtn').addEventListener('click', () => {
+  const txt = document.getElementById('message').value.trim();
+  const status = document.getElementById('assistanceStatus');
+  if (!txt) { status.textContent = 'Please enter a request.'; return; }
+  status.textContent = 'Sending...';
+  setTimeout(() => { status.textContent = 'Request submitted (static demo).'; document.getElementById('message').value=''; }, 800);
+});
+</script>
 <footer>
   <div class="container"><div class="footer-bottom">&copy; 2026 TwinXCare</div></div>
 </footer>

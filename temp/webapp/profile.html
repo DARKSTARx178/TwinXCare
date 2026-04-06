@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Profile</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <meta name="theme-color" content="#F8FAFC">
+    <style>
+        .container {
+            padding: 60px 20px 100px;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 50px;
+            left: 20px;
+            z-index: 10;
+            padding: 8px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.03);
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .header {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+
+        .avatar {
+            width: 110px;
+            height: 110px;
+            border-radius: 55px;
+            border-width: 4px;
+            border-style: solid;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+            font-size: 40px;
+            font-weight: 800;
+        }
+
+        .user-info {
+            margin-bottom: 20px;
+        }
+
+        .user-name {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .admin-btn {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            border-radius: 16px;
+            border: 2px solid var(--primary);
+            background: var(--surface);
+            color: var(--primary);
+            font-weight: 800;
+            cursor: pointer;
+            margin: 10px auto;
+            text-decoration: none;
+            width: fit-content;
+        }
+
+        .menu-card {
+            padding: 12px;
+            border-radius: 28px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+            cursor: pointer;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-icon-wrap {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 22px;
+        }
+
+        .menu-label {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .auth-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .auth-btn {
+            padding: 14px 30px;
+            border-radius: 16px;
+            text-decoration: none;
+            font-weight: 800;
+            border: 2px solid var(--primary);
+        }
+
+        .footer-ref {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dim);
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="javascript:history.back()" class="back-button">
+            <i class="mdi mdi-arrow-left" style="font-size: 24px;"></i>
+        </a>
+
+        <div class="header" id="profile-header">
+            <div style="padding: 40px; text-align: center;">Loading profile...</div>
+        </div>
+
+        <div class="menu-card" id="menu-section" style="display: none;">
+            <a href="/app/settings.html" class="menu-item">
+                <div class="menu-icon-wrap" style="background: rgba(129, 173, 231, 0.08); color: var(--primary);">
+                    <i class="mdi mdi-cog-outline"></i>
+                </div>
+                <span class="menu-label">Settings</span>
+                <i class="mdi mdi-chevron-right" style="margin-left: auto; color: var(--text-dim);"></i>
+            </a>
+            <a href="/app/change-password.html" class="menu-item">
+                <div class="menu-icon-wrap" style="background: rgba(129, 173, 231, 0.08); color: var(--primary);">
+                    <i class="mdi mdi-key-outline"></i>
+                </div>
+                <span class="menu-label">Change Password</span>
+                <i class="mdi mdi-chevron-right" style="margin-left: auto; color: var(--text-dim);"></i>
+            </a>
+            <a href="/app/helpdocs.html" class="menu-item">
+                <div class="menu-icon-wrap" style="background: rgba(129, 173, 231, 0.08); color: var(--primary);">
+                    <i class="mdi mdi-help-circle-outline"></i>
+                </div>
+                <span class="menu-label">Help</span>
+                <i class="mdi mdi-chevron-right" style="margin-left: auto; color: var(--text-dim);"></i>
+            </a>
+            <div class="menu-item" id="logout-trigger">
+                <div class="menu-icon-wrap" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                    <i class="mdi mdi-logout-variant"></i>
+                </div>
+                <span class="menu-label" style="color: #ef4444;">Logout</span>
+                <i class="mdi mdi-chevron-right" style="margin-left: auto; color: var(--text-dim);"></i>
+            </div>
+        </div>
+
+        <div id="footer-ref" class="footer-ref" style="display: none;"></div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-container">
+            <a href="/app/index.html" class="nav-item">
+                <i class="mdi mdi-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="/app/explore.html" class="nav-item">
+                <i class="mdi mdi-compass-outline"></i>
+                <span>Equipment</span>
+            </a>
+            <a href="/app/escorts.html" class="nav-item">
+                <i class="mdi mdi-shield-account-outline"></i>
+                <span>Escorts</span>
+            </a>
+            <a href="/app/delivery.html" class="nav-item">
+                <i class="mdi mdi-truck-delivery-outline"></i>
+                <span>History</span>
+            </a>
+            <a href="/app/settings.html" class="nav-item active">
+                <i class="mdi mdi-cog-outline"></i>
+                <span>Settings</span>
+            </a>
+        </div>
+    </nav>
+
+    <script type="module">
+        import { auth, db, onAuthStateChanged, signOut, doc, getDoc } from '/app/firebase.js';
+
+        const header = document.getElementById('profile-header');
+        const menuSection = document.getElementById('menu-section');
+        const footerRef = document.getElementById('footer-ref');
+        const logoutTrigger = document.getElementById('logout-trigger');
+
+        onAuthStateChanged(auth, async (u) => {
+            if (u) {
+                menuSection.style.display = 'block';
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', u.uid));
+                    const data = userDoc.exists() ? userDoc.data() : {};
+                    const name = data.username || u.displayName || u.email.split('@')[0];
+                    const role = data.role || 'user';
+                    const avatarChar = name.charAt(0).toUpperCase();
+
+                    header.innerHTML = `
+            <div class="avatar" style="background: var(--primary-glow); border-color: var(--primary); color: var(--primary);">
+              ${avatarChar}
+            </div>
+            <div class="user-info">
+              <div class="user-name">${name}</div>
+              <div class="role-badge" style="background: ${role === 'admin' ? '#fee2e2' : 'rgba(129, 173, 231, 0.1)'}; color: ${role === 'admin' ? '#ef4444' : 'var(--primary)'};">
+                ${role.toUpperCase()}
+              </div>
+            </div>
+            ${role === 'admin' ? '<a href="/app/admin/index.html" class="admin-btn"><i class="mdi mdi-shield-half-full" style="margin-right: 8px;"></i> Enter Admin View</a>' : ''}
+          `;
+
+                    footerRef.innerText = `USER REF: ${u.uid.substring(0, 12).toUpperCase()}...`;
+                    footerRef.style.display = 'block';
+                } catch (e) {
+                    console.error(e);
+                }
+            } else {
+                header.innerHTML = `
+          <div class="avatar" style="background: #f1f5f9; border-color: #e2e8f0; color: #94a3b8;">
+            <i class="mdi mdi-account-outline"></i>
+          </div>
+          <div class="user-name">Guest</div>
+          <div style="color: var(--text-dim); margin-bottom: 20px;">Please sign in to access more features</div>
+          <div class="auth-row">
+            <a href="/app/login.html" class="auth-btn" style="background: var(--surface); color: var(--primary);">Sign In</a>
+            <a href="/app/register.html" class="auth-btn" style="background: var(--surface); color: var(--primary);">Register</a>
+          </div>
+        `;
+                menuSection.style.display = 'none';
+                footerRef.style.display = 'none';
+            }
+        });
+
+        logoutTrigger.addEventListener('click', async () => {
+            if (confirm("Logout from TwinXCare?")) {
+                await signOut(auth);
+                window.location.reload();
+            }
+        });
+    </script>
+</body>
+
+</html>

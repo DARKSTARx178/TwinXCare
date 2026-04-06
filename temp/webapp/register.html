@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Register</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <meta name="theme-color" content="#F8FAFC">
+    <style>
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 50px;
+            left: 20px;
+            z-index: 10;
+            padding: 8px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.03);
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            padding: 32px;
+            border-radius: 32px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .logo-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 40px;
+            background: rgba(129, 173, 231, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 24px;
+            color: var(--primary);
+            font-size: 40px;
+        }
+
+        .title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        .input-wrapper {
+            text-align: left;
+            margin-bottom: 16px;
+        }
+
+        .label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+            display: block;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 0 16px;
+            background: #F1F5F9;
+        }
+
+        .input-icon {
+            margin-right: 10px;
+            color: var(--text-dim);
+            font-size: 20px;
+        }
+
+        .input {
+            flex: 1;
+            padding: 14px 0;
+            font-size: 1rem;
+            font-weight: 500;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text);
+            font-family: inherit;
+        }
+
+        .type-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .type-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 14px;
+            border: 2px solid #e2e8f0;
+            background: transparent;
+            color: var(--text-dim);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .type-btn.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            border: 2px solid var(--primary);
+            background: var(--surface);
+            color: var(--primary);
+            font-size: 1rem;
+            font-weight: 800;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+
+        .error-container {
+            width: 100%;
+            padding: 12px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: none;
+        }
+
+        .footer-link {
+            margin-top: 24px;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: block;
+        }
+
+        .footer-link span {
+            color: var(--primary);
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="javascript:history.back()" class="back-button">
+            <i class="mdi mdi-arrow-left" style="font-size: 24px;"></i>
+        </a>
+
+        <div class="card">
+            <div class="logo-circle">
+                <i class="mdi mdi-person-plus"></i>
+            </div>
+
+            <div class="title">Create Account</div>
+            <div class="subtitle">Join the TwinXCare community today</div>
+
+            <div id="error-box" class="error-container"></div>
+
+            <form id="register-form">
+                <div class="input-wrapper">
+                    <label class="label">Username</label>
+                    <div class="input-container">
+                        <i class="mdi mdi-account-outline input-icon"></i>
+                        <input type="text" id="username" class="input" placeholder="Create a username" required>
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <label class="label">Email Address</label>
+                    <div class="input-container">
+                        <i class="mdi mdi-email-outline input-icon"></i>
+                        <input type="email" id="email" class="input" placeholder="Enter your email" required>
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <label class="label">Password</label>
+                    <div class="input-container">
+                        <i class="mdi mdi-lock-outline input-icon"></i>
+                        <input type="password" id="password" class="input" placeholder="Create a password" required>
+                    </div>
+                </div>
+
+                <label class="label" style="text-align: left; margin-bottom: 12px;">I am signing up as</label>
+                <div class="type-row">
+                    <button type="button" class="type-btn active" id="type-standard"
+                        onclick="setType('standard')">Senior</button>
+                    <button type="button" class="type-btn" id="type-escort" onclick="setType('escort')">Escort</button>
+                </div>
+
+                <button type="submit" class="btn-submit" id="btn-submit">Create Account</button>
+            </form>
+
+            <a href="/app/login.html" class="footer-link">
+                Already have an account? <span>Sign In</span>
+            </a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db, onAuthStateChanged, createUserWithEmailAndPassword, doc, setDoc } from '/app/firebase.js';
+
+        let selectedType = 'standard';
+        window.setType = (type) => {
+            selectedType = type;
+            document.getElementById('type-standard').className = type === 'standard' ? 'type-btn active' : 'type-btn';
+            document.getElementById('type-escort').className = type === 'escort' ? 'type-btn active' : 'type-btn';
+        };
+
+        const registerForm = document.getElementById('register-form');
+        const errorBox = document.getElementById('error-box');
+        const btnSubmit = document.getElementById('btn-submit');
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) window.location.href = '/app/profile.html';
+        });
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorBox.style.display = 'none';
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = 'Creating Account...';
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value;
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                await setDoc(doc(db, 'users', user.uid), {
+                    username,
+                    email,
+                    role: 'user',
+                    userType: selectedType,
+                    createdAt: new Date().toISOString(),
+                    history: [],
+                    booking: []
+                });
+
+                window.location.href = '/app/profile.html';
+            } catch (err) {
+                console.error(err);
+                errorBox.innerText = err.message || 'Registration failed.';
+                errorBox.style.display = 'block';
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = 'Create Account';
+            }
+        });
+    </script>
+</body>
+
+</html>

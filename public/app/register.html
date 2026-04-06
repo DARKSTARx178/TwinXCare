@@ -16,14 +16,55 @@
   </div>
 </nav>
 <main class="container" style="padding:2rem 1rem;">
-  <h2>Register</h2>
-  <p>Static placeholder for `register.tsx`.</p>
-  <form style="max-width:420px;margin-top:1rem;">
-    <input placeholder="Name" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);margin-bottom:12px;">
-    <input placeholder="Email" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);margin-bottom:12px;">
-    <button style="background:linear-gradient(135deg,var(--primary),var(--accent));color:white;padding:10px 16px;border-radius:10px;border:none;">Create Account</button>
-  </form>
-  <p style="margin-top:12px;"><a href="index.html">Back to app home</a></p>
+  <section style="max-width:640px;margin:12px auto;">
+    <div style="text-align:center;margin-bottom:12px;">
+      <h2>Create Account</h2>
+      <p style="color:var(--text-dim)">Join the TwinXCare community</p>
+    </div>
+
+    <div id="regError" style="color:#ef4444;margin-top:8px;display:none"></div>
+
+    <form id="regForm" style="max-width:520px;margin:0 auto">
+      <label style="display:block;margin-top:8px;color:var(--text-dim)">Username</label>
+      <input id="regName" placeholder="John Doe" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);margin-bottom:12px;">
+
+      <label style="display:block;margin-top:8px;color:var(--text-dim)">Email</label>
+      <input id="regEmail" type="email" placeholder="you@example.com" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);margin-bottom:12px;">
+
+      <label style="display:block;margin-top:8px;color:var(--text-dim)">Password</label>
+      <input id="regPass" type="password" placeholder="••••••••" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);margin-bottom:12px;">
+
+      <label style="display:block;margin-top:8px;color:var(--text-dim)">I am signing up as</label>
+      <div style="display:flex;gap:8px;margin-top:8px;margin-bottom:12px;">
+        <button type="button" data-val="standard" class="userType btn-app-outline">Senior</button>
+        <button type="button" data-val="escort" class="userType btn-app-outline">Escort</button>
+      </div>
+
+      <button type="button" id="createAccount" class="btn-app" style="width:100%">Create Account</button>
+    </form>
+
+    <p style="text-align:center;margin-top:12px">Already have an account? <a href="login.html">Sign In</a></p>
+    <p style="text-align:center;margin-top:12px"><a href="index.html">Back to app home</a></p>
+  </section>
+
+  <script>
+    let userType='standard';
+    document.querySelectorAll('.userType').forEach(b=>b.addEventListener('click', (e)=>{
+      document.querySelectorAll('.userType').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active'); userType=b.dataset.val;
+    }));
+
+    document.getElementById('createAccount').addEventListener('click', ()=>{
+      const name=document.getElementById('regName').value.trim();
+      const email=document.getElementById('regEmail').value.trim();
+      const pass=document.getElementById('regPass').value;
+      const err=document.getElementById('regError'); err.style.display='none';
+      if(!name||!email||!pass){ err.style.display='block'; err.textContent='Please fill all fields.'; return; }
+      // Demo: pretend account created then redirect
+      err.style.display='block'; err.style.color='green'; err.textContent='Account created (demo). Redirecting...';
+      setTimeout(()=> location.href='profile.html?demo=user',800);
+    });
+  </script>
 </main>
 <footer>
   <div class="container"><div class="footer-bottom">&copy; 2026 TwinXCare</div></div>

@@ -1,64 +1,269 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Feedback — TwinXCare</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="app.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Feedback</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <meta name="theme-color" content="#F8FAFC">
+    <style>
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 50px;
+            left: 20px;
+            z-index: 10;
+            padding: 8px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.03);
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .card {
+            padding: 30px;
+            border-radius: 32px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .icon-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: rgba(129, 173, 231, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+            color: var(--primary);
+            font-size: 32px;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            margin-bottom: 25px;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+        .rating-section {
+            width: 100%;
+            margin-bottom: 30px;
+            background: rgba(129, 173, 231, 0.03);
+            padding: 18px;
+            border-radius: 20px;
+            box-sizing: border-box;
+        }
+
+        .rating-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 12px;
+            gap: 12px;
+        }
+
+        .star {
+            cursor: pointer;
+            font-size: 38px;
+            color: #e2e8f0;
+            transition: color 0.2s;
+        }
+
+        .star.active {
+            color: #f59e0b;
+        }
+
+        .input-wrapper {
+            text-align: left;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+            display: block;
+        }
+
+        .input {
+            width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 20px;
+            padding: 16px;
+            font-size: 1rem;
+            background: #F1F5F9;
+            min-height: 120px;
+            font-weight: 500;
+            outline: none;
+            font-family: inherit;
+            color: var(--text);
+            resize: none;
+            box-sizing: border-box;
+        }
+
+        .btn-submit {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 18px;
+            border-radius: 16px;
+            border: 2px solid var(--primary);
+            background: var(--surface);
+            color: var(--primary);
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 8px;
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
+
 <body>
-<nav>
-  <div class="container" style="display:flex;justify-content:space-between;align-items:center;">
-    <a href="index.html" class="logo"><div class="logo-icon"><img src="../assets/images/logo_all-white.png" alt="Logo"></div><h1>TwinXCare</h1></a>
-    <div class="nav-links"><a href="index.html" class="nav-link">App Home</a><a href="../index.html" class="nav-link">Main Site</a></div>
-  </div>
-</nav>
-<main class="container" style="padding:2rem 1rem;">
-  <section style="max-width:780px;margin:18px auto;">
-    <h2>Share Your Feedback</h2>
-    <p style="color:var(--text-dim)">Your experience matters. Tell us how we're doing.</p>
+    <div class="container">
+        <a href="javascript:history.back()" class="back-button">
+            <i class="mdi mdi-arrow-left" style="font-size: 24px;"></i>
+        </a>
 
-    <div style="margin-top:16px;">
-      <label style="display:block;margin-bottom:8px;color:var(--text-dim)">Overall Rating</label>
-      <div id="stars" style="display:flex;gap:8px;">
-        <button class="star" data-value="1">☆</button>
-        <button class="star" data-value="2">☆</button>
-        <button class="star" data-value="3">☆</button>
-        <button class="star" data-value="4">☆</button>
-        <button class="star" data-value="5">☆</button>
-      </div>
+        <div class="card">
+            <div class="icon-circle">
+                <i class="mdi mdi-chatbubble-ellipses-outline"></i>
+            </div>
 
-      <label style="display:block;margin-top:14px;color:var(--text-dim)">Your Comments</label>
-      <textarea id="feedbackMsg" style="width:100%;min-height:120px;padding:12px;border-radius:12px;border:1px solid var(--border);"></textarea>
+            <div class="title">Share Your Feedback</div>
+            <div class="subtitle">Your experience matters. Tell us how we're doing and help us improve our care.</div>
 
-      <div style="margin-top:12px;display:flex;gap:12px;align-items:center">
-        <button id="submitFeedback" class="btn-app">Submit Feedback</button>
-        <div id="fbStatus" style="color:var(--text-dim)"></div>
-      </div>
+            <div class="rating-section">
+                <label class="label" style="text-align: center;">Overall Rating</label>
+                <div class="rating-row" id="star-row">
+                    <i class="mdi mdi-star-outline star" data-val="1"></i>
+                    <i class="mdi mdi-star-outline star" data-val="2"></i>
+                    <i class="mdi mdi-star-outline star" data-val="3"></i>
+                    <i class="mdi mdi-star-outline star" data-val="4"></i>
+                    <i class="mdi mdi-star-outline star" data-val="5"></i>
+                </div>
+            </div>
+
+            <form id="feedback-form">
+                <div class="input-wrapper">
+                    <label class="label">Your Comments</label>
+                    <textarea id="message" class="input" placeholder="Tell us what's on your mind..."
+                        required></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit" id="btn-submit">
+                    Submit Feedback <i class="mdi mdi-send"></i>
+                </button>
+            </form>
+        </div>
     </div>
 
-    <p style="margin-top:18px"><a href="index.html">Back to app home</a></p>
-  </section>
+    <script type="module">
+        import { auth, db, onAuthStateChanged, doc, getDoc, collection, addDoc } from '/app/firebase.js';
 
-  <script>
-    let rating = 0;
-    document.querySelectorAll('#stars .star').forEach(btn => btn.addEventListener('click', (e) => {
-      rating = Number(btn.dataset.value);
-      document.querySelectorAll('#stars .star').forEach(s=> s.textContent = s.dataset.value <= rating ? '★' : '☆');
-    }));
-    document.getElementById('submitFeedback').addEventListener('click', () => {
-      const msg = document.getElementById('feedbackMsg').value.trim();
-      const st = document.getElementById('fbStatus');
-      if (!msg) { st.textContent = 'Please enter your feedback.'; return; }
-      if (rating === 0) { st.textContent = 'Please select a rating.'; return; }
-      st.textContent = 'Submitting...'; setTimeout(()=>{ st.textContent='Feedback submitted (demo).'; document.getElementById('feedbackMsg').value=''; },800);
-    });
-  </script>
-</main>
-<footer>
-  <div class="container"><div class="footer-bottom">&copy; 2026 TwinXCare</div></div>
-</footer>
+        let rating = 0;
+        let username = 'Anonymous';
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const uDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (uDoc.exists()) username = uDoc.data().username || user.email;
+                } catch (e) { }
+            }
+        });
+
+        const stars = document.querySelectorAll('.star');
+        stars.forEach(s => {
+            s.addEventListener('click', () => {
+                rating = parseInt(s.dataset.val);
+                stars.forEach(star => {
+                    const val = parseInt(star.dataset.val);
+                    if (val <= rating) {
+                        star.classList.add('active');
+                        star.classList.replace('mdi-star-outline', 'mdi-star');
+                    } else {
+                        star.classList.remove('active');
+                        star.classList.replace('mdi-star', 'mdi-star-outline');
+                    }
+                });
+            });
+        });
+
+        const form = document.getElementById('feedback-form');
+        const btnSubmit = document.getElementById('btn-submit');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (rating === 0) return alert('Please select a rating.');
+            const message = document.getElementById('message').value.trim();
+
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = 'Submitting...';
+
+            try {
+                // 1. Save to Firestore
+                await addDoc(collection(db, "feedback"), {
+                    username,
+                    message,
+                    rating,
+                    createdAt: new Date().toISOString()
+                });
+
+                // 2. Mock Vercel Email call
+                await fetch('https://twin-x-care.vercel.app/api/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: `Feedback from ${username} (Rating: ${rating}):\n\n${message}`,
+                        username,
+                        type: 'feedback'
+                    }),
+                });
+
+                alert('Thank you! Your feedback has been submitted.');
+                window.history.back();
+            } catch (err) {
+                console.error(err);
+                alert('Failed to submit feedback.');
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = 'Submit Feedback <i class="mdi mdi-send"></i>';
+            }
+        });
+    </script>
 </body>
+
 </html>

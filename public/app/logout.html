@@ -1,50 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Logout — TwinXCare</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="app.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Logout</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <meta name="theme-color" content="#F8FAFC">
+    <style>
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 50px;
+            left: 20px;
+            z-index: 10;
+            padding: 8px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.03);
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .icon-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: #fef2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 16px;
+            color: #ef4444;
+            font-size: 32px;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--text);
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-top: 4px;
+            color: var(--text-dim);
+        }
+
+        .card {
+            padding: 32px;
+            border-radius: 32px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .card-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            line-height: 1.4;
+            margin-bottom: 32px;
+        }
+
+        .btn-logout {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 16px;
+            border-radius: 18px;
+            border: 2px solid #ef4444;
+            background: var(--surface);
+            color: #ef4444;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 8px;
+        }
+
+        .btn-cancel {
+            margin-top: 16px;
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+    </style>
 </head>
+
 <body>
-<nav>
-  <div class="container" style="display:flex;justify-content:space-between;align-items:center;">
-    <a href="index.html" class="logo"><div class="logo-icon"><img src="../assets/images/logo_all-white.png" alt="Logo"></div><h1>TwinXCare</h1></a>
-    <div class="nav-links"><a href="index.html" class="nav-link">App Home</a><a href="../index.html" class="nav-link">Main Site</a></div>
-  </div>
-</nav>
-<main class="container" style="padding:2rem 1rem;">
-  <section style="max-width:720px;margin:12px auto;text-align:center;">
-    <div style="margin-bottom:18px;">
-      <h2>Security Sign-out</h2>
-      <p style="color:var(--text-dim)">Are you sure you want to end your current session?</p>
+    <div class="container">
+        <a href="javascript:history.back()" class="back-button">
+            <i class="mdi mdi-arrow-left" style="font-size: 24px;"></i>
+        </a>
+
+        <div class="header">
+            <div class="icon-circle">
+                <i class="mdi mdi-logout-variant"></i>
+            </div>
+            <div class="title">Security Sign-out</div>
+            <div class="subtitle">Are you sure you want to end your current session?</div>
+        </div>
+
+        <div class="card">
+            <i class="mdi mdi-shield-check-outline"
+                style="font-size: 48px; color: var(--primary); margin-bottom: 20px; display: block;"></i>
+            <div class="card-title">Safe & Secure</div>
+            <div class="card-subtitle">Logging out will clear your active session. You'll need to sign back in to access
+                your data.</div>
+
+            <button class="btn-logout" id="btn-logout">Confirm Logout <i class="mdi mdi-logout"></i></button>
+            <button class="btn-cancel" onclick="history.back()">Stay Logged In</button>
+        </div>
     </div>
 
-    <div style="background:var(--bg-soft);padding:20px;border-radius:16px;max-width:520px;margin:0 auto;">
-      <div style="font-size:48px;margin-bottom:12px;color:var(--primary)">🔒</div>
-      <p style="font-weight:700;margin:0 0 8px 0">Safe & Secure</p>
-      <p style="color:var(--text-dim);margin-bottom:16px">Logging out will clear your active session. You'll need to sign back in to access your data.</p>
+    <script type="module">
+        import { auth, signOut } from '/app/firebase.js';
 
-      <div style="display:flex;gap:12px;justify-content:center">
-        <button id="confirmLogout" class="btn-app" style="background:#fff;color:#ef4444;border:1px solid #ef4444">Confirm Logout</button>
-        <button id="stayBtn" class="btn-app">Stay Logged In</button>
-      </div>
-    </div>
-
-    <p style="text-align:center;margin-top:18px"><a href="index.html">Back to app home</a></p>
-  </section>
-
-  <script>
-    document.getElementById('confirmLogout').addEventListener('click', ()=>{
-      alert('Signed out (demo). Redirecting to login.'); window.location.href='login.html';
-    });
-    document.getElementById('stayBtn').addEventListener('click', ()=> history.back());
-  </script>
-</main>
-<footer>
-  <div class="container"><div class="footer-bottom">&copy; 2026 TwinXCare</div></div>
-</footer>
+        document.getElementById('btn-logout').onclick = async () => {
+            try {
+                await signOut(auth);
+                window.location.href = '/app/login.html';
+            } catch (err) {
+                console.error(err);
+                alert('Failed to log out.');
+            }
+        };
+    </script>
 </body>
+
 </html>

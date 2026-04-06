@@ -1,97 +1,218 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bookings — TwinXCare</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="app.css">
-</head>
-<body>
-<nav>
-  <div class="container" style="display:flex;justify-content:space-between;align-items:center;">
-    <a href="index.html" class="logo"><div class="logo-icon"><img src="../assets/images/logo_all-white.png" alt="Logo"></div><h1>TwinXCare</h1></a>
-    <div class="nav-links"><a href="index.html" class="nav-link">App Home</a><a href="../index.html" class="nav-link">Main Site</a></div>
-  </div>
-</nav>
-<main class="container" style="padding:2rem 1rem;">
-  <section style="max-width:900px;margin:18px auto;">
-    <div style="text-align:center;margin-bottom:12px;">
-      <h2>My Bookings</h2>
-      <p style="color:var(--text-dim)">Active and upcoming appointments</p>
-    </div>
-
-    <div style="display:flex;justify-content:center;margin-bottom:12px;gap:12px;">
-      <button id="loadSamples" class="btn-app">Load Sample Bookings</button>
-      <button id="clearBookings" class="btn-app" style="background:#fff;color:var(--primary);border:1px solid var(--primary);">Clear</button>
-    </div>
-
-    <div id="bookingsList">
-      <div style="text-align:center;padding:48px 12px;color:var(--text-dim);">
-        <div style="font-size:48px;">📅</div>
-        <p style="font-weight:600;margin-top:12px">No bookings found yet.</p>
-        <p style="margin-top:6px;color:var(--text-dim)">Your scheduled services will appear here.</p>
-      </div>
-    </div>
-
-    <template id="bookingTpl">
-      <article class="booking-card">
-        <div class="booking-row">
-          <div>
-            <div class="muted small">SERVICE</div>
-            <div class="strong booking-service">Home Delivery</div>
-            <div class="muted small booking-date">Apr 10, 2026 • 10:30 AM</div>
-          </div>
-          <div style="text-align:right">
-            <div class="muted small">STATUS</div>
-            <div class="strong booking-status">Confirmed</div>
-          </div>
-        </div>
-      </article>
-    </template>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - My Bookings</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <meta name="theme-color" content="#F8FAFC">
     <style>
-      .booking-card{background:var(--bg-soft);border-radius:12px;padding:12px;margin:12px 0;border:1px solid var(--border)}
-      .booking-row{display:flex;justify-content:space-between;align-items:center}
-      .muted{color:var(--text-dim)}.small{font-size:13px}
-      .strong{font-weight:600}
-      @media(max-width:520px){.booking-row{flex-direction:column;align-items:flex-start}.booking-row div[style*="text-align:right"]{width:100%;text-align:left;margin-top:8px}}
-    </style>
-
-    <script>
-      const bookingsList = document.getElementById('bookingsList');
-      const tpl = document.getElementById('bookingTpl');
-      const samples = [
-        {service:'Escort to Appointment',date:'Apr 10, 2026 • 10:30 AM',status:'Confirmed'},
-        {service:'Equipment Delivery',date:'Apr 14, 2026 • 2:00 PM',status:'Scheduled'},
-        {service:'Home Care Visit',date:'Apr 20, 2026 • 9:00 AM',status:'Pending'}
-      ];
-
-      function renderBookings(items){
-        bookingsList.innerHTML='';
-        if(!items.length){
-          bookingsList.innerHTML=`<div style="text-align:center;padding:48px 12px;color:var(--text-dim);"><div style="font-size:48px;">📅</div><p style="font-weight:600;margin-top:12px">No bookings found yet.</p><p style="margin-top:6px;color:var(--text-dim)">Your scheduled services will appear here.</p></div>`;
-          return;
+        .container {
+            padding: 20px 20px 100px;
         }
-        items.forEach(b=>{
-          const node = tpl.content.cloneNode(true);
-          node.querySelector('.booking-service').textContent = b.service;
-          node.querySelector('.booking-date').textContent = b.date;
-          node.querySelector('.booking-status').textContent = b.status;
-          bookingsList.appendChild(node);
+
+        .header-section {
+            margin-top: 40px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        .empty-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 40px;
+            background: rgba(129, 173, 231, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 40px;
+        }
+
+        .card {
+            padding: 24px;
+            border-radius: 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text);
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 100px;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            flex: 1;
+        }
+
+        .info-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .description-box {
+            padding: 16px;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .description {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            line-height: 1.5;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header-section">
+            <div class="header">My Bookings</div>
+            <div class="subtitle">Active and upcoming appointments</div>
+        </div>
+
+        <div id="bookings-list">
+            <div style="text-align: center; color: var(--text-dim); padding: 40px;">Fetching bookings...</div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-container">
+            <a href="/app/index.html" class="nav-item">
+                <i class="mdi mdi-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="/app/explore.html" class="nav-item">
+                <i class="mdi mdi-compass-outline"></i>
+                <span>Equipment</span>
+            </a>
+            <a href="/app/escorts.html" class="nav-item">
+                <i class="mdi mdi-shield-account-outline"></i>
+                <span>Escorts</span>
+            </a>
+            <a href="/app/delivery.html" class="nav-item active">
+                <i class="mdi mdi-truck-delivery-outline"></i>
+                <span>History</span>
+            </a>
+            <a href="/app/settings.html" class="nav-item">
+                <i class="mdi mdi-cog-outline"></i>
+                <span>Settings</span>
+            </a>
+        </div>
+    </nav>
+
+    <script type="module">
+        import { auth, db, onAuthStateChanged, doc, getDoc } from '/app/firebase.js';
+
+        const listContainer = document.getElementById('bookings-list');
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                listContainer.innerHTML = '<div class="empty-container"><div class="empty-icon">🔐</div><div style="color:var(--text-dim);font-weight:600;">Please login to view bookings</div></div>';
+                return;
+            }
+
+            try {
+                const userRef = doc(db, 'users', user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    const bookings = userSnap.data().booking || [];
+                    if (bookings.length === 0) {
+                        listContainer.innerHTML = '<div class="empty-container"><div class="empty-icon">📅</div><div style="color:var(--text-dim);font-weight:600;">No bookings found yet.</div><div style="color:var(--text-dim);font-size:12px;margin-top:8px;">Your scheduled services will appear here.</div></div>';
+                    } else {
+                        listContainer.innerHTML = bookings.map(item => `
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">${item.title}</div>
+                  <div class="status-badge">CONFIRMED</div>
+                </div>
+                <div class="info-row">
+                  <div class="info-item">
+                    <div class="info-label">DATE</div>
+                    <div class="info-value">${item.bookingDate}</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">TIME</div>
+                    <div class="info-value">${item.timeSlot}</div>
+                  </div>
+                </div>
+                <div class="description-box">
+                  <div class="description">${item.description}</div>
+                </div>
+              </div>
+            `).join('');
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                listContainer.innerHTML = '<div style="color:red;padding:20px;text-align:center;">Error loading bookings</div>';
+            }
         });
-      }
-
-      document.getElementById('loadSamples').addEventListener('click', ()=> renderBookings(samples));
-      document.getElementById('clearBookings').addEventListener('click', ()=> renderBookings([]));
     </script>
-
-    <p style="text-align:center;margin-top:18px"><a href="index.html">Back to app home</a></p>
-  </section>
-</main>
-<footer>
-  <div class="container"><div class="footer-bottom">&copy; 2026 TwinXCare</div></div>
-</footer>
 </body>
+
 </html>

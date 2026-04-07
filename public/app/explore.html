@@ -1,373 +1,145 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TwinXCare - Discover</title>
-    <link rel="stylesheet" href="/app/app.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
-    <meta name="theme-color" content="#F8FAFC">
-    <style>
-        .search-box {
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            height: 54px;
-            border-radius: 18px;
-            background: #E2E8F0;
-            margin-bottom: 20px;
-        }
-
-        .search-input {
-            flex: 1;
-            margin-left: 12px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            border: none;
-            background: transparent;
-            outline: none;
-            color: var(--text);
-            font-family: inherit;
-        }
-
-        .tab-container {
-            display: flex;
-            background: #E2E8F0;
-            padding: 6px;
-            border-radius: 20px;
-            margin-bottom: 24px;
-        }
-
-        .tab {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 0;
-            border-radius: 16px;
-            font-size: 0.9rem;
-            font-weight: 800;
-            color: var(--text);
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .tab.active {
-            background: var(--surface);
-            border-color: var(--primary);
-            color: var(--primary);
-            border: 2px solid var(--primary);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 12px;
-        }
-
-        .grid-card {
-            border-radius: 28px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            overflow: hidden;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .grid-card:active {
-            opacity: 0.8;
-        }
-
-        .image-wrap {
-            width: 100%;
-            aspect-ratio: 1.1;
-            position: relative;
-        }
-
-        .card-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .price-tag {
-            position: absolute;
-            bottom: 12px;
-            right: 12px;
-            padding: 4px 10px;
-            background: var(--primary);
-            color: white;
-            border-radius: 10px;
-            font-size: 0.75rem;
-            font-weight: 900;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-content {
-            padding: 16px;
-        }
-
-        .item-name {
-            font-size: 0.9rem;
-            font-weight: 800;
-            margin-bottom: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .item-brand {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--text-dim);
-            margin-bottom: 12px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .card-footer {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .footer-text {
-            font-size: 0.65rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            color: var(--primary);
-        }
-
-        .empty-wrap {
-            padding: 60px 20px;
-            text-align: center;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Discover — TwinXCare</title>
+  <link rel="stylesheet" href="/app/app.css" />
+  <style>
+    :root{--bg:#fff;--surface:#f7f7f8;--text:#0b1220;--muted:#6b7280;--primary:#0b84ff;--border:#e6e7ea}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;background:var(--bg);color:var(--text)}
+    .container{max-width:1100px;margin:48px auto;padding:0 20px}
+    h1{font-size:32px;margin:0 0 6px;font-weight:900}
+    p.subtitle{margin:0 0 20px;color:var(--muted);font-weight:600}
+    .searchBox{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:18px;background:var(--surface);margin-bottom:20px}
+    .searchBox input{flex:1;border:0;background:transparent;font-size:15px;font-weight:600;outline:none}
+    .tabs{display:flex;gap:12px;padding:6px;border-radius:20px;background:var(--surface);margin-bottom:24px}
+    .tab{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:16px;cursor:pointer;font-weight:800}
+    .tab.active{border:2px solid var(--primary);background:var(--bg);color:var(--primary)}
+    .sectionHeader{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .filterBtn{padding:8px;border-radius:12px;border:1.5px solid var(--primary);background:var(--bg);cursor:pointer}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+    .card{border-radius:18px;overflow:hidden;border:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column}
+    .card .img{width:100%;aspect-ratio:1.1;background:#eee;position:relative}
+    .card img{width:100%;height:100%;object-fit:cover;display:block}
+    .priceTag{position:absolute;right:12px;bottom:12px;background:var(--primary);color:#fff;padding:6px 10px;border-radius:10px;font-weight:900;font-size:12px}
+    .card .content{padding:12px}
+    .itemName{font-weight:800;font-size:14px;margin:0 0 6px}
+    .itemBrand{font-size:12px;color:var(--muted);margin:0 0 12px}
+    .footer{display:flex;align-items:center;gap:6px;color:var(--primary);font-weight:800;text-transform:uppercase;font-size:11px}
+    .empty{padding:60px;text-align:center;color:var(--muted)}
+    .resultsCount{font-weight:800}
+    @media (max-width:480px){.container{margin-top:24px}}
+  </style>
 </head>
-
 <body>
-    <div class="top-header">
-        <a href="/app/profile.html" class="profile-trigger">
-            <i class="mdi mdi-account-circle-outline"></i>
-        </a>
+  <div class="container">
+    <h1>Discover</h1>
+    <p class="subtitle">Explore advanced medical equipment and professional services</p>
+
+    <div class="searchBox">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 21l-4.35-4.35" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="11" r="6" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <input id="searchInput" placeholder="Find equipment..." />
+      <button id="refreshBtn" title="Refresh" style="border:0;background:transparent;cursor:pointer;color:var(--muted)">⟳</button>
     </div>
 
-    <main class="fade-in" style="padding-top: 60px; padding-bottom: 100px;">
+    <div class="tabs">
+      <div id="tabEquipment" class="tab active">⚕️ Equipment</div>
+      <div id="tabServices" class="tab">✨ Services</div>
+    </div>
 
-        <div style="margin-bottom: 20px; padding: 0 20px;">
-            <div style="font-size: 2rem; font-weight: 900; letter-spacing: -0.5px; color: var(--text);">Discover</div>
-            <div
-                style="font-size: 0.85rem; font-weight: 600; color: var(--text-dim); margin-top: 4px; margin-bottom: 24px;">
-                Explore medical equipment and services</div>
+    <div class="sectionHeader">
+      <div><span class="resultsCount" id="resultsCount">0</span> <span id="modeLabel">equipment</span> available</div>
+      <button class="filterBtn">⚙️</button>
+    </div>
 
-            <div class="search-box">
-                <i class="mdi mdi-magnify" style="color: var(--text-dim); font-size: 20px;"></i>
-                <input type="text" class="search-input" id="search-input" placeholder="Find equipment...">
-            </div>
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty" style="display:none">
+      <svg width="84" height="84" viewBox="0 0 24 24" fill="none" style="opacity:0.18"><path d="M21 21l-4.35-4.35" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="11" r="6" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h3 style="margin:16px 0 6px">No items matches your search</h3>
+      <div style="color:var(--muted)">Try checking your spelling or use more general terms.</div>
+    </div>
+  </div>
 
-            <div class="tab-container">
-                <div class="tab active" id="tab-equipment" onclick="setMode('equipment')">
-                    <i class="mdi mdi-medical-bag"></i> Equipment
-                </div>
-                <div class="tab" id="tab-services" onclick="setMode('services')">
-                    <i class="mdi mdi-auto-fix"></i> Services
-                </div>
-            </div>
+  <script type="module">
+    import { getDocs, collection, db, convertGoogleDriveLink } from './firebase.js';
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                <div style="font-size: 0.85rem; font-weight: 800; color: var(--text);" id="result-count">0 items
-                    available</div>
-                <button
-                    style="padding: 8px; border-radius: 12px; background: rgba(0,0,0,0.03); border: 1.5px solid var(--primary); color: var(--primary); cursor: pointer;">
-                    <i class="mdi mdi-tune" style="font-size: 20px;"></i>
-                </button>
-            </div>
-        </div>
+    const grid = document.getElementById('grid');
+    const empty = document.getElementById('empty');
+    const resultsCount = document.getElementById('resultsCount');
+    const modeLabel = document.getElementById('modeLabel');
+    const searchInput = document.getElementById('searchInput');
+    const tabEquipment = document.getElementById('tabEquipment');
+    const tabServices = document.getElementById('tabServices');
+    const refreshBtn = document.getElementById('refreshBtn');
 
-        <div class="grid-container" id="items-grid" style="padding: 0 20px;">
-            <div class="empty-wrap" style="grid-column: 1 / -1;">
-                Loading data...
-            </div>
-        </div>
+    let viewMode = 'equipment';
+    let equipmentItems = [];
+    let servicesItems = [];
 
-    </main>
+    tabEquipment.addEventListener('click', ()=>{ setMode('equipment') });
+    tabServices.addEventListener('click', ()=>{ setMode('services') });
+    refreshBtn.addEventListener('click', fetchData);
+    searchInput.addEventListener('input', render);
 
-    <nav class="bottom-nav">
-        <div class="nav-container">
-            <a href="/app/index.html" class="nav-item">
-                <i class="mdi mdi-home"></i>
-                <span>Home</span>
-            </a>
-            <a href="/app/explore.html" class="nav-item active">
-                <i class="mdi mdi-compass-outline"></i>
-                <span>Equipment</span>
-            </a>
-            <a href="/app/escorts.html" class="nav-item">
-                <i class="mdi mdi-shield-account-outline"></i>
-                <span>Escorts</span>
-            </a>
-            <a href="/app/delivery.html" class="nav-item">
-                <i class="mdi mdi-truck-delivery-outline"></i>
-                <span>History</span>
-            </a>
-            <a href="/app/settings.html" class="nav-item">
-                <i class="mdi mdi-cog-outline"></i>
-                <span>Settings</span>
-            </a>
-        </div>
-    </nav>
+    function setMode(mode){
+      viewMode = mode;
+      modeLabel.textContent = mode;
+      tabEquipment.classList.toggle('active', mode==='equipment');
+      tabServices.classList.toggle('active', mode==='services');
+      searchInput.placeholder = `Find ${mode}...`;
+      render();
+    }
 
-    <script type="module">
-        import { db, collection, getDocs, convertGoogleDriveLink } from '/app/firebase.js';
+    async function fetchEquipment(){
+      const snap = await getDocs(collection(db,'equipment'));
+      equipmentItems = snap.docs.map(d=>({ docId:d.id, ...d.data() }));
+    }
 
-        let equipmentData = [];
-        let servicesData = [];
-        let currentMode = 'equipment';
+    async function fetchServices(){
+      const snap = await getDocs(collection(db,'services'));
+      servicesItems = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    }
 
-        const grid = document.getElementById('items-grid');
-        const searchInput = document.getElementById('search-input');
-        const countEl = document.getElementById('result-count');
+    async function fetchData(){
+      try{
+        await Promise.all([fetchEquipment(), fetchServices()]);
+        render();
+      }catch(e){console.error(e)}
+    }
 
-        window.setMode = (mode) => {
-            currentMode = mode;
-            document.getElementById('tab-equipment').className = mode === 'equipment' ? 'tab active' : 'tab';
-            document.getElementById('tab-services').className = mode === 'services' ? 'tab active' : 'tab';
-            searchInput.placeholder = `Find ${mode}...`;
-            renderItems();
-        };
+    function toImage(link){
+      try{return convertGoogleDriveLink(link||'') }catch(e){return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400'}
+    }
 
-        async function fetchData() {
-            try {
-                console.log('Starting to fetch equipment and services data...');
-                
-                // Set a 15 second timeout for Firebase operations
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Data loading timeout')), 15000)
-                );
+    function render(){
+      const q = (searchInput.value||'').toLowerCase();
+      const items = (viewMode==='equipment'?equipmentItems:servicesItems).filter(item=>((item.name||'')+' '+(item.brand||item.company||'')).toLowerCase().includes(q));
+      grid.innerHTML = '';
+      resultsCount.textContent = String(items.length);
+      if(items.length===0){ empty.style.display='block'; return } else { empty.style.display='none' }
 
-                const eqPromise = getDocs(collection(db, 'equipment'));
-                const srvPromise = getDocs(collection(db, 'services'));
-                
-                const [eqSnap, srvSnap] = await Promise.race([
-                    Promise.all([eqPromise, srvPromise]),
-                    timeoutPromise
-                ]);
-                
-                equipmentData = eqSnap.docs.map(doc => {
-                    const d = doc.data();
-                    return {
-                        id: doc.id,
-                        name: d.name || 'Unnamed',
-                        brand: d.brand || 'Premium',
-                        price: Number(d.price) || 0,
-                        stock: Number(d.stock) || 0,
-                        image: convertGoogleDriveLink(d.image || '')
-                    };
-                });
+      for(const item of items){
+        const card = document.createElement('a');
+        card.className='card';
+        card.href = viewMode==='equipment'
+          ? `/app/rental/order.html?docId=${encodeURIComponent(item.docId||item.id)}&price=${encodeURIComponent(item.price||0)}&stock=${encodeURIComponent(item.stock||0)}&name=${encodeURIComponent(item.name||'')}`
+          : `/app/rental/booking.html?docId=${encodeURIComponent(item.id||item.docId)}&price=${encodeURIComponent(item.price||0)}&schedule=${encodeURIComponent(JSON.stringify(item.schedule||[]))}`;
+        card.innerHTML = `
+          <div class="img"><img src="${toImage(item.image||'')}" alt="${(item.name||'').replace(/"/g,'')}"><div class="priceTag">$${item.price||0}</div></div>
+          <div class="content">
+            <div class="itemName">${escapeHtml(item.name||'Unnamed')}</div>
+            <div class="itemBrand">${escapeHtml(viewMode==='equipment'?item.brand:item.company||'')}</div>
+            <div class="footer">${viewMode==='equipment'?'📦':'⏱️'} <div style="margin-left:6px">${viewMode==='equipment'?((item.stock||0)+' in stock'):(item.duration||'')}</div></div>
+          </div>`;
+        grid.appendChild(card);
+      }
+    }
 
-                console.log('Loaded equipment:', equipmentData);
+    function escapeHtml(str){ return String(str||'').replace(/[&<>"']/g, s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[s]) }
 
-                servicesData = srvSnap.docs.map(doc => {
-                    const d = doc.data();
-                    return {
-                        id: doc.id,
-                        name: d.name || 'Service',
-                        company: d.company || 'Provider',
-                        price: Number(d.price) || 0,
-                        duration: d.duration || 'Session',
-                        image: convertGoogleDriveLink(d.image || '')
-                    };
-                });
-
-                console.log('Loaded services:', servicesData);
-
-                renderItems();
-            } catch (e) {
-                console.error('Error loading data:', e);
-                const errorMsg = e.message.includes('timeout') 
-                    ? 'Taking too long to load. Please check your internet connection.'
-                    : 'Failed to load data. Please try again.';
-                grid.innerHTML = `<div class="empty-wrap" style="grid-column: 1 / -1; color: red; padding: 60px 20px;">
-                    <i class="mdi mdi-wifi-off" style="font-size: 64px; margin-bottom: 16px;"></i>
-                    <div style="font-weight: 800; font-size: 1.1rem;">${errorMsg}</div>
-                    <button onclick="location.reload()" style="margin-top: 16px; padding: 12px 24px; border-radius: 12px; border: none; background: var(--primary); color: white; font-weight: 700; cursor: pointer;">Retry</button>
-                </div>`;
-            }
-        }
-
-        function renderItems() {
-            const val = searchInput.value.toLowerCase();
-            let activeData = currentMode === 'equipment' ? equipmentData : servicesData;
-            let filtered = activeData.filter(item =>
-                item.name.toLowerCase().includes(val) ||
-                (item.brand && item.brand.toLowerCase().includes(val)) ||
-                (item.company && item.company.toLowerCase().includes(val))
-            );
-
-            countEl.innerText = `${filtered.length} ${currentMode} available`;
-
-            if (filtered.length === 0) {
-                grid.innerHTML = `
-          <div class="empty-wrap" style="grid-column: 1 / -1;">
-            <i class="mdi mdi-magnify" style="font-size: 64px; color: var(--text-dim); opacity: 0.2"></i>
-            <div style="font-size: 1.2rem; font-weight: 800; margin-top: 16px; color: var(--text);">No items matches your search</div>
-            <div style="font-size: 0.9rem; font-weight: 500; color: var(--text-dim); margin-top: 8px;">Try checking your spelling or use more general terms.</div>
-          </div>
-        `;
-                return;
-            }
-
-            grid.innerHTML = filtered.map(item => {
-                if (currentMode === 'equipment') {
-                    return `
-            <a href="/app/rental/order.html?docId=${item.id}&name=${encodeURIComponent(item.name)}&brand=${encodeURIComponent(item.brand)}&price=${item.price}&stock=${item.stock}&image=${encodeURIComponent(item.image)}" class="grid-card">
-              <div class="image-wrap">
-                <img src="${item.image}" alt="${item.name}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200'">
-                <div class="price-tag">$${item.price}</div>
-              </div>
-              <div class="card-content">
-                <div class="item-name">${item.name}</div>
-                <div class="item-brand">${item.brand}</div>
-                <div class="card-footer">
-                  <i class="mdi mdi-package-variant-closed" style="color: var(--primary); font-size: 14px;"></i>
-                  <span class="footer-text">${item.stock} in stock</span>
-                </div>
-              </div>
-            </a>
-          `;
-                } else {
-                    return `
-            <a href="/app/rental/booking.html?docId=${item.id}&name=${encodeURIComponent(item.name)}&brand=${encodeURIComponent(item.company)}&price=${item.price}&image=${encodeURIComponent(item.image)}" class="grid-card">
-              <div class="image-wrap">
-                <img src="${item.image}" alt="${item.name}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200'">
-                <div class="price-tag">$${item.price}</div>
-              </div>
-              <div class="card-content">
-                <div class="item-name">${item.name}</div>
-                <div class="item-brand">${item.company}</div>
-                <div class="card-footer">
-                  <i class="mdi mdi-clock-outline" style="color: var(--primary); font-size: 14px;"></i>
-                  <span class="footer-text">${item.duration}</span>
-                </div>
-              </div>
-            </a>
-          `;
-                }
-            }).join('');
-        }
-
-        searchInput.addEventListener('input', renderItems);
-        fetchData();
-    </script>
+    // initial load
+    fetchData();
+  </script>
 </body>
-
 </html>

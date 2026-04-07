@@ -4,32 +4,29 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Discover — TwinXCare</title>
-  <link rel="stylesheet" href="/app/app.css" />
+  <link rel="stylesheet" href="/app/app.css">
   <style>
-    :root{--bg:#fff;--surface:#f7f7f8;--text:#0b1220;--muted:#6b7280;--primary:#0b84ff;--border:#e6e7ea}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;background:var(--bg);color:var(--text)}
+    /* small page-specific tweaks while leveraging shared tokens in app.css */
     .container{max-width:1100px;margin:48px auto;padding:0 20px}
-    h1{font-size:32px;margin:0 0 6px;font-weight:900}
-    p.subtitle{margin:0 0 20px;color:var(--muted);font-weight:600}
+    .subtitle{margin:0 0 20px;font-weight:600}
     .searchBox{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:18px;background:var(--surface);margin-bottom:20px}
-    .searchBox input{flex:1;border:0;background:transparent;font-size:15px;font-weight:600;outline:none}
+    .searchBox input{flex:1;border:0;background:transparent;font-size:15px;font-weight:600;outline:none;color:var(--text)}
     .tabs{display:flex;gap:12px;padding:6px;border-radius:20px;background:var(--surface);margin-bottom:24px}
     .tab{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:16px;cursor:pointer;font-weight:800}
-    .tab.active{border:2px solid var(--primary);background:var(--bg);color:var(--primary)}
+    .tab.active{border:2px solid var(--primary);background:var(--surface);color:var(--primary)}
     .sectionHeader{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-    .filterBtn{padding:8px;border-radius:12px;border:1.5px solid var(--primary);background:var(--bg);cursor:pointer}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-    .card{border-radius:18px;overflow:hidden;border:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column}
-    .card .img{width:100%;aspect-ratio:1.1;background:#eee;position:relative}
+    .filterBtn{padding:8px;border-radius:12px;border:1.5px solid var(--primary);background:var(--surface);cursor:pointer;color:var(--primary)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+    .card{border-radius:18px;overflow:hidden;border:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;text-decoration:none;color:inherit}
+    .card .img{width:100%;aspect-ratio:1.1;background:var(--background);position:relative}
     .card img{width:100%;height:100%;object-fit:cover;display:block}
     .priceTag{position:absolute;right:12px;bottom:12px;background:var(--primary);color:#fff;padding:6px 10px;border-radius:10px;font-weight:900;font-size:12px}
-    .card .content{padding:12px}
+    .card .content{padding:16px}
     .itemName{font-weight:800;font-size:14px;margin:0 0 6px}
-    .itemBrand{font-size:12px;color:var(--muted);margin:0 0 12px}
+    .itemBrand{font-size:12px;color:var(--text-dim);margin:0 0 12px}
     .footer{display:flex;align-items:center;gap:6px;color:var(--primary);font-weight:800;text-transform:uppercase;font-size:11px}
-    .empty{padding:60px;text-align:center;color:var(--muted)}
+    .empty{padding:60px;text-align:center;color:var(--text-dim)}
     .resultsCount{font-weight:800}
-    @media (max-width:480px){.container{margin-top:24px}}
   </style>
 </head>
 <body>
@@ -122,16 +119,20 @@
       for(const item of items){
         const card = document.createElement('a');
         card.className='card';
+        const imageUrl = toImage(item.image||'');
         card.href = viewMode==='equipment'
-          ? `/app/rental/order.html?docId=${encodeURIComponent(item.docId||item.id)}&price=${encodeURIComponent(item.price||0)}&stock=${encodeURIComponent(item.stock||0)}&name=${encodeURIComponent(item.name||'')}`
-          : `/app/rental/booking.html?docId=${encodeURIComponent(item.id||item.docId)}&price=${encodeURIComponent(item.price||0)}&schedule=${encodeURIComponent(JSON.stringify(item.schedule||[]))}`;
+          ? `/app/rental/order.html?docId=${encodeURIComponent(item.docId||item.id)}&price=${encodeURIComponent(item.price||0)}&stock=${encodeURIComponent(item.stock||0)}&name=${encodeURIComponent(item.name||'')}&image=${encodeURIComponent(imageUrl)}`
+          : `/app/rental/booking.html?docId=${encodeURIComponent(item.id||item.docId)}&price=${encodeURIComponent(item.price||0)}&schedule=${encodeURIComponent(JSON.stringify(item.schedule||[]))}&image=${encodeURIComponent(imageUrl)}`;
         card.innerHTML = `
-          <div class="img"><img src="${toImage(item.image||'')}" alt="${(item.name||'').replace(/"/g,'')}"><div class="priceTag">$${item.price||0}</div></div>
+          <div class="img"><img src="${imageUrl}" alt="${(item.name||'').replace(/"/g,'')}"><div class="priceTag">$${item.price||0}</div></div>
           <div class="content">
             <div class="itemName">${escapeHtml(item.name||'Unnamed')}</div>
             <div class="itemBrand">${escapeHtml(viewMode==='equipment'?item.brand:item.company||'')}</div>
             <div class="footer">${viewMode==='equipment'?'📦':'⏱️'} <div style="margin-left:6px">${viewMode==='equipment'?((item.stock||0)+' in stock'):(item.duration||'')}</div></div>
           </div>`;
+        // ensure images have a fallback if they fail to load
+        const imgEl = card.querySelector('img');
+        imgEl.onerror = () => { imgEl.src = 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400'; }
         grid.appendChild(card);
       }
     }

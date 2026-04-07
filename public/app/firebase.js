@@ -28,11 +28,18 @@ export function convertGoogleDriveLink(link) {
 
     console.log('convertGoogleDriveLink input:', link);
 
-    // Extract Google Drive file id
-    const fileIdMatch = link.match(/(?:\/d\/|id=)([a-zA-Z0-9-_]+)/);
-    if (fileIdMatch && fileIdMatch[1]) {
-        const id = fileIdMatch[1];
-        const result = `https://drive.google.com/uc?export=view&id=${id}`;
+    // Try to extract Google Drive file id and optional resourcekey from common link formats
+    // Examples handled:
+    // - https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+    // - https://drive.google.com/open?id=FILE_ID
+    // - https://drive.google.com/uc?id=FILE_ID&export=view&resourcekey=RESOURCEKEY
+    const idMatch = link.match(/(?:\/d\/|open\?id=|id=)([a-zA-Z0-9_-]+)/);
+    const resourceKeyMatch = link.match(/[&?]resourcekey=([a-zA-Z0-9_-]+)/);
+
+    if (idMatch && idMatch[1]) {
+        const id = idMatch[1];
+        const resourceKey = resourceKeyMatch && resourceKeyMatch[1] ? `&resourcekey=${resourceKeyMatch[1]}` : '';
+        const result = `https://drive.google.com/uc?export=view&id=${id}${resourceKey}`;
         console.log('convertGoogleDriveLink output:', result);
         return result;
     }

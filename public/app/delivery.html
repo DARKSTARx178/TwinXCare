@@ -1,10 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0; url=./index.html#delivery">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TwinXCare Delivery</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Deliveries & History</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <meta name="theme-color" content="#F8FAFC">
 </head>
-<body></body>
+
+<body>
+    <div class="top-header">
+        <a href="/app/profile.html" class="profile-trigger">
+            <i class="mdi mdi-account-circle-outline"></i>
+        </a>
+    </div>
+
+    <main class="fade-in">
+        <div class="section-title">
+            <i class="mdi mdi-history" style="color: var(--primary);"></i>
+            My Rentals & Bookings
+        </div>
+
+        <div id="history-grid" style="margin-bottom: 40px;">
+            <div style="text-align: center; color: var(--text-dim); padding: 20px;">
+                Checking history...
+            </div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <div class="nav-container">
+            <a href="/app/index.html" class="nav-item">
+                <i class="mdi mdi-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="/app/explore.html" class="nav-item">
+                <i class="mdi mdi-compass-outline"></i>
+                <span>Equipment</span>
+            </a>
+            <a href="/app/escorts.html" class="nav-item">
+                <i class="mdi mdi-shield-account-outline"></i>
+                <span>Escorts</span>
+            </a>
+            <a href="/app/delivery.html" class="nav-item active">
+                <i class="mdi mdi-truck-delivery-outline"></i>
+                <span>History</span>
+            </a>
+            <a href="/app/settings.html" class="nav-item">
+                <i class="mdi mdi-cog-outline"></i>
+                <span>Settings</span>
+            </a>
+        </div>
+    </nav>
+
+    <script type="module">
+        import { auth, db, doc, getDoc, onAuthStateChanged } from '/app/firebase.js';
+
+        const grid = document.getElementById('history-grid');
+
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            return d.toLocaleDateString();
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                grid.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-dim);">Please <a href="/login">login</a> to view your rentals and history.</div>';
+                return;
+            }
+
+            try {
+                const userRef = doc(db, 'users', user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    const data = userSnap.data();
+                    const history = data.history || [];
+                    const bookings = data.booking || [];
+
+                    let combined = [
+                        ...history.map(h => ({ ...h, type: 'order' })),
+                        ...bookings.map(b => ({ ...b, type: 'booking' }))
+                    ];
+
+                    combined.sort((a, b) => {
+                        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                        return dateB - dateA;
+                    });
+
+                    if (combined.length === 0) {
+                        grid.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-dim);">No active orders or bookings found.</div>';
+                        return;
+                    }
+
+                    grid.innerHTML = combined.map(entry => {
+                        const isOrder = entry.type === 'order';
+                        const name = isOrder ? `${entry.name} (x${entry.quantity})` : entry.title;
+                        const date = isOrder ? formatDate(entry.orderTime) : formatDate(entry.bookingDate);
+                        const statusClass = entry.status === 'Processing' ? 'status-pending' : 'status-delivered';
+
+                        return `
+                        <div class="item-card" style="padding: 16px; margin-bottom: 12px; height: auto;">
+                            <div style="width: 100%;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <div style="font-weight: 700; font-size: 1.1rem; flex: 1; padding-right: 10px;">${name}</div>
+                                    <div class="status-badge ${statusClass}">${entry.status || 'Confirmed'}</div>
+                                </div>
+                                <div style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 8px;">
+                                    Ref: ${entry.transactionId || 'Prepaid/Included'}
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+                                    <i class="mdi mdi-calendar" style="color: var(--primary);"></i>
+                                    <span>${date}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    }).join('');
+
+                } else {
+                    grid.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-dim);">No user record found.</div>';
+                }
+            } catch (e) {
+                console.error(e);
+                grid.innerHTML = '<div style="color:red; padding: 20px;">Error loading history</div>';
+            }
+        });
+
+    </script>
+</body>
+
 </html>

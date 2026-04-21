@@ -1,129 +1,316 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TwinXCare - Home</title>
-    <link rel="stylesheet" href="/app/app.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
-    <meta name="theme-color" content="#F8FAFC">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TwinXCare Web App</title>
+  <meta name="description" content="TwinXCare web app for equipment discovery, escort coordination, delivery tracking, and accessible preferences.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="./app.css">
 </head>
-
 <body>
-    <div class="top-header">
-        <a href="/app/profile.html" class="profile-trigger">
-            <i class="mdi mdi-account-circle-outline"></i>
-        </a>
-    </div>
-
-    <main class="fade-in">
-        <div class="header-container">
-            <img src="/assets/images/logo_all-white.png" alt="TwinXCare Logo" class="logo"
-                onerror="this.src='https://via.placeholder.com/140x120?text=TwinXCare'">
-            <h1>Home</h1>
-            <p id="welcome-text">Loading...</p>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="../index.html">
+        <img src="../assets/images/logo_all-white.png" alt="TwinXCare logo">
+        <div>
+          <span class="brand-title">TwinXCare</span>
+          <span class="brand-subtitle">Responsive web app</span>
         </div>
+      </a>
 
-        <div class="row">
-            <a href="/app/explore.html?mode=equipment" class="card" style="text-decoration: none;">
-                <div class="icon-container">
-                    <i class="mdi mdi-hospital-box" style="font-size: 32px;"></i>
-                </div>
-                <div style="color: var(--text); font-weight: 600; margin-top: 8px;">Equipment</div>
-            </a>
-            <a href="/app/explore.html?mode=services" class="card" style="text-decoration: none;">
-                <div class="icon-container">
-                    <i class="mdi mdi-car-side" style="font-size: 32px;"></i>
-                </div>
-                <div style="color: var(--text); font-weight: 600; margin-top: 8px;">Services</div>
-            </a>
+      <nav class="tab-nav desktop-nav" aria-label="Primary">
+        <button class="tab-link active" data-route="home">
+          <i class="fa-solid fa-house"></i>
+          <span>Home</span>
+        </button>
+        <button class="tab-link" data-route="explore">
+          <i class="fa-solid fa-box-open"></i>
+          <span>Equipment</span>
+        </button>
+        <button class="tab-link" data-route="services">
+          <i class="fa-solid fa-car-side"></i>
+          <span>Escort</span>
+        </button>
+        <button class="tab-link" data-route="delivery">
+          <i class="fa-solid fa-truck-fast"></i>
+          <span>Delivery</span>
+        </button>
+        <button class="tab-link" data-route="settings">
+          <i class="fa-solid fa-sliders"></i>
+          <span>Settings</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-card">
+        <span class="eyebrow">Launch status</span>
+        <h2>Mobile-first and desktop-ready</h2>
+        <p>The layout switches between a bottom-tab mobile shell and a wider desktop workspace while keeping the same data and controls.</p>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">TwinXCare app</p>
+          <h1 id="pageTitle">Home</h1>
         </div>
-
-        <div class="row">
-            <a href="/app/assistance.html" class="card card-full" style="text-decoration: none;">
-                <div class="icon-container icon-container-row">
-                    <i class="mdi mdi-hand-heart" style="font-size: 32px;"></i>
-                </div>
-                <div style="flex: 1; color: var(--text); font-weight: 600; font-size: 1.1rem;">Assistance</div>
-                <i class="mdi mdi-chevron-right" style="color: var(--text-dim); font-size: 24px;"></i>
-            </a>
+        <div class="topbar-actions">
+          <a class="ghost-link" href="../index.html">Back to site</a>
+          <button class="profile-pill" id="profilePill" type="button" aria-label="User profile">
+            <span id="profileInitial">G</span>
+          </button>
         </div>
+      </header>
 
-        <div style="margin-bottom: 20px;">
-            <a href="/app/delivery.html" class="btn">My Rentals</a>
-        </div>
-
-        <div id="feedback-section" style="display: none; margin-bottom: 20px;">
-            <a href="/app/feedback.html" class="btn btn-outline"
-                style="border: 2px solid var(--primary); background: transparent; color: var(--primary);">Submit
-                Feedback</a>
-        </div>
-
-        <!-- Auth Section -->
-        <div class="auth-section" id="auth-section" style="display: none;">
-            <h2 style="font-weight: 700; margin-bottom: 15px;">Welcome</h2>
-            <div style="display: flex; gap: 12px; justify-content: center;">
-                <a href="/app/register.html" class="btn" style="flex: 1;">Create Account</a>
-                <a href="/app/login.html" class="btn btn-solid" style="flex: 1;">Login</a>
+      <section class="screen active" id="screen-home">
+        <div class="hero-card">
+          <div>
+            <p class="eyebrow">Care dashboard</p>
+            <h2>Healthcare made simpler across every screen size.</h2>
+            <p class="hero-copy">Browse equipment, review escort activity, and keep track of rental history with the same soft visual language as the mobile app.</p>
+            <div class="hero-actions">
+              <button class="primary-button" data-route-jump="explore">Browse equipment</button>
+              <button class="secondary-button" data-route-jump="services">Open escort dashboard</button>
             </div>
+          </div>
+          <div class="hero-preview">
+            <img src="../assets/images/home_app_prev.jpeg" alt="TwinXCare home preview">
+          </div>
         </div>
+
+        <div class="quick-grid">
+          <button class="quick-card" data-route-jump="explore">
+            <span class="quick-icon"><i class="fa-solid fa-bed-pulse"></i></span>
+            <strong>Book Equipment</strong>
+            <span>Live inventory, search, and responsive product cards.</span>
+          </button>
+          <button class="quick-card" data-route-jump="services">
+            <span class="quick-icon"><i class="fa-solid fa-hand-holding-heart"></i></span>
+            <strong>Escort Services</strong>
+            <span>Patient requests and volunteer slots in one dashboard.</span>
+          </button>
+          <button class="quick-card" data-route-jump="delivery">
+            <span class="quick-icon"><i class="fa-solid fa-receipt"></i></span>
+            <strong>My Rentals</strong>
+            <span>Latest booking activity and expandable timeline history.</span>
+          </button>
+        </div>
+
+        <section class="panel-card auth-panel" id="homeAuthPanel"></section>
+
+        <section class="panel-card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">History</p>
+              <h3>Recent activity</h3>
+            </div>
+            <button class="mini-link" data-route-jump="delivery" type="button">See full history</button>
+          </div>
+          <div class="history-strip" id="homeHistory"></div>
+        </section>
+      </section>
+
+      <section class="screen" id="screen-explore">
+        <div class="screen-header">
+          <div>
+            <p class="eyebrow">Discover</p>
+            <h2>Explore equipment and services</h2>
+            <p>Live data from the same collections used by the app.</p>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <label class="search-field">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="exploreSearch" type="search" placeholder="Find equipment or services">
+          </label>
+          <div class="segmented">
+            <button class="segment active" id="modeEquipment" type="button">Equipment</button>
+            <button class="segment" id="modeServices" type="button">Services</button>
+          </div>
+        </div>
+
+        <div class="section-head compact">
+          <h3 id="exploreCount">0 equipment available</h3>
+        </div>
+
+        <div class="catalog-grid" id="exploreGrid"></div>
+        <div class="empty-state hidden" id="exploreEmpty">
+          <i class="fa-solid fa-search"></i>
+          <h3>No items match your search</h3>
+          <p>Try a broader term or switch between equipment and services.</p>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-services">
+        <div class="screen-header">
+          <div>
+            <p class="eyebrow">Care dashboard</p>
+            <h2>Escort requests and volunteer slots</h2>
+            <p id="servicesSubtitle">Monitor the status of your escort requests.</p>
+          </div>
+        </div>
+
+        <div class="stack-grid">
+          <section class="panel-card hidden" id="adminPanel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Admin terminal</p>
+                <h3>Manual matching</h3>
+              </div>
+            </div>
+            <div class="notice-card">
+              <i class="fa-solid fa-lock"></i>
+              <div>
+                <strong>Matching controls stay protected.</strong>
+                <p>This web build surfaces the dashboard state, but the manual matching trigger still depends on the signed-in admin workflow used in the Expo app.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel-card" id="patientPanel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Patient requests</p>
+                <h3>Your escort requests</h3>
+              </div>
+              <a class="mini-link" href="../escortconfig.html">Create request</a>
+            </div>
+            <div class="list-stack" id="requestList"></div>
+          </section>
+
+          <section class="panel-card" id="escortPanel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Volunteer slots</p>
+                <h3>Your availabilities</h3>
+              </div>
+              <a class="mini-link" href="../escort.html">Post availability</a>
+            </div>
+            <div class="list-stack" id="availabilityList"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-delivery">
+        <div class="screen-header">
+          <div>
+            <p class="eyebrow">Tracker</p>
+            <h2>Delivery and booking timeline</h2>
+            <p>Latest activity first, with expandable details for each record.</p>
+          </div>
+        </div>
+
+        <div class="hero-slab" id="deliveryHero"></div>
+
+        <section class="panel-card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Timeline</p>
+              <h3>Rental history</h3>
+            </div>
+            <span class="count-badge" id="deliveryCount">0</span>
+          </div>
+          <div class="list-stack" id="deliveryList"></div>
+        </section>
+      </section>
+
+      <section class="screen" id="screen-settings">
+        <div class="screen-header">
+          <div>
+            <p class="eyebrow">Preferences</p>
+            <h2>Appearance and accessibility</h2>
+            <p>Theme presets, language, text size, and developer color tokens.</p>
+          </div>
+        </div>
+
+        <div class="settings-grid">
+          <section class="panel-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Accessibility</p>
+                <h3>Presets</h3>
+              </div>
+            </div>
+            <div class="preset-list" id="presetList"></div>
+          </section>
+
+          <section class="panel-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Core settings</p>
+                <h3>Preferences</h3>
+              </div>
+            </div>
+            <div class="control-list">
+              <label class="control-row">
+                <span>Language</span>
+                <select id="languageSelect">
+                  <option value="en">English</option>
+                  <option value="zh">简体中文</option>
+                </select>
+              </label>
+              <label class="control-row">
+                <span>Typography</span>
+                <select id="fontSizeSelect">
+                  <option value="small">Small</option>
+                  <option value="medium">Medium</option>
+                  <option value="large">Large</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section class="panel-card settings-full">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Advanced</p>
+                <h3>Design tokens</h3>
+              </div>
+              <button class="mini-link" id="resetThemeBtn" type="button">Restore defaults</button>
+            </div>
+            <p class="settings-note">These controls mirror the developer theme overrides from the app settings screen and save locally. If you are signed in, the selected theme also syncs back to your user document.</p>
+            <div class="token-editor" id="tokenEditor"></div>
+          </section>
+
+          <section class="panel-card settings-full">
+            <div class="meta-row">
+              <span id="versionText">TwinXCare alpha build</span>
+              <span>© 2026 DeepMind Agency Core</span>
+            </div>
+          </section>
+        </div>
+      </section>
     </main>
+  </div>
 
-    <nav class="bottom-nav">
-        <div class="nav-container">
-            <a href="/app/index.html" class="nav-item active">
-                <i class="mdi mdi-home"></i>
-                <span>Home</span>
-            </a>
-            <a href="/app/explore.html" class="nav-item">
-                <i class="mdi mdi-compass-outline"></i>
-                <span>Equipment</span>
-            </a>
-            <a href="/app/escorts.html" class="nav-item">
-                <i class="mdi mdi-shield-account-outline"></i>
-                <span>Escorts</span>
-            </a>
-            <a href="/app/delivery.html" class="nav-item">
-                <i class="mdi mdi-truck-delivery-outline"></i>
-                <span>History</span>
-            </a>
-            <a href="/app/settings.html" class="nav-item">
-                <i class="mdi mdi-cog-outline"></i>
-                <span>Settings</span>
-            </a>
-        </div>
-    </nav>
+  <nav class="mobile-tabbar" aria-label="Mobile tabs">
+    <button class="tab-link active" data-route="home">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </button>
+    <button class="tab-link" data-route="explore">
+      <i class="fa-solid fa-box-open"></i>
+      <span>Equipment</span>
+    </button>
+    <button class="tab-link" data-route="services">
+      <i class="fa-solid fa-car-side"></i>
+      <span>Escort</span>
+    </button>
+    <button class="tab-link" data-route="delivery">
+      <i class="fa-solid fa-truck-fast"></i>
+      <span>Delivery</span>
+    </button>
+    <button class="tab-link" data-route="settings">
+      <i class="fa-solid fa-sliders"></i>
+      <span>Settings</span>
+    </button>
+  </nav>
 
-    <script type="module">
-        import { auth, onAuthStateChanged, db, doc, getDoc } from '/app/firebase.js';
-
-        onAuthStateChanged(auth, async (user) => {
-            const welcomeText = document.getElementById('welcome-text');
-            const authSection = document.getElementById('auth-section');
-            const feedbackSection = document.getElementById('feedback-section');
-
-            if (user) {
-                welcomeText.innerText = "Welcome back!";
-                authSection.style.display = 'none';
-                feedbackSection.style.display = 'block';
-
-                try {
-                    const userDoc = await getDoc(doc(db, 'users', user.uid));
-                    if (userDoc.exists() && userDoc.data().username) {
-                        welcomeText.innerText = `Welcome, ${userDoc.data().username}`;
-                    }
-                } catch (e) {
-                    console.error(e);
-                }
-            } else {
-                welcomeText.innerText = "Welcome";
-                authSection.style.display = 'block';
-                feedbackSection.style.display = 'none';
-            }
-        });
-    </script>
+  <script type="module" src="./app.js"></script>
 </body>
-
 </html>

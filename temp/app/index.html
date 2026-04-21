@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Home</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <meta name="theme-color" content="#F8FAFC">
+</head>
+
+<body>
+    <div class="top-header">
+        <a href="/app/profile.html" class="profile-trigger">
+            <i class="mdi mdi-account-circle-outline"></i>
+        </a>
+    </div>
+
+    <main class="fade-in">
+        <div class="header-container">
+            <img src="/assets/images/logo_all-white.png" alt="TwinXCare Logo" class="logo"
+                onerror="this.src='https://via.placeholder.com/140x120?text=TwinXCare'">
+            <h1>Home</h1>
+            <p id="welcome-text">Loading...</p>
+        </div>
+
+        <div class="row">
+            <a href="/app/explore.html?mode=equipment" class="card" style="text-decoration: none;">
+                <div class="icon-container">
+                    <i class="mdi mdi-hospital-box" style="font-size: 32px;"></i>
+                </div>
+                <div style="color: var(--text); font-weight: 600; margin-top: 8px;">Equipment</div>
+            </a>
+            <a href="/app/explore.html?mode=services" class="card" style="text-decoration: none;">
+                <div class="icon-container">
+                    <i class="mdi mdi-car-side" style="font-size: 32px;"></i>
+                </div>
+                <div style="color: var(--text); font-weight: 600; margin-top: 8px;">Services</div>
+            </a>
+        </div>
+
+        <div class="row">
+            <a href="/app/assistance.html" class="card card-full" style="text-decoration: none;">
+                <div class="icon-container icon-container-row">
+                    <i class="mdi mdi-hand-heart" style="font-size: 32px;"></i>
+                </div>
+                <div style="flex: 1; color: var(--text); font-weight: 600; font-size: 1.1rem;">Assistance</div>
+                <i class="mdi mdi-chevron-right" style="color: var(--text-dim); font-size: 24px;"></i>
+            </a>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <a href="/app/delivery.html" class="btn">My Rentals</a>
+        </div>
+
+        <div id="feedback-section" style="display: none; margin-bottom: 20px;">
+            <a href="/app/feedback.html" class="btn btn-outline"
+                style="border: 2px solid var(--primary); background: transparent; color: var(--primary);">Submit
+                Feedback</a>
+        </div>
+
+        <!-- Auth Section -->
+        <div class="auth-section" id="auth-section" style="display: none;">
+            <h2 style="font-weight: 700; margin-bottom: 15px;">Welcome</h2>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <a href="/app/register.html" class="btn" style="flex: 1;">Create Account</a>
+                <a href="/app/login.html" class="btn btn-solid" style="flex: 1;">Login</a>
+            </div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <div class="nav-container">
+            <a href="/app/index.html" class="nav-item active">
+                <i class="mdi mdi-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="/app/explore.html" class="nav-item">
+                <i class="mdi mdi-compass-outline"></i>
+                <span>Equipment</span>
+            </a>
+            <a href="/app/escorts.html" class="nav-item">
+                <i class="mdi mdi-shield-account-outline"></i>
+                <span>Escorts</span>
+            </a>
+            <a href="/app/delivery.html" class="nav-item">
+                <i class="mdi mdi-truck-delivery-outline"></i>
+                <span>History</span>
+            </a>
+            <a href="/app/settings.html" class="nav-item">
+                <i class="mdi mdi-cog-outline"></i>
+                <span>Settings</span>
+            </a>
+        </div>
+    </nav>
+
+    <script type="module">
+        import { auth, onAuthStateChanged, db, doc, getDoc } from '/app/firebase.js';
+
+        onAuthStateChanged(auth, async (user) => {
+            const welcomeText = document.getElementById('welcome-text');
+            const authSection = document.getElementById('auth-section');
+            const feedbackSection = document.getElementById('feedback-section');
+
+            if (user) {
+                welcomeText.innerText = "Welcome back!";
+                authSection.style.display = 'none';
+                feedbackSection.style.display = 'block';
+
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists() && userDoc.data().username) {
+                        welcomeText.innerText = `Welcome, ${userDoc.data().username}`;
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            } else {
+                welcomeText.innerText = "Welcome";
+                authSection.style.display = 'block';
+                feedbackSection.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+
+</html>

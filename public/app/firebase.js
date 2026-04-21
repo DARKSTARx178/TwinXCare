@@ -22,34 +22,28 @@ export {
 // Utility for formatting google drive links precisely like the native app
 export function convertGoogleDriveLink(link) {
     if (!link || typeof link !== 'string') {
-        console.warn('convertGoogleDriveLink: empty or non-string input', link);
-        return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
+        return '';
     }
 
-    console.log('convertGoogleDriveLink input:', link);
+    const trimmedLink = link.trim();
+    const driveIdPattern = /^[a-zA-Z0-9_-]{20,}$/;
 
-    // Try to extract Google Drive file id and optional resourcekey from common link formats
-    // Examples handled:
-    // - https://drive.google.com/file/d/FILE_ID/view?usp=sharing
-    // - https://drive.google.com/open?id=FILE_ID
-    // - https://drive.google.com/uc?id=FILE_ID&export=view&resourcekey=RESOURCEKEY
-    const idMatch = link.match(/(?:\/d\/|open\?id=|id=)([a-zA-Z0-9_-]+)/);
-    const resourceKeyMatch = link.match(/[&?]resourcekey=([a-zA-Z0-9_-]+)/);
+    if (driveIdPattern.test(trimmedLink) && !trimmedLink.startsWith('http')) {
+        return `https://drive.google.com/thumbnail?id=${trimmedLink}&sz=w1200`;
+    }
+
+    const idMatch = trimmedLink.match(/(?:\/d\/|open\?id=|id=|\/uc\?export=(?:download|view)&id=)([a-zA-Z0-9_-]+)/);
+    const resourceKeyMatch = trimmedLink.match(/[&?]resourcekey=([a-zA-Z0-9_-]+)/);
 
     if (idMatch && idMatch[1]) {
         const id = idMatch[1];
         const resourceKey = resourceKeyMatch && resourceKeyMatch[1] ? `&resourcekey=${resourceKeyMatch[1]}` : '';
-        const result = `https://drive.google.com/uc?export=view&id=${id}${resourceKey}`;
-        console.log('convertGoogleDriveLink output:', result);
-        return result;
+        return `https://drive.google.com/thumbnail?id=${id}&sz=w1200${resourceKey}`;
     }
 
-    // If a normal URL, return as-is
-    if (link.startsWith('http://') || link.startsWith('https://')) {
-        console.log('convertGoogleDriveLink: returning URL as-is', link);
-        return link;
+    if (trimmedLink.startsWith('http://') || trimmedLink.startsWith('https://')) {
+        return trimmedLink;
     }
 
-    console.warn('convertGoogleDriveLink: fallback to placeholder for', link);
-    return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=400';
+    return '';
 }

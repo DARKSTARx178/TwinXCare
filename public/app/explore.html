@@ -232,10 +232,20 @@
         let equipmentData = [];
         let servicesData = [];
         let currentMode = 'equipment';
+        const FALLBACKS = {
+            equipment: '/assets/images/equipment_app_prev.jpeg',
+            services: '/assets/images/home_app_prev.jpeg'
+        };
 
         const grid = document.getElementById('items-grid');
         const searchInput = document.getElementById('search-input');
         const countEl = document.getElementById('result-count');
+
+        function resolveImage(item, mode) {
+            const rawImage = item.image || item.imageUrl || item.photo || item.photoURL || item.thumbnail || '';
+            const resolvedImage = convertGoogleDriveLink(rawImage);
+            return resolvedImage || FALLBACKS[mode];
+        }
 
         window.setMode = (mode) => {
             currentMode = mode;
@@ -270,11 +280,9 @@
                         brand: d.brand || 'Premium',
                         price: Number(d.price) || 0,
                         stock: Number(d.stock) || 0,
-                        image: convertGoogleDriveLink(d.image || '')
+                        image: resolveImage(d, 'equipment')
                     };
                 });
-
-                console.log('Loaded equipment:', equipmentData);
 
                 servicesData = srvSnap.docs.map(doc => {
                     const d = doc.data();
@@ -284,11 +292,9 @@
                         company: d.company || 'Provider',
                         price: Number(d.price) || 0,
                         duration: d.duration || 'Session',
-                        image: convertGoogleDriveLink(d.image || '')
+                        image: resolveImage(d, 'services')
                     };
                 });
-
-                console.log('Loaded services:', servicesData);
 
                 renderItems();
             } catch (e) {
@@ -331,7 +337,7 @@
                     return `
             <a href="/app/rental/order.html?docId=${item.id}&name=${encodeURIComponent(item.name)}&brand=${encodeURIComponent(item.brand)}&price=${item.price}&stock=${item.stock}&image=${encodeURIComponent(item.image)}" class="grid-card">
               <div class="image-wrap">
-                <img src="${item.image}" alt="${item.name}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200'">
+                <img src="${item.image}" alt="${item.name}" class="card-img" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACKS.equipment}'">
                 <div class="price-tag">$${item.price}</div>
               </div>
               <div class="card-content">
@@ -348,7 +354,7 @@
                     return `
             <a href="/app/rental/booking.html?docId=${item.id}&name=${encodeURIComponent(item.name)}&brand=${encodeURIComponent(item.company)}&price=${item.price}&image=${encodeURIComponent(item.image)}" class="grid-card">
               <div class="image-wrap">
-                <img src="${item.image}" alt="${item.name}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200'">
+                <img src="${item.image}" alt="${item.name}" class="card-img" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACKS.services}'">
                 <div class="price-tag">$${item.price}</div>
               </div>
               <div class="card-content">

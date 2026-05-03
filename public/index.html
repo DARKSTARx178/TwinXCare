@@ -198,6 +198,18 @@
             border: none;
             color: var(--text-main);
             cursor: pointer;
+            font-size: 1.25rem;
+            width: 44px;
+            height: 44px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            transition: background 0.2s;
+        }
+
+        .mobile-nav-toggle:hover,
+        .mobile-nav-toggle:focus-visible {
+            background: rgba(59, 130, 246, 0.08);
         }
 
         /* Hero Section */
@@ -494,12 +506,52 @@
         }
 
         @media (max-width: 768px) {
+            nav {
+                padding: 0.85rem 1rem;
+            }
+
             .nav-links {
-                display: none;
+                position: absolute;
+                top: calc(100% + 0.75rem);
+                left: 1rem;
+                right: 1rem;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.25rem;
+                background: rgba(255, 255, 255, 0.96);
+                border: 1px solid var(--border);
+                border-radius: 20px;
+                padding: 0.75rem;
+                box-shadow: var(--shadow-premium);
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(-8px);
+                pointer-events: none;
+                transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+            }
+
+            .nav-links.active {
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0);
+                pointer-events: auto;
+            }
+
+            .nav-link,
+            .btn-app {
+                width: 100%;
+                margin-left: 0;
+                padding: 0.85rem 1rem;
+                border-radius: 14px;
+            }
+
+            .nav-link:hover {
+                background: rgba(59, 130, 246, 0.08);
             }
 
             .mobile-nav-toggle {
-                display: block;
+                display: inline-flex;
             }
 
             .hero-content {
@@ -732,6 +784,34 @@
 
             if (prevButton) prevButton.addEventListener('click', prevSlide);
             if (nextButton) nextButton.addEventListener('click', nextSlide);
+
+            // Mobile navigation
+            const mobileToggle = document.querySelector('.mobile-nav-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            const toggleIcon = mobileToggle?.querySelector('i');
+
+            function closeMobileMenu() {
+                navLinks?.classList.remove('active');
+                mobileToggle?.setAttribute('aria-expanded', 'false');
+                toggleIcon?.classList.remove('fa-xmark');
+                toggleIcon?.classList.add('fa-bars');
+            }
+
+            mobileToggle?.setAttribute('aria-expanded', 'false');
+            mobileToggle?.addEventListener('click', () => {
+                const isOpen = navLinks.classList.toggle('active');
+                mobileToggle.setAttribute('aria-expanded', String(isOpen));
+                toggleIcon?.classList.toggle('fa-bars', !isOpen);
+                toggleIcon?.classList.toggle('fa-xmark', isOpen);
+            });
+
+            navLinks?.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', closeMobileMenu);
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) closeMobileMenu();
+            });
 
             // Touch events
             let touchStartX = 0;

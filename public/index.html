@@ -269,6 +269,14 @@
             box-shadow: var(--shadow-md);
         }
 
+        .hero-app-button {
+            width: fit-content;
+            height: 48px;
+            padding: 0 1.4rem;
+            justify-content: center;
+            margin-left: 0;
+        }
+
         .hero-image {
             position: relative;
         }
@@ -539,7 +547,7 @@
             }
 
             .nav-link,
-            .btn-app {
+            .nav-links .btn-app {
                 width: 100%;
                 margin-left: 0;
                 padding: 0.85rem 1rem;
@@ -619,14 +627,14 @@
                     <h1>Healthcare <br>Made Simple</h1>
                     <p>Experience ease of access to healthcare equipment and get escorts that provide seamless care to
                         and from hospitals.</p>
+                    <a href="app/index.html" class="btn-app hero-app-button">
+                        <i class="fas fa-rocket"></i>
+                        Launch Web App
+                    </a>
                 </div>
                 <div class="hero-image">
                     <img src="assets/images/hero-app.png" alt="TwinXCare App Interface"
                         onerror="this.src='https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800'">
-                </div>
-                <div href="app/index.html" class="btn-app">
-                    <i class="fas fa-rocket"></i>
-                    Launch Web App
                 </div>
             </div>
         </div>

@@ -1,11 +1,10 @@
 import { ThemeContext } from '@/contexts/ThemeContext';
-import { db } from '@/firebase/firebase';
+import { auth, db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
     collection,
-    deleteDoc,
     doc,
     getDocs,
     updateDoc,
@@ -30,6 +29,7 @@ export default function AdminUserMgt() {
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.replace(/\/$/, '') || '';
 
     const fetchUsers = async () => {
         try {
@@ -86,12 +86,36 @@ export default function AdminUserMgt() {
                 style: 'destructive',
                 onPress: async () => {
                     try {
-                        await deleteDoc(doc(db, 'users', userId));
-                        Alert.alert('Deleted', 'User has been removed');
+                        if (!apiBaseUrl) {
+                            Alert.alert('Server Not Configured', 'Set EXPO_PUBLIC_API_BASE_URL so admin deletion can call the backend.');
+                            return;
+                        }
+
+                        const token = await auth.currentUser?.getIdToken();
+                        if (!token) {
+                            Alert.alert('Error', 'Missing admin session');
+                            return;
+                        }
+
+                        const res = await fetch(`${apiBaseUrl}/api/admin-delete-user`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({ targetUserId: userId }),
+                        });
+
+                        const data = await res.json();
+                        if (!res.ok) {
+                            throw new Error(data.error || 'Could not delete user');
+                        }
+
+                        Alert.alert('Deleted', 'User has been removed from Firebase Auth and Firestore');
                         fetchUsers();
-                    } catch (err) {
+                    } catch (err: any) {
                         console.error('Error deleting user:', err);
-                        Alert.alert('Error', 'Could not delete user');
+                        Alert.alert('Error', err?.message || 'Could not delete user');
                     }
                 },
             },

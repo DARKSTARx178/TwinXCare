@@ -84,7 +84,11 @@ export default function Feedback() {
       if (!response.ok && response.status >= 400) {
         const text = await response.text();
         console.error(`API error ${response.status}:`, text.substring(0, 200));
-        data = { success: false, error: `Server error (${response.status})` };
+        try {
+          data = text ? JSON.parse(text) : { success: false, error: `Server error (${response.status})` };
+        } catch {
+          data = { success: false, error: `Server error (${response.status})` };
+        }
       } else {
         const text = await response.text();
         try {

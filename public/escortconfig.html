@@ -595,7 +595,7 @@
 <body>
     <div id="loader">
         <div class="spinner"></div>
-        <p style="margin-top: 1.5rem; color: var(--text-dim); font-weight: 600;">Secure Handshake...</p>
+        <p style="margin-top: 1.5rem; color: var(--text-dim); font-weight: 600;">Loading...</p>
     </div>
 
     <nav>
@@ -623,20 +623,20 @@
         <section id="auth-view">
             <div class="login-card">
                 <i class="fas fa-fingerprint" style="font-size: 3rem; color: var(--primary); margin-bottom: 2rem;"></i>
-                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 1rem;">Admin Gate</h2>
-                <p style="color: var(--text-dim); margin-bottom: 3rem;">Authorized coordination access only.</p>
+                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 1rem;">Admin page</h2>
+                <p style="color: var(--text-dim); margin-bottom: 3rem;">Authorized access only.</p>
                 <form id="login-form">
                     <div class="form-group" style="text-align: left;">
-                        <label>Identity</label>
-                        <input type="email" id="login-email" class="input-dark" placeholder="admin@care.com" required>
+                        <label>Email</label>
+                        <input type="email" id="login-email" class="input-dark" placeholder="hi@gmail.com" required>
                     </div>
                     <div class="form-group" style="text-align: left;">
-                        <label>Access Key</label>
-                        <input type="password" id="login-pass" class="input-dark" placeholder="••••••••" required>
+                        <label>Password</label>
+                        <input type="password" id="login-pass" class="input-dark" placeholder="12345" required>
                     </div>
                     <button type="submit" class="btn-premium"
                         style="background: var(--primary); color: #000; margin-top: 1.5rem;">
-                        <i class="fas fa-unlock"></i> Open Dashboard
+                        <i class="fas fa-unlock"></i> Login
                     </button>
                 </form>
             </div>

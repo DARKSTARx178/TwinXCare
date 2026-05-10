@@ -14,6 +14,7 @@ export default function Feedback() {
   const [username, setUsername] = useState('Anonymous');
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
+  const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.replace(/\/$/, '') || '';
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -54,7 +55,12 @@ export default function Feedback() {
       });
 
       // 2️⃣ Send email via Vercel function
-      const response = await fetch('https://twin-x-care.vercel.app/api/send-email', {
+      if (!apiBaseUrl) {
+        Alert.alert('Server Not Configured', 'Set EXPO_PUBLIC_API_BASE_URL so feedback can call the backend.');
+        return;
+      }
+
+      const response = await fetch(`${apiBaseUrl}/api/send-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

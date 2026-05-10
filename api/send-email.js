@@ -1,8 +1,15 @@
 import sgMail from "@sendgrid/mail";
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
 let logs = [];
+
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
 export default async function handler(req, res) {
     // Add CORS headers
@@ -25,12 +32,15 @@ export default async function handler(req, res) {
                 return res.status(400).json({ success: false, error: "Missing message or username" });
             }
 
+            const sendGridApiKey = process.env.SENDGRID_API_KEY;
             const toEmail = process.env.TO_EMAIL;
             const fromEmail = process.env.FROM_EMAIL;
 
-            if (!toEmail || !fromEmail) {
-                return res.status(500).json({ success: false, error: "Server misconfigured: missing TO_EMAIL or FROM_EMAIL" });
+            if (!sendGridApiKey || !toEmail || !fromEmail) {
+                return res.status(500).json({ success: false, error: "Server misconfigured: missing email environment variables" });
             }
+
+            sgMail.setApiKey(sendGridApiKey);
 
             // Add to in-memory logs
             const logEntry = `${new Date().toLocaleTimeString()} - ${type || "assistance"} - ${username}: ${message}`;
@@ -43,11 +53,26 @@ export default async function handler(req, res) {
                     from: fromEmail,
                     subject: type === "feedback" ? `New Feedback from ${username}` : `Assistance Request from ${username}`,
                     text: message,
-                    html: `<p>${message}</p>`,
+                    html: `<p>${escapeHtml(message)}</p>`,
                 });
             } catch (err) {
-                console.error("SendGrid error:", err);
-                return res.status(500).json({ success: false, error: "SendGrid failed" });
+                const sendGridErrors = err?.response?.body?.errors || [];
+                const sendGridMessage = sendGridErrors[0]?.message || err?.message || "SendGrid failed";
+
+                console.error("SendGrid error:", {
+                    code: err?.code,
+                    message: sendGridMessage,
+                    errors: sendGridErrors,
+                });
+
+                return res.status(502).json({
+                    success: false,
+                    error: sendGridMessage,
+                    details: sendGridErrors.map((error) => ({
+                        field: error.field,
+                        help: error.help,
+                    })),
+                });
             }
 
             return res.status(200).json({ success: true, message: "Email sent", logs });

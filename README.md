@@ -28,7 +28,6 @@ TwinXCare is a cross-platform (React Native + Expo + web) application originally
 - `services/` — matching and rating services
 - `utils/` — app helpers (version, notifications, translations)
 - `api/` — cloud functions and support APIs (send-email, delete-account)
-- `server-dep/` — Node side server helpers (includes `serviceAccountKey.json`)
 
 ## 🛠️ Tech Stack
 
@@ -123,4 +122,3 @@ Requests and availabilities are created under Firestore entries and matched by `
 ---
 
 > This README is now updated to match the project code, routing, and services as of March 2026.
-

@@ -13,6 +13,7 @@ export default function Assistance() {
   const [username, setUsername] = useState('Anonymous');
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
+  const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.replace(/\/$/, '') || '';
 
   type ResponseData = {
     success: boolean;
@@ -46,8 +47,13 @@ export default function Assistance() {
     try {
       setSubmitting(true);
 
+      if (!apiBaseUrl) {
+        Alert.alert('Server Not Configured', 'Set EXPO_PUBLIC_API_BASE_URL so assistance can call the backend.');
+        return;
+      }
+
       // 1️⃣ Send request to Vercel API (email + logs)
-      const response = await fetch('https://twin-x-care.vercel.app/api/send-email', {
+      const response = await fetch(`${apiBaseUrl}/api/send-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

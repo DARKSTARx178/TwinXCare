@@ -28,14 +28,12 @@ export default function handler(req, res) {
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, collection, query, orderBy, limit, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBLq5KEYwGoODg-IhX-KD_wq7glWW719d0",
-      authDomain: "twinxcarebackend.firebaseapp.com",
-      projectId: "twinxcarebackend",
-      storageBucket: "twinxcarebackend.firebasestorage.app",
-      messagingSenderId: "791637368111",
-      appId: "1:791637368111:web:2110bb059b6427ca3295da"
-    };
+    const firebaseConfigResponse = await fetch('/api/firebase-config');
+    if (!firebaseConfigResponse.ok) {
+      throw new Error('Firebase client config is missing.');
+    }
+
+    const firebaseConfig = await firebaseConfigResponse.json();
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);

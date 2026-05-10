@@ -20,6 +20,6 @@
     "dist/**",
     "certs/**",
     "public/**",
-    "server-dep/**"
+    "services/server-dep/**"
   ]
 }

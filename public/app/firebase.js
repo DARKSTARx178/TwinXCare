@@ -3,14 +3,12 @@ import { createUserWithEmailAndPassword, EmailAuthProvider, getAuth, onAuthState
 import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, getFirestore, orderBy, query, serverTimestamp, setDoc, updateDoc, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyBLq5KEYwGoODg-IhX-KD_wq7glWW719d0",
-    authDomain: "twinxcarebackend.firebaseapp.com",
-    projectId: "twinxcarebackend",
-    storageBucket: "twinxcarebackend.firebasestorage.app",
-    messagingSenderId: "791637368111",
-    appId: "1:791637368111:web:2110bb059b6427ca3295da"
-};
+const firebaseConfigResponse = await fetch('/api/firebase-config');
+if (!firebaseConfigResponse.ok) {
+    throw new Error('Firebase client config is missing.');
+}
+
+const firebaseConfig = await firebaseConfigResponse.json();
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);

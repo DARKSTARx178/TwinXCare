@@ -29,7 +29,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { aiExploreFilterControl } from './explore';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const ai = new GoogleGenAI({ apiKey: 'AIzaSyAIjiRYwpgibikuLrEsqhlpHD97NA6aR5U' });
+const ai = new GoogleGenAI({ apiKey: process.env.GENAI_API_KEY || 'REPLACE_WITH_KEY' });
 
 const AIModeContext = createContext({ enabled: false, toggle: () => { } });
 export const useAIMode = () => useContext(AIModeContext);

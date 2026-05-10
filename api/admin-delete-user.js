@@ -1,5 +1,3 @@
-import { existsSync, readFileSync } from 'fs';
-import path from 'path';
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -7,20 +5,15 @@ import { getFirestore } from 'firebase-admin/firestore';
 function getServiceAccount() {
     const { FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY } = process.env;
 
-    if (FIREBASE_PROJECT_ID && FIREBASE_CLIENT_EMAIL && FIREBASE_PRIVATE_KEY) {
-        return {
-            projectId: FIREBASE_PROJECT_ID,
-            clientEmail: FIREBASE_CLIENT_EMAIL,
-            privateKey: FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-        };
+    if (!FIREBASE_PROJECT_ID || !FIREBASE_CLIENT_EMAIL || !FIREBASE_PRIVATE_KEY) {
+        throw new Error('Firebase Admin credentials are not configured.');
     }
 
-    const serviceAccountPath = path.join(process.cwd(), 'server-dep', 'serviceAccountKey.json');
-    if (existsSync(serviceAccountPath)) {
-        return JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
-    }
-
-    throw new Error('Firebase Admin credentials are not configured.');
+    return {
+        projectId: FIREBASE_PROJECT_ID,
+        clientEmail: FIREBASE_CLIENT_EMAIL,
+        privateKey: FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    };
 }
 
 function getAdminApp() {

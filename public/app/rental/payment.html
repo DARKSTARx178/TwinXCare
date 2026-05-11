@@ -82,6 +82,67 @@
             font-family: inherit;
         }
 
+        .suggestions {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            margin-top: 8px;
+            overflow: hidden;
+            background: var(--surface);
+        }
+
+        .suggestion-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .suggestion-item+.suggestion-item {
+            border-top: 1px solid var(--border);
+        }
+
+        .hint-text {
+            margin-top: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-dim);
+        }
+
+        .map-preview {
+            margin-top: 12px;
+            height: 132px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            background: #e2e8f0;
+            position: relative;
+        }
+
+        .map-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .map-badge {
+            position: absolute;
+            left: 10px;
+            bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(15, 23, 42, 0.78);
+            color: #fff;
+            border-radius: 999px;
+            padding: 6px 9px;
+            font-size: 0.7rem;
+            font-weight: 800;
+        }
+
         .confirm-btn {
             width: 100%;
             padding: 18px;
@@ -168,7 +229,13 @@
             <div class="input-container">
                 <i class="mdi mdi-map-marker-outline"
                     style="color: var(--text-dim); margin-right: 10px; margin-top: 2px;"></i>
-                <textarea class="input" id="address-input" placeholder="1234 Main St, City, Country"></textarea>
+                <textarea class="input" id="address-input" placeholder="Search your delivery address"></textarea>
+            </div>
+            <div id="geo-hint" class="hint-text" style="display:none;">Geoapify location suggestions are unavailable.</div>
+            <div id="address-suggestions" class="suggestions" style="display:none;"></div>
+            <div id="address-map" class="map-preview" style="display:none;">
+                <img id="address-map-image" alt="Selected location map preview" />
+                <div class="map-badge"><i class="mdi mdi-map-marker"></i> Selected location</div>
             </div>
         </div>
 
@@ -187,6 +254,8 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const type = urlParams.get('type') || 'equipment'; // equipment or service
+        const GEOAPIFY_API_KEY = (window.TWINXCARE_GEOAPIFY_API_KEY || '333dd9a8121f4bfe8173cae287ecf657').trim();
+        const GEOAPIFY_AUTOCOMPLETE_URL = (window.TWINXCARE_GEOAPIFY_AUTOCOMPLETE_URL || '').trim();
 
         // Extracted params
         const docId = urlParams.get('docId');
@@ -196,6 +265,133 @@
         let qty = 1;
         let days = 1;
         let totalPrice = price;
+        let deliveryLocation = null;
+
+        const addressInput = document.getElementById('address-input');
+        const suggestionsBox = document.getElementById('address-suggestions');
+        const mapPreview = document.getElementById('address-map');
+        const mapImage = document.getElementById('address-map-image');
+        const geoHint = document.getElementById('geo-hint');
+
+        function getApiKeyFromUrl() {
+            const match = GEOAPIFY_AUTOCOMPLETE_URL.match(/[?&]apiKey=([^&]+)/);
+            return match ? decodeURIComponent(match[1]) : '';
+        }
+
+        const effectiveGeoApiKey = GEOAPIFY_API_KEY || getApiKeyFromUrl();
+        const hasGeoConfig = Boolean(GEOAPIFY_AUTOCOMPLETE_URL || GEOAPIFY_API_KEY);
+        if (!hasGeoConfig) {
+            geoHint.style.display = 'block';
+        }
+
+        function appendParam(url, key, value) {
+            if (new RegExp(`[?&]${key}=`).test(url)) return url;
+            return `${url}${url.includes('?') ? '&' : '?'}${key}=${encodeURIComponent(value)}`;
+        }
+
+        function buildAutocompleteUrl(text) {
+            const encodedText = encodeURIComponent(text);
+            if (GEOAPIFY_AUTOCOMPLETE_URL) {
+                let url = GEOAPIFY_AUTOCOMPLETE_URL
+                    .replace('{text}', encodedText)
+                    .replace('ADDRESS_TEXT', encodedText)
+                    .replace(/([?&]text=)[^&]*/, `$1${encodedText}`);
+                if (!/[?&]text=/.test(url)) {
+                    url = `${url}${url.includes('?') ? '&' : '?'}text=${encodedText}`;
+                }
+                url = appendParam(url, 'format', 'json');
+                url = appendParam(url, 'limit', '5');
+                return url;
+            }
+            if (!GEOAPIFY_API_KEY) return '';
+            return `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodedText}&filter=countrycode:sg&format=json&limit=5&apiKey=${encodeURIComponent(GEOAPIFY_API_KEY)}`;
+        }
+
+        function getAddress(result) {
+            const data = result.properties || result;
+            return data.formatted || [data.address_line1, data.address_line2].filter(Boolean).join(', ');
+        }
+
+        function getCoordinates(result) {
+            const data = result.properties || result;
+            const longitude = data.lon ?? result.geometry?.coordinates?.[0];
+            const latitude = data.lat ?? result.geometry?.coordinates?.[1];
+            if (typeof latitude !== 'number' || typeof longitude !== 'number') return null;
+            return { latitude, longitude };
+        }
+
+        function renderMap(selectedLocation) {
+            if (!effectiveGeoApiKey || !selectedLocation) {
+                mapPreview.style.display = 'none';
+                return;
+            }
+            const lon = selectedLocation.longitude;
+            const lat = selectedLocation.latitude;
+            const marker = encodeURIComponent(`lonlat:${lon},${lat};color:#2563eb;size:medium`);
+            mapImage.src = `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=640&height=260&center=lonlat:${lon},${lat}&zoom=15&marker=${marker}&apiKey=${encodeURIComponent(effectiveGeoApiKey)}`;
+            mapPreview.style.display = 'block';
+        }
+
+        function clearSuggestions() {
+            suggestionsBox.innerHTML = '';
+            suggestionsBox.style.display = 'none';
+        }
+
+        function selectSuggestion(result) {
+            const address = getAddress(result);
+            const coords = getCoordinates(result);
+            if (!address || !coords) return;
+            deliveryLocation = { address, ...coords };
+            addressInput.value = address;
+            clearSuggestions();
+            renderMap(deliveryLocation);
+        }
+
+        let autocompleteTimer;
+        let autocompleteController;
+        addressInput?.addEventListener('input', () => {
+            deliveryLocation = null;
+            mapPreview.style.display = 'none';
+            const text = addressInput.value.trim();
+            if (!hasGeoConfig || text.length < 3) {
+                clearSuggestions();
+                return;
+            }
+            clearTimeout(autocompleteTimer);
+            if (autocompleteController) autocompleteController.abort();
+            autocompleteTimer = setTimeout(async () => {
+                try {
+                    autocompleteController = new AbortController();
+                    const response = await fetch(buildAutocompleteUrl(text), { signal: autocompleteController.signal });
+                    const data = await response.json();
+                    const results = data.results || data.features || [];
+                    suggestionsBox.innerHTML = '';
+                    if (!results.length) {
+                        clearSuggestions();
+                        return;
+                    }
+                    results.forEach((item, index) => {
+                        const address = getAddress(item);
+                        if (!address) return;
+                        const row = document.createElement('button');
+                        row.type = 'button';
+                        row.className = 'suggestion-item';
+                        row.style.width = '100%';
+                        row.style.border = 'none';
+                        row.style.background = 'transparent';
+                        row.style.textAlign = 'left';
+                        row.innerHTML = `<i class="mdi mdi-navigation-variant-outline" style="color: var(--primary);"></i><span>${address}</span>`;
+                        row.addEventListener('click', () => selectSuggestion(item));
+                        suggestionsBox.appendChild(row);
+                    });
+                    suggestionsBox.style.display = suggestionsBox.children.length ? 'block' : 'none';
+                } catch (error) {
+                    if (error?.name !== 'AbortError') {
+                        clearSuggestions();
+                    }
+                }
+            }, 450);
+        });
 
         if (type === 'equipment') {
             qty = Number(urlParams.get('quantity')) || 1;
@@ -235,7 +431,7 @@
                     const userRef = doc(db, 'users', user.uid);
 
                     if (type === 'equipment') {
-                        const address = document.getElementById('address-input').value.trim();
+                        const address = addressInput.value.trim();
                         if (!address) {
                             throw new Error('Please enter a delivery address.');
                         }
@@ -261,6 +457,10 @@
                             rentalEnd: urlParams.get('rentalEnd'),
                             totalPrice: totalPrice.toFixed(2),
                             deliveryAddress: address,
+                            deliveryLocation: deliveryLocation ? {
+                                latitude: deliveryLocation.latitude,
+                                longitude: deliveryLocation.longitude,
+                            } : null,
                             orderTime: new Date().toISOString(),
                             transactionId: transactionId,
                             status: 'Processing',

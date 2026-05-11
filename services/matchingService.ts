@@ -20,12 +20,90 @@ const getUserPushToken = async (userId: string) => {
     return null;
 };
 
+const normalizeLocation = (value?: string) =>
+    (value || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter(Boolean);
+
+const locationsMatch = (first?: string, second?: string) => {
+    const firstTokens = normalizeLocation(first);
+    const secondTokens = normalizeLocation(second);
+
+    if (firstTokens.length === 0 || secondTokens.length === 0) {
+        return false;
+    }
+
+    const firstText = firstTokens.join(' ');
+    const secondText = secondTokens.join(' ');
+
+    if (firstText.includes(secondText) || secondText.includes(firstText)) {
+        return true;
+    }
+
+    const secondSet = new Set(secondTokens);
+    const sharedTokens = firstTokens.filter((token) => token.length > 2 && secondSet.has(token));
+    return sharedTokens.length > 0;
+};
+
+const getRequestMatchLocation = (requestData: any) =>
+    requestData.location || requestData.pickupLocation || requestData.hospital || '';
+
+const getCoordinates = (data: any) => {
+    const coords = data?.locationCoordinates || data?.deliveryLocation;
+    const latitude = coords?.latitude ?? coords?.lat;
+    const longitude = coords?.longitude ?? coords?.lon;
+
+    if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+        return null;
+    }
+
+    return { latitude, longitude };
+};
+
+const getDistanceKm = (
+    first: { latitude: number; longitude: number },
+    second: { latitude: number; longitude: number }
+) => {
+    const toRad = (value: number) => (value * Math.PI) / 180;
+    const earthRadiusKm = 6371;
+    const latDistance = toRad(second.latitude - first.latitude);
+    const lonDistance = toRad(second.longitude - first.longitude);
+    const a =
+        Math.sin(latDistance / 2) * Math.sin(latDistance / 2) +
+        Math.cos(toRad(first.latitude)) *
+        Math.cos(toRad(second.latitude)) *
+        Math.sin(lonDistance / 2) *
+        Math.sin(lonDistance / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadiusKm * c;
+};
+
+const getRangeMatch = (requestData: any, availData: any) => {
+    const requestCoords = getCoordinates(requestData);
+    const availabilityCoords = getCoordinates(availData);
+    const radiusKm = Number(availData.serviceRadiusKm || availData.radiusKm || 0);
+
+    if (!requestCoords || !availabilityCoords || radiusKm <= 0) {
+        return null;
+    }
+
+    const distanceKm = getDistanceKm(requestCoords, availabilityCoords);
+    return {
+        distanceKm,
+        radiusKm,
+        inRange: distanceKm <= radiusKm,
+    };
+};
+
 // Called when a Patient submits a Request
 export const checkMatchForRequest = async (requestId: string, requestData: any) => {
     console.log('🔍 Checking match for Request:', requestId);
     console.log('📄 Request Data:', JSON.stringify(requestData, null, 2));
 
-    const { date, time, endTime, hospital, userId } = requestData;
+    const { date, time, endTime } = requestData;
+    const requestLocation = getRequestMatchLocation(requestData);
     const reqStart = parseTime(time);
     const reqEnd = endTime ? parseTime(endTime) : reqStart + 60; // Default to 1 hour if missing
 
@@ -44,6 +122,8 @@ export const checkMatchForRequest = async (requestId: string, requestData: any) 
 
         const snapshot = await getDocs(q);
         console.log(`Found ${snapshot.size} potential availabilities for date ${date}`);
+        let fallbackMatch: { availId: string; avail: any } | null = null;
+        let textLocationFallback: { availId: string; avail: any } | null = null;
 
         for (const docSnap of snapshot.docs) {
             const avail = docSnap.data();
@@ -66,25 +146,56 @@ export const checkMatchForRequest = async (requestId: string, requestData: any) 
             if (reqStart >= availStart && reqEnd <= availEnd) {
                 console.log(`   ✅ Time match found!`);
 
-                // 3. (Optional) Check Location - simple inclusion check
-                const loc1 = hospital.toLowerCase().trim();
-                const loc2 = avail.location.toLowerCase().trim();
+                const rangeMatch = getRangeMatch(requestData, avail);
+                if (rangeMatch) {
+                    console.log(`   📍 Distance check: ${rangeMatch.distanceKm.toFixed(2)}km within ${rangeMatch.radiusKm}km`);
 
-                console.log(`   🏥 Location check: "${loc1}" vs "${loc2}"`);
+                    if (rangeMatch.inRange) {
+                        console.log(`   ✅ Radius match found!`);
+                        await executeMatch(requestId, requestData, availId, avail, {
+                            matchedByLocation: true,
+                            matchDistanceKm: rangeMatch.distanceKm,
+                            matchRadiusKm: rangeMatch.radiusKm,
+                        });
+                        return;
+                    }
 
-                if (loc1.includes(loc2) || loc2.includes(loc1)) {
-                    console.log(`   ✅ Location match found!`);
-                    await executeMatch(requestId, requestData, availId, avail);
-                    return; // Stop after first match
-                } else {
-                    console.log(`   ⚠️ Location mismatch. Proceeding anyway for demo.`);
-                    await executeMatch(requestId, requestData, availId, avail);
-                    return;
+                    console.log(`   ❌ Outside volunteer radius.`);
+                    fallbackMatch ??= { availId, avail };
+                    continue;
                 }
+
+                console.log(`   🏥 Location check: "${requestLocation}" vs "${avail.location || ''}"`);
+
+                if (locationsMatch(requestLocation, avail.location)) {
+                    console.log(`   ✅ Location match found!`);
+                    textLocationFallback ??= { availId, avail };
+                    continue;
+                }
+
+                console.log(`   ⚠️ Time match found, but location/radius did not match.`);
+                fallbackMatch ??= { availId, avail };
             } else {
                 console.log(`   ❌ Time mismatch.`);
             }
         }
+
+        if (textLocationFallback) {
+            console.log('⚠️ No coordinate radius match found. Using text location fallback.');
+            await executeMatch(requestId, requestData, textLocationFallback.availId, textLocationFallback.avail, {
+                matchedByLocation: true,
+            });
+            return;
+        }
+
+        if (fallbackMatch) {
+            console.log('⚠️ No radius/location match found. Using best time-only fallback.');
+            await executeMatch(requestId, requestData, fallbackMatch.availId, fallbackMatch.avail, {
+                matchedByLocation: false,
+            });
+            return;
+        }
+
         console.log('❌ No suitable match found at this time.');
 
     } catch (error) {
@@ -97,7 +208,7 @@ export const checkMatchForAvailability = async (availId: string, availData: any)
     console.log('🔍 Checking match for Availability:', availId);
     console.log('📄 Availability Data:', JSON.stringify(availData, null, 2));
 
-    const { date, fromTime, toTime, location, providerId } = availData;
+    const { date, fromTime, toTime, location } = availData;
     const availStart = parseTime(fromTime);
     const availEnd = parseTime(toTime);
 
@@ -116,6 +227,8 @@ export const checkMatchForAvailability = async (availId: string, availData: any)
 
         const snapshot = await getDocs(q);
         console.log(`Found ${snapshot.size} pending requests for date ${date}`);
+        let fallbackMatch: { reqId: string; req: any } | null = null;
+        let textLocationFallback: { reqId: string; req: any } | null = null;
 
         for (const docSnap of snapshot.docs) {
             const req = docSnap.data();
@@ -137,25 +250,57 @@ export const checkMatchForAvailability = async (availId: string, availData: any)
             if (reqStart >= availStart && reqEnd <= availEnd) {
                 console.log(`   ✅ Time match found!`);
 
-                // 3. Location Check
-                const loc1 = req.hospital.toLowerCase().trim();
-                const loc2 = location.toLowerCase().trim();
+                const rangeMatch = getRangeMatch(req, availData);
+                if (rangeMatch) {
+                    console.log(`   📍 Distance check: ${rangeMatch.distanceKm.toFixed(2)}km within ${rangeMatch.radiusKm}km`);
 
-                console.log(`   🏥 Location check: "${loc1}" vs "${loc2}"`);
+                    if (rangeMatch.inRange) {
+                        console.log(`   ✅ Radius match found!`);
+                        await executeMatch(reqId, req, availId, availData, {
+                            matchedByLocation: true,
+                            matchDistanceKm: rangeMatch.distanceKm,
+                            matchRadiusKm: rangeMatch.radiusKm,
+                        });
+                        return;
+                    }
 
-                if (loc1.includes(loc2) || loc2.includes(loc1)) {
-                    console.log(`   ✅ Location match found!`);
-                    await executeMatch(reqId, req, availId, availData);
-                    return;
-                } else {
-                    console.log(`   ⚠️ Location mismatch. Proceeding anyway for demo.`);
-                    await executeMatch(reqId, req, availId, availData);
-                    return;
+                    console.log(`   ❌ Outside volunteer radius.`);
+                    fallbackMatch ??= { reqId, req };
+                    continue;
                 }
+
+                const requestLocation = getRequestMatchLocation(req);
+                console.log(`   🏥 Location check: "${requestLocation}" vs "${location}"`);
+
+                if (locationsMatch(requestLocation, location)) {
+                    console.log(`   ✅ Location match found!`);
+                    textLocationFallback ??= { reqId, req };
+                    continue;
+                }
+
+                console.log(`   ⚠️ Time match found, but location/radius did not match.`);
+                fallbackMatch ??= { reqId, req };
             } else {
                 console.log(`   ❌ Time mismatch.`);
             }
         }
+
+        if (textLocationFallback) {
+            console.log('⚠️ No coordinate radius match found. Using text location fallback.');
+            await executeMatch(textLocationFallback.reqId, textLocationFallback.req, availId, availData, {
+                matchedByLocation: true,
+            });
+            return;
+        }
+
+        if (fallbackMatch) {
+            console.log('⚠️ No radius/location match found. Using best time-only fallback.');
+            await executeMatch(fallbackMatch.reqId, fallbackMatch.req, availId, availData, {
+                matchedByLocation: false,
+            });
+            return;
+        }
+
         console.log('❌ No suitable match found at this time.');
 
     } catch (error) {
@@ -163,7 +308,13 @@ export const checkMatchForAvailability = async (availId: string, availData: any)
     }
 };
 
-const executeMatch = async (reqId: string, reqData: any, availId: string, availData: any) => {
+type MatchMeta = {
+    matchedByLocation?: boolean;
+    matchDistanceKm?: number;
+    matchRadiusKm?: number;
+};
+
+const executeMatch = async (reqId: string, reqData: any, availId: string, availData: any, matchMeta: MatchMeta = {}) => {
     console.log('🤝 EXECUTING MATCH!');
 
     try {
@@ -172,14 +323,20 @@ const executeMatch = async (reqId: string, reqData: any, availId: string, availD
             status: 'matched',
             matchedAvailabilityId: availId,
             matchedProviderId: availData.providerId,
-            matchedProviderName: availData.providerEmail // Using email as name for now
+            matchedProviderName: availData.providerEmail, // Using email as name for now
+            matchedByLocation: matchMeta.matchedByLocation ?? false,
+            matchDistanceKm: matchMeta.matchDistanceKm ?? null,
+            matchRadiusKm: matchMeta.matchRadiusKm ?? null,
         });
 
         // 2. Update Availability Doc
         await updateDoc(doc(db, 'escort', 'availability', 'entries', availId), {
             status: 'matched',
             matchedRequestId: reqId,
-            matchedUserId: reqData.userId
+            matchedUserId: reqData.userId,
+            matchedByLocation: matchMeta.matchedByLocation ?? false,
+            matchDistanceKm: matchMeta.matchDistanceKm ?? null,
+            matchRadiusKm: matchMeta.matchRadiusKm ?? null,
         });
 
         // 3. Notify Patient (Requestor)

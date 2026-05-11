@@ -1,13 +1,14 @@
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
+import LocationAutocomplete, { SelectedLocation } from '@/components/LocationAutocomplete';
 import { auth, db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { arrayUnion, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import React, { useContext, useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { arrayUnion, doc, getDoc, runTransaction, setDoc, updateDoc } from 'firebase/firestore';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -17,6 +18,9 @@ export default function PaymentPage() {
   const textSize = getFontSizeValue(fontSize);
 
   const [address, setAddress] = useState('');
+  const [deliveryLocation, setDeliveryLocation] = useState<SelectedLocation | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
   // 🔍 Debug params
   useEffect(() => {
@@ -65,48 +69,42 @@ export default function PaymentPage() {
   };
 
   const handleConfirm = async () => {
+    if (submittingRef.current) {
+      return;
+    }
+
+    if (type === 'equipment' && !address.trim()) {
+      Alert.alert('Error', 'Please enter your delivery address.');
+      console.log('❌ Missing address');
+      return;
+    }
+
+    if (type === 'service' && (!params.phone || !params.bookingDate || !params.timeSlot || !params.docId)) {
+      const missingFields: string[] = [];
+      if (!params.phone) missingFields.push('phone');
+      if (!params.bookingDate) missingFields.push('bookingDate');
+      if (!params.timeSlot) missingFields.push('timeSlot');
+      if (!params.docId) missingFields.push('docId');
+      Alert.alert('Error', `Missing service info: ${missingFields.join(', ')}`);
+      console.log('❌ Missing service info:', missingFields);
+      return;
+    }
+
+    submittingRef.current = true;
+    setIsSubmitting(true);
+
     try {
       console.log('🟢 Confirm button pressed. Type:', type);
 
       // ✅ EQUIPMENT BOOKING
       if (type === 'equipment') {
-        if (!address.trim()) {
-          Alert.alert('Error', 'Please enter your delivery address.');
-          console.log('❌ Missing address');
-          return;
-        }
-
         console.log('📦 Equipment booking started for:', params.docId);
 
         const productRef = doc(db, 'equipment', params.docId as string);
-        const productSnap = await getDoc(productRef);
-        if (!productSnap.exists()) {
-          Alert.alert('Error', 'Product not found.');
-          console.log('❌ Product not found:', params.docId);
-          return;
-        }
-
-        const currentStock = productSnap.data()?.stock || 0;
-        console.log('📊 Current stock:', currentStock);
-
-        if (currentStock < quantity) {
-          Alert.alert('Error', 'Not enough stock available.');
-          console.log('❌ Insufficient stock. Requested:', quantity);
-          return;
-        }
-
-        await updateDoc(productRef, { stock: currentStock - quantity });
-        console.log('✅ Stock updated:', currentStock - quantity);
-
         const user = auth.currentUser;
         if (user) {
           console.log('👤 User ID:', user.uid);
           const userRef = doc(db, 'users', user.uid);
-
-          // Fetch user doc to get push token
-          const userSnap = await getDoc(userRef);
-          const userData = userSnap.data();
-          const pushToken = userData?.pushToken;
 
           const orderTime = new Date().toISOString();
           const randomSuffix = Math.random().toString(36).substr(2, 3).toUpperCase();
@@ -121,15 +119,39 @@ export default function PaymentPage() {
             rentalEnd: params.rentalEnd,
             totalPrice: totalPrice.toFixed(2),
             deliveryAddress: address,
+            deliveryLocation: deliveryLocation ? {
+              latitude: deliveryLocation.latitude,
+              longitude: deliveryLocation.longitude,
+            } : null,
             orderTime,
             transactionId,
             status: 'Incomplete',
             createdAt: new Date().toISOString(),
           };
 
-          console.log('📝 Saving order data:', orderData);
-          await setDoc(userRef, { history: arrayUnion(orderData) }, { merge: true });
-          console.log('✅ Order saved');
+          const pushToken = await runTransaction(db, async (transaction) => {
+            const productSnap = await transaction.get(productRef);
+            if (!productSnap.exists()) {
+              throw new Error('Product not found.');
+            }
+
+            const currentStock = productSnap.data()?.stock || 0;
+            console.log('📊 Current stock:', currentStock);
+
+            if (currentStock < quantity) {
+              throw new Error('Not enough stock available.');
+            }
+
+            const userSnap = await transaction.get(userRef);
+            const userData = userSnap.data();
+
+            transaction.update(productRef, { stock: currentStock - quantity });
+            transaction.set(userRef, { history: arrayUnion(orderData) }, { merge: true });
+
+            return userData?.pushToken;
+          });
+
+          console.log('✅ Stock updated and order saved');
 
           const notifTitle = 'Order Confirmed! 🎉';
           const notifBody = `Your order for ${params.name} has been placed successfully.`;
@@ -180,17 +202,6 @@ export default function PaymentPage() {
       // ✅ SERVICE BOOKING
       else if (type === 'service') {
         console.log('📆 Service booking params check...');
-        if (!params.phone || !params.bookingDate || !params.timeSlot || !params.docId) {
-          const missingFields: string[] = [];
-          if (!params.phone) missingFields.push('phone');
-          if (!params.bookingDate) missingFields.push('bookingDate');
-          if (!params.timeSlot) missingFields.push('timeSlot');
-          if (!params.docId) missingFields.push('docId');
-          Alert.alert('Error', `Missing service info: ${missingFields.join(', ')}`);
-          console.log('❌ Missing service info:', missingFields);
-          return;
-        }
-
         console.log('📊 Deducting pax for:', { date: params.bookingDate, slot: params.timeSlot });
 
         const serviceRef = doc(db, 'services', params.docId as string);
@@ -280,90 +291,133 @@ export default function PaymentPage() {
       }
     } catch (err) {
       console.error('❌ Error confirming booking:', err);
-      Alert.alert('Error', 'Failed to confirm booking.');
+      const message = err instanceof Error ? err.message : 'Failed to confirm booking.';
+      Alert.alert('Error', message);
+    } finally {
+      submittingRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Ionicons name="arrow-back" size={28} color={theme.text} />
-      </TouchableOpacity>
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: theme.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 16 : 0}
+    >
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={28} color={theme.text} />
+        </TouchableOpacity>
 
-      <View style={styles.header}>
-        <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
-          <Ionicons name="cash-outline" size={32} color={theme.primary} />
-        </View>
-        <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>Payment Details</Text>
-        <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>
-          Finalize your {type} booking
-        </Text>
-      </View>
-
-      <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
-        <Text style={[styles.cardHeading, { color: theme.text }]}>Order Summary</Text>
-
-        <View style={styles.summaryRow}>
-          <Text style={[styles.summaryLabel, { color: theme.textDim }]}>Quantity</Text>
-          <Text style={[styles.summaryValue, { color: theme.text }]}>{quantity}</Text>
-        </View>
-
-        <View style={styles.summaryRow}>
-          <Text style={[styles.summaryLabel, { color: theme.textDim }]}>Duration</Text>
-          <Text style={[styles.summaryValue, { color: theme.text }]}>{rentalDays} Day{rentalDays > 1 ? 's' : ''}</Text>
+        <View style={styles.header}>
+          <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
+            <Ionicons name="cash-outline" size={32} color={theme.primary} />
+          </View>
+          <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>Payment Details</Text>
+          <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>
+            Finalize your {type} booking
+          </Text>
         </View>
 
-        <View style={styles.divider} />
+        <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
+          <Text style={[styles.cardHeading, { color: theme.text }]}>Order Summary</Text>
 
-        <View style={styles.totalRow}>
-          <Text style={[styles.totalLabel, { color: theme.text }]}>Total Amount</Text>
-          <Text style={[styles.totalValue, { color: theme.primary }]}>${totalPrice.toFixed(2)}</Text>
+          <View style={styles.summaryRow}>
+            <Text style={[styles.summaryLabel, { color: theme.textDim }]}>Quantity</Text>
+            <Text style={[styles.summaryValue, { color: theme.text }]}>{quantity}</Text>
+          </View>
+
+          <View style={styles.summaryRow}>
+            <Text style={[styles.summaryLabel, { color: theme.textDim }]}>Duration</Text>
+            <Text style={[styles.summaryValue, { color: theme.text }]}>{rentalDays} Day{rentalDays > 1 ? 's' : ''}</Text>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.totalRow}>
+            <Text style={[styles.totalLabel, { color: theme.text }]}>Total Amount</Text>
+            <Text style={[styles.totalValue, { color: theme.primary }]}>${totalPrice.toFixed(2)}</Text>
+          </View>
         </View>
-      </View>
 
-      {type === 'equipment' && (
-        <View style={[styles.card, { backgroundColor: theme.surface, marginTop: 20, borderWidth: 1, borderColor: theme.border }]}>
-          <Text style={[styles.cardHeading, { color: theme.text }]}>Delivery Information</Text>
-          <View style={styles.inputWrapper}>
-            <Text style={[styles.label, { color: theme.textDim }]}>Address</Text>
-            <View style={[styles.inputContainer, { borderColor: theme.border }]}>
-              <Ionicons name="location-outline" size={20} color={theme.textDim} style={styles.inputIcon} />
-              <TextInput
-                placeholder="1234 Main St, City, Country"
-                placeholderTextColor="#94a3b8"
+        {type === 'equipment' && (
+          <View style={[styles.card, { backgroundColor: theme.surface, marginTop: 20, borderWidth: 1, borderColor: theme.border }]}>
+            <Text style={[styles.cardHeading, { color: theme.text }]}>Delivery Information</Text>
+            <View style={styles.inputWrapper}>
+              <LocationAutocomplete
+                label="Address"
+                placeholder="Search your delivery address"
                 value={address}
                 onChangeText={setAddress}
-                style={[styles.input, { color: theme.text }]}
-                multiline
+                onLocationSelected={setDeliveryLocation}
+                disabled={isSubmitting}
+                theme={theme}
               />
             </View>
           </View>
+        )}
+
+        <TouchableOpacity
+          style={[
+            styles.confirmButton,
+            {
+              borderColor: isSubmitting ? theme.textDim : theme.primary,
+              borderWidth: 2,
+              backgroundColor: theme.surface,
+              opacity: isSubmitting ? 0.65 : 1,
+            },
+          ]}
+          onPress={handleConfirm}
+          disabled={isSubmitting}
+          activeOpacity={0.8}
+        >
+          {isSubmitting ? (
+            <>
+              <ActivityIndicator size="small" color={theme.primary} />
+              <Text style={[styles.confirmButtonText, { color: theme.primary, marginLeft: 10 }]}>Processing...</Text>
+            </>
+          ) : (
+            <>
+              <Text style={[styles.confirmButtonText, { color: theme.primary }]}>Complete Transaction</Text>
+              <Ionicons name="shield-checkmark" size={20} color={theme.primary} style={{ marginLeft: 8 }} />
+            </>
+          )}
+        </TouchableOpacity>
+
+        <View style={styles.securitySeal}>
+          <Ionicons name="lock-closed-outline" size={14} color={theme.textDim} />
+          <Text style={[styles.securityText, { color: theme.textDim }]}>Secure SSL Encrypted Payment (not really secure or real)</Text>
+        </View>
+      </ScrollView>
+
+      {isSubmitting && (
+        <View style={styles.loadingOverlay} pointerEvents="auto">
+          <View style={[styles.loadingBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <ActivityIndicator size="large" color={theme.primary} />
+            <Text style={[styles.loadingTitle, { color: theme.text }]}>Processing payment</Text>
+            <Text style={[styles.loadingText, { color: theme.textDim }]}>Please wait while we confirm your booking.</Text>
+          </View>
         </View>
       )}
-
-      <TouchableOpacity
-        style={[styles.confirmButton, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
-        onPress={handleConfirm}
-        activeOpacity={0.8}
-      >
-        <Text style={[styles.confirmButtonText, { color: theme.primary }]}>Complete Transaction</Text>
-        <Ionicons name="shield-checkmark" size={20} color={theme.primary} style={{ marginLeft: 8 }} />
-      </TouchableOpacity>
-
-      <View style={styles.securitySeal}>
-        <Ionicons name="lock-closed-outline" size={14} color={theme.textDim} />
-        <Text style={[styles.securityText, { color: theme.textDim }]}>Secure SSL Encrypted Payment (not really secure or real)</Text>
-      </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: 20,
     justifyContent: 'center',
     paddingTop: 40,
+    paddingBottom: 48,
   },
   backButton: {
     position: "absolute",
@@ -417,29 +471,6 @@ const styles = StyleSheet.create({
   totalLabel: { fontSize: 16, fontWeight: '800' },
   totalValue: { fontSize: 24, fontWeight: '900' },
   inputWrapper: { width: '100%' },
-  label: {
-    fontSize: 11,
-    fontWeight: '800',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    borderWidth: 1.5,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#F1F5F9',
-  },
-  inputIcon: { marginRight: 10, marginTop: 2 },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '500',
-    minHeight: 60,
-  },
   confirmButton: {
     flexDirection: 'row',
     width: '100%',
@@ -460,5 +491,32 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginLeft: 6,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+  },
+  loadingBox: {
+    width: '100%',
+    maxWidth: 320,
+    borderWidth: 1,
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+  },
+  loadingTitle: {
+    marginTop: 14,
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  loadingText: {
+    marginTop: 6,
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

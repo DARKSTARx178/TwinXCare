@@ -4,6 +4,7 @@ import { getFontSizeValue } from "@/utils/fontSizes";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import { clearSessionStamp } from "@/utils/sessionSecurity";
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import React, { useContext, useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -81,6 +82,7 @@ export default function Profile() {
 
   const handleLogout = async () => {
     try {
+      await clearSessionStamp();
       await signOut(auth);
       Alert.alert("Signed Out", "You have been signed out.");
     } catch (error) {

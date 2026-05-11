@@ -1,4 +1,5 @@
 import { ThemeContext } from '@/contexts/ThemeContext';
+import LocationAutocomplete, { SelectedLocation } from '@/components/LocationAutocomplete';
 import { auth, db } from '@/firebase/firebase';
 import { checkMatchForAvailability, finalizeEscortJob, lockInJob } from '@/services/matchingService';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,7 +22,6 @@ export default function EscortAvailability() {
   const { jobId, type } = useLocalSearchParams<{ jobId: string, type: 'request' | 'availability' }>();
 
   const [jobData, setJobData] = useState<any>(null);
-  const [loadingJob, setLoadingJob] = useState(!!jobId);
 
   const [date, setDate] = useState(new Date());
   const [fromTime, setFromTime] = useState(new Date());
@@ -31,6 +31,8 @@ export default function EscortAvailability() {
   const [showToPicker, setShowToPicker] = useState(false);
 
   const [location, setLocation] = useState('');
+  const [locationCoordinates, setLocationCoordinates] = useState<SelectedLocation | null>(null);
+  const [serviceRadiusKm, setServiceRadiusKm] = useState('5');
   const [maxPax, setMaxPax] = useState('1');
   const [contactPhone, setContactPhone] = useState('');
   const [notes, setNotes] = useState('');
@@ -77,8 +79,6 @@ export default function EscortAvailability() {
         }
       } catch (err) {
         console.error('Error fetching job details:', err);
-      } finally {
-        setLoadingJob(false);
       }
     };
     fetchJob();
@@ -180,6 +180,8 @@ export default function EscortAvailability() {
       return;
     }
 
+    const radiusKm = Math.max(Number(serviceRadiusKm) || 5, 0.5);
+
     setSubmitting(true);
     try {
       const docRef = await addDoc(collection(db, 'escort', 'availability', 'entries'), {
@@ -189,6 +191,11 @@ export default function EscortAvailability() {
         fromTime: fromStr,
         toTime: toStr,
         location,
+        locationCoordinates: locationCoordinates ? {
+          latitude: locationCoordinates.latitude,
+          longitude: locationCoordinates.longitude,
+        } : null,
+        serviceRadiusKm: radiusKm,
         maxPax: Number(maxPax) || 1,
         contactPhone,
         notes,
@@ -207,6 +214,11 @@ export default function EscortAvailability() {
         fromTime: fromStr,
         toTime: toStr,
         location,
+        locationCoordinates: locationCoordinates ? {
+          latitude: locationCoordinates.latitude,
+          longitude: locationCoordinates.longitude,
+        } : null,
+        serviceRadiusKm: radiusKm,
         maxPax: Number(maxPax) || 1,
         contactPhone,
         notes,
@@ -478,17 +490,28 @@ export default function EscortAvailability() {
             <Text style={[styles.cardHeading, { color: theme.text }]}>Assignment Details</Text>
 
             <View style={styles.inputWrapper}>
-              <Text style={[styles.label, { color: theme.textDim }]}>Preferred Location</Text>
-              <TextInput
-                style={[styles.input, { color: theme.text }]}
+              <LocationAutocomplete
+                label="Preferred Location"
                 placeholder="Hospital, area, or facility"
-                placeholderTextColor="#94a3b8"
                 value={location}
                 onChangeText={setLocation}
+                onLocationSelected={setLocationCoordinates}
+                disabled={submitting}
+                theme={theme}
               />
             </View>
 
             <View style={styles.formRow}>
+              <View style={[styles.inputWrapper, { flex: 1, marginRight: 12 }]}>
+                <Text style={[styles.label, { color: theme.textDim }]}>Radius (KM)</Text>
+                <TextInput
+                  style={[styles.input, { color: theme.text }]}
+                  placeholder="5"
+                  value={serviceRadiusKm}
+                  onChangeText={setServiceRadiusKm}
+                  keyboardType="numeric"
+                />
+              </View>
               <View style={[styles.inputWrapper, { flex: 1, marginRight: 12 }]}>
                 <Text style={[styles.label, { color: theme.textDim }]}>Capacity (Pax)</Text>
                 <TextInput
@@ -499,7 +522,7 @@ export default function EscortAvailability() {
                   keyboardType="numeric"
                 />
               </View>
-              <View style={[styles.inputWrapper, { flex: 2 }]}>
+              <View style={[styles.inputWrapper, { flex: 1.5 }]}>
                 <Text style={[styles.label, { color: theme.textDim }]}>Contact Phone</Text>
                 <TextInput
                   style={[styles.input, { color: theme.text }]}

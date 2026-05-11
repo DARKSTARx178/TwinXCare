@@ -1,4 +1,5 @@
 import { ThemeContext } from '@/contexts/ThemeContext';
+import LocationAutocomplete, { SelectedLocation } from '@/components/LocationAutocomplete';
 import { auth, db } from '@/firebase/firebase';
 import { checkMatchForRequest } from '@/services/matchingService';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +21,8 @@ export default function RequireEscort() {
 	const [showEndTimePicker, setShowEndTimePicker] = useState(false);
 
 	const [hospital, setHospital] = useState('');
+	const [pickupLocation, setPickupLocation] = useState('');
+	const [pickupCoordinates, setPickupCoordinates] = useState<SelectedLocation | null>(null);
 	const [appointmentReason, setAppointmentReason] = useState('');
 	const [medicalDetails, setMedicalDetails] = useState('');
 	const [age, setAge] = useState('');
@@ -50,6 +53,11 @@ export default function RequireEscort() {
 				time: timeStr,
 				endTime: endTimeStr,
 				hospital,
+				location: pickupLocation.trim(),
+				locationCoordinates: pickupCoordinates ? {
+					latitude: pickupCoordinates.latitude,
+					longitude: pickupCoordinates.longitude,
+				} : null,
 				appointmentReason,
 				medicalDetails,
 				age: age ? Number(age) : null,
@@ -66,6 +74,11 @@ export default function RequireEscort() {
 				time: timeStr,
 				endTime: endTimeStr,
 				hospital,
+				location: pickupLocation.trim(),
+				locationCoordinates: pickupCoordinates ? {
+					latitude: pickupCoordinates.latitude,
+					longitude: pickupCoordinates.longitude,
+				} : null,
 				appointmentReason,
 				medicalDetails,
 				age: age ? Number(age) : null,
@@ -194,6 +207,18 @@ export default function RequireEscort() {
 						placeholderTextColor="#94a3b8"
 						value={hospital}
 						onChangeText={setHospital}
+					/>
+				</View>
+
+				<View style={styles.inputWrapper}>
+					<LocationAutocomplete
+						label="Pickup / Preferred Location"
+						placeholder="Block, area, MRT, or pickup point"
+						value={pickupLocation}
+						onChangeText={setPickupLocation}
+						onLocationSelected={setPickupCoordinates}
+						disabled={submitting}
+						theme={theme}
 					/>
 				</View>
 

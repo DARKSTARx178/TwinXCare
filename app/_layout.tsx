@@ -1,9 +1,11 @@
 import { AccessibilityProvider } from '@/contexts/AccessibilityContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ThemeContext, ThemeProvider } from '@/contexts/ThemeContext';
-import { db } from '@/firebase/firebase';
+import { auth, db } from '@/firebase/firebase';
 import { APP_VERSION } from '@/utils/appversion';
+import { enforceSessionExpiry } from '@/utils/sessionSecurity';
 import { Slot } from 'expo-router';
+import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { useContext, useEffect, useState } from 'react';
 import { Button, Linking, StatusBar, StyleSheet, Text, View } from 'react-native';
@@ -54,6 +56,18 @@ function RootLayoutContent() {
       }
     })();
     return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      try {
+        await enforceSessionExpiry(user);
+      } catch (error) {
+        console.warn('Session expiry check failed', error);
+      }
+    });
+
+    return unsubscribe;
   }, []);
 
   // After checking completes, show a short transition splash before revealing the app

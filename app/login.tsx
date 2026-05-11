@@ -1,6 +1,7 @@
 import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { ThemeContext } from "@/contexts/ThemeContext";
 import { getFontSizeValue } from "@/utils/fontSizes";
+import { markSessionStarted } from "@/utils/sessionSecurity";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -27,8 +28,7 @@ const Login: React.FC = () => {
     try {
       // ✅ Login with Firebase
       await signInWithEmailAndPassword(auth, email, password);
-
-      // ✅ No SecureStore, Firebase persists automatically
+      await markSessionStarted();
       router.replace("/profile");
     } catch (e: any) {
       console.error("Login error:", e);
@@ -99,7 +99,7 @@ const Login: React.FC = () => {
 
         <TouchableOpacity onPress={() => router.replace("/register")} style={styles.footerLink}>
           <Text style={{ color: theme.textDim }}>
-            Don't have an account? <Text style={{ color: theme.primary, fontWeight: '700' }}>Register</Text>
+            Don&apos;t have an account? <Text style={{ color: theme.primary, fontWeight: '700' }}>Register</Text>
           </Text>
         </TouchableOpacity>
       </View>

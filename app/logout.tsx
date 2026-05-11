@@ -5,6 +5,7 @@ import { signOut } from 'firebase/auth';
 import React, { useContext } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { auth } from '../firebase/firebase';
+import { clearSessionStamp } from '@/utils/sessionSecurity';
 
 const Logout: React.FC = () => {
   const router = useRouter();
@@ -12,6 +13,7 @@ const Logout: React.FC = () => {
 
   const handleLogout = async () => {
     try {
+      await clearSessionStamp();
       await signOut(auth);
       Alert.alert('Signed Out', 'You have been successfully logged out.');
       router.replace('/login');
@@ -41,7 +43,7 @@ const Logout: React.FC = () => {
         <Ionicons name="shield-checkmark-outline" size={48} color={theme.primary} style={{ marginBottom: 20 }} />
         <Text style={[styles.cardTitle, { color: theme.text }]}>Safe & Secure</Text>
         <Text style={[styles.cardSubtitle, { color: theme.textDim }]}>
-          Logging out will clear your active session. You'll need to sign back in to access your data.
+          Logging out will clear your active session. You&apos;ll need to sign back in to access your data.
         </Text>
 
         <TouchableOpacity

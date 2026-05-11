@@ -13,14 +13,12 @@ export default function AdminEscortMatch() {
     const [requests, setRequests] = useState<any[]>([]);
     const [availabilities, setAvailabilities] = useState<any[]>([]);
     const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetchData();
     }, []);
 
     const fetchData = async () => {
-        setLoading(true);
         try {
             const reqQ = query(collection(db, 'escort', 'request', 'entries'), where('status', '==', 'pending'));
             const reqSnap = await getDocs(reqQ);
@@ -34,8 +32,6 @@ export default function AdminEscortMatch() {
 
         } catch (e) {
             console.error('Error fetching match data:', e);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -95,6 +91,7 @@ export default function AdminEscortMatch() {
                 <Ionicons name="calendar-outline" size={14} color={theme.textDim} />
                 <Text style={[styles.detailText, { color: theme.text }]}>{item.date} • {item.time}</Text>
             </View>
+            <Text style={[styles.locationText, { color: theme.textDim }]}>Loc: {item.location || item.hospital}</Text>
             <Text style={[styles.reasonText, { color: theme.textDim }]} numberOfLines={2}>{item.appointmentReason}</Text>
         </TouchableOpacity>
     );

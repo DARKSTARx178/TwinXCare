@@ -1,6 +1,7 @@
 // firebase.js
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, initializeAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -15,8 +16,50 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
+function getAsyncStoragePersistence(storage) {
+  return class AsyncStoragePersistence {
+    static type = 'LOCAL';
+    type = 'LOCAL';
+
+    async _isAvailable() {
+      try {
+        await storage.setItem('__twinxcare_auth_storage_test__', '1');
+        await storage.removeItem('__twinxcare_auth_storage_test__');
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    _set(key, value) {
+      return storage.setItem(key, JSON.stringify(value));
+    }
+
+    async _get(key) {
+      const value = await storage.getItem(key);
+      return value ? JSON.parse(value) : null;
+    }
+
+    _remove(key) {
+      return storage.removeItem(key);
+    }
+
+    _addListener() { }
+    _removeListener() { }
+  };
+}
+
 // Initialize Firebase Authentication
-export const auth = getAuth(app);
+let authInstance;
+try {
+  authInstance = initializeAuth(app, {
+    persistence: getAsyncStoragePersistence(AsyncStorage),
+  });
+} catch {
+  authInstance = getAuth(app);
+}
+
+export const auth = authInstance;
 
 // Initialize Firestore
 export const db = getFirestore(app);

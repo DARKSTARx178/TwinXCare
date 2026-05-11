@@ -14,10 +14,19 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
+const LOGIN_AT_KEY = 'twinxcare_login_at';
 
 export {
     addDoc, app, auth, collection, createUserWithEmailAndPassword, db, deleteDoc, doc, EmailAuthProvider, getDoc, getDocs, getDownloadURL, onAuthStateChanged, orderBy, query, reauthenticateWithCredential, ref, serverTimestamp, setDoc, signInWithEmailAndPassword, signOut, storage, updateDoc, updatePassword, uploadBytes, where
 };
+
+export async function markSessionStarted() {
+    localStorage.setItem(LOGIN_AT_KEY, Date.now().toString());
+}
+
+export async function clearSessionStamp() {
+    localStorage.removeItem(LOGIN_AT_KEY);
+}
 
 // Utility for formatting google drive links precisely like the native app
 export function convertGoogleDriveLink(link) {

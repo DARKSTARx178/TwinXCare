@@ -141,10 +141,11 @@
     </div>
 
     <script type="module">
-        import { auth, signOut } from '/app/firebase.js';
+        import { auth, clearSessionStamp, signOut } from '/app/firebase.js';
 
         document.getElementById('btn-logout').onclick = async () => {
             try {
+                await clearSessionStamp();
                 await signOut(auth);
                 window.location.href = '/app/login.html';
             } catch (err) {

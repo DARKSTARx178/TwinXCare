@@ -203,7 +203,7 @@
     </div>
 
     <script type="module">
-        import { auth, onAuthStateChanged, signInWithEmailAndPassword } from '/app/firebase.js';
+        import { auth, markSessionStarted, onAuthStateChanged, signInWithEmailAndPassword } from '/app/firebase.js';
 
         const loginForm = document.getElementById('login-form');
         const errorBox = document.getElementById('error-box');
@@ -224,6 +224,7 @@
 
             try {
                 await signInWithEmailAndPassword(auth, email, password);
+                await markSessionStarted();
                 window.location.href = '/app/profile.html';
             } catch (err) {
                 console.error(err);

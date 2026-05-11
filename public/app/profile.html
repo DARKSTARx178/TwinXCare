@@ -212,7 +212,7 @@
     </nav>
 
     <script type="module">
-        import { auth, db, onAuthStateChanged, signOut, doc, getDoc } from '/app/firebase.js';
+        import { auth, db, onAuthStateChanged, signOut, doc, getDoc, collection, getDocs, query, where, clearSessionStamp } from '/app/firebase.js';
 
         const header = document.getElementById('profile-header');
         const menuSection = document.getElementById('menu-section');
@@ -223,9 +223,32 @@
             if (u) {
                 menuSection.style.display = 'block';
                 try {
-                    const userDoc = await getDoc(doc(db, 'users', u.uid));
-                    const data = userDoc.exists() ? userDoc.data() : {};
-                    const name = data.username || u.displayName || u.email.split('@')[0];
+                    let userDocData = {};
+                    let firestoreId = null;
+                    const directDoc = await getDoc(doc(db, 'users', u.uid));
+                    if (directDoc.exists()) {
+                        userDocData = directDoc.data();
+                        firestoreId = directDoc.id;
+                    } else {
+                        const usersCol = collection(db, 'users');
+                        const byUid = await getDocs(query(usersCol, where('uid', '==', u.uid)));
+                        if (!byUid.empty) {
+                            const first = byUid.docs[0];
+                            userDocData = first.data();
+                            firestoreId = first.id;
+                        } else {
+                            const byAuthUid = await getDocs(query(usersCol, where('authUid', '==', u.uid)));
+                            if (!byAuthUid.empty) {
+                                const first = byAuthUid.docs[0];
+                                userDocData = first.data();
+                                firestoreId = first.id;
+                            }
+                        }
+                    }
+
+                    const data = userDocData;
+                    const fallbackName = u.email ? u.email.split('@')[0] : 'User';
+                    const name = data.username || u.displayName || fallbackName;
                     const role = data.role || 'user';
                     const avatarChar = name.charAt(0).toUpperCase();
 
@@ -242,8 +265,12 @@
             ${role === 'admin' ? '<a href="/app/admin/index.html" class="admin-btn"><i class="mdi mdi-shield-half-full" style="margin-right: 8px;"></i> Enter Admin View</a>' : ''}
           `;
 
-                    footerRef.innerText = `USER REF: ${u.uid.substring(0, 12).toUpperCase()}...`;
-                    footerRef.style.display = 'block';
+                    if (firestoreId) {
+                        footerRef.innerText = `USER REF: ${firestoreId.substring(0, 12).toUpperCase()}...`;
+                        footerRef.style.display = 'block';
+                    } else {
+                        footerRef.style.display = 'none';
+                    }
                 } catch (e) {
                     console.error(e);
                 }
@@ -266,6 +293,7 @@
 
         logoutTrigger.addEventListener('click', async () => {
             if (confirm("Logout from TwinXCare?")) {
+                await clearSessionStamp();
                 await signOut(auth);
                 window.location.reload();
             }

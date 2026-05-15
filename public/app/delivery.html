@@ -39,19 +39,16 @@
             font-family: inherit;
         }
 
-        .filter-btn {
+        .filter-select {
             height: 44px;
             border-radius: 14px;
-            border: 1.5px solid var(--primary);
-            color: var(--primary);
+            border: 1.5px solid var(--border);
             background: var(--surface);
-            padding: 0 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.75rem;
-            font-weight: 800;
-            cursor: pointer;
+            color: var(--text);
+            padding: 0 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            font-family: inherit;
         }
     </style>
 </head>
@@ -74,10 +71,15 @@
                 <i class="mdi mdi-magnify" style="color: var(--text-dim); font-size: 18px;"></i>
                 <input id="search-input" class="search-input" placeholder="Search orders, bookings, reference..." />
             </div>
-            <button id="filter-btn" class="filter-btn">
-                <i class="mdi mdi-tune"></i>
-                <span id="filter-label">All</span>
-            </button>
+            <select id="filter-by" class="filter-select">
+                <option value="type">Filter by Type</option>
+                <option value="status">Filter by Status</option>
+            </select>
+            <select id="filter-value" class="filter-select">
+                <option value="all">All</option>
+                <option value="orders">Orders</option>
+                <option value="bookings">Bookings</option>
+            </select>
         </div>
 
         <div id="result-count" style="margin-bottom: 12px; color: var(--text-dim); font-size: 0.8rem; font-weight: 700;">
@@ -121,11 +123,29 @@
 
         const grid = document.getElementById('history-grid');
         const searchInput = document.getElementById('search-input');
-        const filterBtn = document.getElementById('filter-btn');
-        const filterLabel = document.getElementById('filter-label');
+        const filterBySelect = document.getElementById('filter-by');
+        const filterValueSelect = document.getElementById('filter-value');
         const resultCount = document.getElementById('result-count');
         let allEntries = [];
+        let filterBy = 'type';
         let activeFilter = 'all';
+
+        function syncFilterValueOptions() {
+            const options = filterBy === 'type'
+                ? [
+                    { label: 'All', value: 'all' },
+                    { label: 'Orders', value: 'orders' },
+                    { label: 'Bookings', value: 'bookings' },
+                ]
+                : [
+                    { label: 'All', value: 'all' },
+                    { label: 'Processing', value: 'processing' },
+                    { label: 'Pending', value: 'pending' },
+                    { label: 'Confirmed', value: 'confirmed' },
+                ];
+            filterValueSelect.innerHTML = options.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+            activeFilter = 'all';
+        }
 
         function formatDate(dateStr) {
             if (!dateStr) return 'N/A';
@@ -149,8 +169,15 @@
                     return !(status.includes('completed') || status.includes('delivered'));
                 })
                 .filter((entry) => {
-                    if (activeFilter === 'orders') return entry.type === 'order';
-                    if (activeFilter === 'bookings') return entry.type === 'booking';
+                    if (filterBy === 'type') {
+                        if (activeFilter === 'orders') return entry.type === 'order';
+                        if (activeFilter === 'bookings') return entry.type === 'booking';
+                        return true;
+                    }
+                    const status = String(entry.status || '').toLowerCase();
+                    if (activeFilter === 'processing') return status.includes('processing');
+                    if (activeFilter === 'pending') return status.includes('pending');
+                    if (activeFilter === 'confirmed') return status.includes('confirmed');
                     return true;
                 })
                 .filter((entry) => {
@@ -197,11 +224,16 @@
         }
 
         searchInput.addEventListener('input', renderEntries);
-        filterBtn.addEventListener('click', () => {
-            activeFilter = activeFilter === 'all' ? 'orders' : activeFilter === 'orders' ? 'bookings' : 'all';
-            filterLabel.innerText = activeFilter === 'all' ? 'All' : activeFilter === 'orders' ? 'Orders' : 'Bookings';
+        filterBySelect.addEventListener('change', () => {
+            filterBy = filterBySelect.value;
+            syncFilterValueOptions();
             renderEntries();
         });
+        filterValueSelect.addEventListener('change', () => {
+            activeFilter = filterValueSelect.value;
+            renderEntries();
+        });
+        syncFilterValueOptions();
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {

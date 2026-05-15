@@ -2,6 +2,7 @@ import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
@@ -34,7 +35,8 @@ export default function DeliveryPage() {
   const [expandedOrders, setExpandedOrders] = useState<Set<number>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
-  const [entryFilter, setEntryFilter] = useState<'all' | 'orders' | 'bookings'>('all');
+  const [filterBy, setFilterBy] = useState<'type' | 'status'>('type');
+  const [filterValue, setFilterValue] = useState<'all' | 'orders' | 'bookings' | 'processing' | 'pending' | 'confirmed'>('all');
 
   const fetchUserHistory = async () => {
     const currentUser = auth.currentUser;
@@ -95,8 +97,15 @@ export default function DeliveryPage() {
       return !(status.includes('completed') || status.includes('delivered'));
     })
     .filter((entry) => {
-      if (entryFilter === 'orders') return entry.type === 'order';
-      if (entryFilter === 'bookings') return entry.type === 'booking';
+      if (filterBy === 'type') {
+        if (filterValue === 'orders') return entry.type === 'order';
+        if (filterValue === 'bookings') return entry.type === 'booking';
+        return true;
+      }
+      const status = String(entry.status || '').toLowerCase();
+      if (filterValue === 'processing') return status.includes('processing');
+      if (filterValue === 'pending') return status.includes('pending');
+      if (filterValue === 'confirmed') return status.includes('confirmed');
       return true;
     })
     .filter((entry) => {
@@ -145,20 +154,44 @@ export default function DeliveryPage() {
             onChangeText={setSearch}
           />
         </View>
-        <TouchableOpacity
-          style={[styles.filterBtn, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}
-          onPress={() =>
-            setEntryFilter((prev) =>
-              prev === 'all' ? 'orders' : prev === 'orders' ? 'bookings' : 'all'
-            )
-          }
-          activeOpacity={0.8}
-        >
-          <Ionicons name="options-outline" size={18} color={theme.primary} />
-          <Text style={[styles.filterBtnText, { color: theme.primary }]}>
-            {entryFilter === 'all' ? 'All' : entryFilter === 'orders' ? 'Orders' : 'Bookings'}
-          </Text>
-        </TouchableOpacity>
+      </View>
+
+      <View style={styles.dropdownRow}>
+        <View style={[styles.dropdownBox, { borderColor: theme.border, backgroundColor: theme.surface }]}>
+          <Picker
+            selectedValue={filterBy}
+            onValueChange={(v) => {
+              const next = v as 'type' | 'status';
+              setFilterBy(next);
+              setFilterValue('all');
+            }}
+            style={{ color: theme.text }}
+          >
+            <Picker.Item label="Filter by Type" value="type" />
+            <Picker.Item label="Filter by Status" value="status" />
+          </Picker>
+        </View>
+        <View style={[styles.dropdownBox, { borderColor: theme.border, backgroundColor: theme.surface }]}>
+          <Picker
+            selectedValue={filterValue}
+            onValueChange={(v) => setFilterValue(v)}
+            style={{ color: theme.text }}
+          >
+            <Picker.Item label="All" value="all" />
+            {filterBy === 'type' ? (
+              <>
+                <Picker.Item label="Orders" value="orders" />
+                <Picker.Item label="Bookings" value="bookings" />
+              </>
+            ) : (
+              <>
+                <Picker.Item label="Processing" value="processing" />
+                <Picker.Item label="Pending" value="pending" />
+                <Picker.Item label="Confirmed" value="confirmed" />
+              </>
+            )}
+          </Picker>
+        </View>
       </View>
 
       {/* Hero section: Latest Activity */}
@@ -337,17 +370,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
-  filterBtn: {
-    height: 46,
-    borderRadius: 14,
-    paddingHorizontal: 10,
+  dropdownRow: {
+    marginHorizontal: 20,
+    marginBottom: 18,
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+    gap: 10,
   },
-  filterBtnText: {
-    fontSize: 12,
-    fontWeight: '800',
+  dropdownBox: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   heroCard: {
     marginHorizontal: 20,

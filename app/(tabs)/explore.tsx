@@ -38,7 +38,8 @@ export default function Explore() {
   const { theme } = useContext(ThemeContext);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'brand' | 'item' | 'price' | 'availability' | 'company' | null>(null);
-  const [filterValue, setFilterValue] = useState<string>('');
+  const [filterValue, setFilterValue] = useState<string>('all');
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
 
   const router = useRouter();
   const screenWidth = Dimensions.get('window').width;
@@ -110,6 +111,22 @@ export default function Explore() {
   filteredItems = filteredItems.filter((item) =>
     (item.name + ' ' + (item.brand || item.company || '')).toLowerCase().includes(search.toLowerCase())
   );
+
+  filteredItems = filteredItems.filter((item) => {
+    if (viewMode === 'equipment') {
+      if (filterValue === 'in-stock') return Number(item.stock || 0) > 0;
+      if (filterValue === 'out-of-stock') return Number(item.stock || 0) <= 0;
+      return true;
+    }
+    if (filterValue === 'has-schedule') return Array.isArray(item.schedule) && item.schedule.length > 0;
+    return true;
+  });
+
+  if (filterValue === 'price-low') {
+    filteredItems = [...filteredItems].sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+  } else if (filterValue === 'price-high') {
+    filteredItems = [...filteredItems].sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+  }
 
   const renderItem = ({ item }: { item: any }) => {
     const isEquipment = viewMode === 'equipment';
@@ -183,14 +200,14 @@ export default function Explore() {
             <View style={[styles.tabContainer, { backgroundColor: theme.unselectedTab }]}>
               <TouchableOpacity
                 style={[styles.tab, viewMode === 'equipment' && { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
-                onPress={() => setViewMode('equipment')}
+                onPress={() => { setViewMode('equipment'); setFilterValue('all'); setShowFilterMenu(false); }}
               >
                 <Ionicons name="medkit-outline" size={18} color={viewMode === 'equipment' ? theme.primary : theme.text} />
                 <Text style={[styles.tabText, { color: viewMode === 'equipment' ? theme.primary : theme.text }]}>Equipment</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.tab, viewMode === 'services' && { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
-                onPress={() => setViewMode('services')}
+                onPress={() => { setViewMode('services'); setFilterValue('all'); setShowFilterMenu(false); }}
               >
                 <Ionicons name="sparkles-outline" size={18} color={viewMode === 'services' ? theme.primary : theme.text} />
                 <Text style={[styles.tabText, { color: viewMode === 'services' ? theme.primary : theme.text }]}>Services</Text>
@@ -201,10 +218,42 @@ export default function Explore() {
               <Text style={[styles.resultsCount, { color: theme.text }]}>
                 {filteredItems.length} {viewMode} available
               </Text>
-              <TouchableOpacity style={[styles.filterBtn, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}>
+              <TouchableOpacity
+                style={[styles.filterBtn, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}
+                onPress={() => setShowFilterMenu((v) => !v)}
+              >
                 <Ionicons name="options-outline" size={20} color={theme.primary} />
               </TouchableOpacity>
             </View>
+            {showFilterMenu && (
+              <View style={[styles.filterMenu, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                {(viewMode === 'equipment'
+                  ? [
+                    ['all', 'All Equipment'],
+                    ['in-stock', 'In Stock'],
+                    ['out-of-stock', 'Out of Stock'],
+                    ['price-low', 'Price Low to High'],
+                    ['price-high', 'Price High to Low'],
+                  ]
+                  : [
+                    ['all', 'All Services'],
+                    ['has-schedule', 'Has Schedule'],
+                    ['price-low', 'Price Low to High'],
+                    ['price-high', 'Price High to Low'],
+                  ]).map(([value, label]) => (
+                    <TouchableOpacity
+                      key={value}
+                      style={[styles.filterOption, filterValue === value && { backgroundColor: theme.primaryGlow }]}
+                      onPress={() => {
+                        setFilterValue(value);
+                        setShowFilterMenu(false);
+                      }}
+                    >
+                      <Text style={{ color: theme.text, fontWeight: '700', fontSize: 12 }}>{label}</Text>
+                    </TouchableOpacity>
+                  ))}
+              </View>
+            )}
           </View>
         }
         ListEmptyComponent={
@@ -261,6 +310,17 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 12,
     backgroundColor: 'rgba(0,0,0,0.03)',
+  },
+  filterMenu: {
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 8,
+    marginBottom: 14,
+  },
+  filterOption: {
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 10,
   },
   gridCard: {
     margin: 6,

@@ -151,6 +151,31 @@
             padding: 60px 20px;
             text-align: center;
         }
+
+        .filter-menu {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 8px;
+            margin-bottom: 14px;
+            background: var(--surface);
+        }
+
+        .filter-option {
+            width: 100%;
+            border: none;
+            background: transparent;
+            text-align: left;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        .filter-option.active {
+            background: var(--primary-glow);
+        }
     </style>
 </head>
 
@@ -186,11 +211,12 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                 <div style="font-size: 0.85rem; font-weight: 800; color: var(--text);" id="result-count">0 items
                     available</div>
-                <button
+                <button id="filter-btn"
                     style="padding: 8px; border-radius: 12px; background: rgba(0,0,0,0.03); border: 1.5px solid var(--primary); color: var(--primary); cursor: pointer;">
                     <i class="mdi mdi-tune" style="font-size: 20px;"></i>
                 </button>
             </div>
+            <div id="filter-menu" class="filter-menu" style="display:none;"></div>
         </div>
 
         <div class="grid-container" id="items-grid" style="padding: 0 20px;">
@@ -240,6 +266,9 @@
         const grid = document.getElementById('items-grid');
         const searchInput = document.getElementById('search-input');
         const countEl = document.getElementById('result-count');
+        const filterBtn = document.getElementById('filter-btn');
+        const filterMenu = document.getElementById('filter-menu');
+        let filterValue = 'all';
 
         function resolveImage(item, mode) {
             const rawImage = item.image || item.imageUrl || item.photo || item.photoURL || item.thumbnail || '';
@@ -249,11 +278,44 @@
 
         window.setMode = (mode) => {
             currentMode = mode;
+            filterValue = 'all';
             document.getElementById('tab-equipment').className = mode === 'equipment' ? 'tab active' : 'tab';
             document.getElementById('tab-services').className = mode === 'services' ? 'tab active' : 'tab';
             searchInput.placeholder = `Find ${mode}...`;
+            filterMenu.style.display = 'none';
             renderItems();
         };
+
+        function getFilterOptions() {
+            return currentMode === 'equipment'
+                ? [
+                    { value: 'all', label: 'All Equipment' },
+                    { value: 'in-stock', label: 'In Stock' },
+                    { value: 'out-of-stock', label: 'Out of Stock' },
+                    { value: 'price-low', label: 'Price Low to High' },
+                    { value: 'price-high', label: 'Price High to Low' },
+                ]
+                : [
+                    { value: 'all', label: 'All Services' },
+                    { value: 'has-schedule', label: 'Has Schedule' },
+                    { value: 'price-low', label: 'Price Low to High' },
+                    { value: 'price-high', label: 'Price High to Low' },
+                ];
+        }
+
+        function renderFilterMenu() {
+            const options = getFilterOptions();
+            filterMenu.innerHTML = options.map(opt =>
+                `<button class="filter-option ${filterValue === opt.value ? 'active' : ''}" data-filter="${opt.value}">${opt.label}</button>`
+            ).join('');
+            filterMenu.querySelectorAll('.filter-option').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterValue = btn.getAttribute('data-filter');
+                    filterMenu.style.display = 'none';
+                    renderItems();
+                });
+            });
+        }
 
         async function fetchData() {
             try {
@@ -319,6 +381,22 @@
                 (item.company && item.company.toLowerCase().includes(val))
             );
 
+            filtered = filtered.filter(item => {
+                if (currentMode === 'equipment') {
+                    if (filterValue === 'in-stock') return Number(item.stock || 0) > 0;
+                    if (filterValue === 'out-of-stock') return Number(item.stock || 0) <= 0;
+                    return true;
+                }
+                if (filterValue === 'has-schedule') return Array.isArray(item.schedule) && item.schedule.length > 0;
+                return true;
+            });
+
+            if (filterValue === 'price-low') {
+                filtered = [...filtered].sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+            } else if (filterValue === 'price-high') {
+                filtered = [...filtered].sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+            }
+
             countEl.innerText = `${filtered.length} ${currentMode} available`;
 
             if (filtered.length === 0) {
@@ -372,6 +450,14 @@
         }
 
         searchInput.addEventListener('input', renderItems);
+        filterBtn.addEventListener('click', () => {
+            if (filterMenu.style.display === 'none') {
+                renderFilterMenu();
+                filterMenu.style.display = 'block';
+            } else {
+                filterMenu.style.display = 'none';
+            }
+        });
         fetchData();
     </script>
 </body>

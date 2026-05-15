@@ -9,6 +9,51 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
     <meta name="theme-color" content="#F8FAFC">
+    <style>
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .search-box {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            height: 44px;
+            border-radius: 14px;
+            background: #E2E8F0;
+        }
+
+        .search-input {
+            flex: 1;
+            margin-left: 8px;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            font-family: inherit;
+        }
+
+        .filter-btn {
+            height: 44px;
+            border-radius: 14px;
+            border: 1.5px solid var(--primary);
+            color: var(--primary);
+            background: var(--surface);
+            padding: 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
@@ -22,6 +67,21 @@
         <div class="section-title">
             <i class="mdi mdi-history" style="color: var(--primary);"></i>
             My Rentals & Bookings
+        </div>
+
+        <div class="toolbar">
+            <div class="search-box">
+                <i class="mdi mdi-magnify" style="color: var(--text-dim); font-size: 18px;"></i>
+                <input id="search-input" class="search-input" placeholder="Search orders, bookings, reference..." />
+            </div>
+            <button id="filter-btn" class="filter-btn">
+                <i class="mdi mdi-tune"></i>
+                <span id="filter-label">All</span>
+            </button>
+        </div>
+
+        <div id="result-count" style="margin-bottom: 12px; color: var(--text-dim); font-size: 0.8rem; font-weight: 700;">
+            0 active items
         </div>
 
         <div id="history-grid" style="margin-bottom: 40px;">
@@ -60,6 +120,12 @@
         import { auth, db, doc, getDoc, onAuthStateChanged } from '/app/firebase.js';
 
         const grid = document.getElementById('history-grid');
+        const searchInput = document.getElementById('search-input');
+        const filterBtn = document.getElementById('filter-btn');
+        const filterLabel = document.getElementById('filter-label');
+        const resultCount = document.getElementById('result-count');
+        let allEntries = [];
+        let activeFilter = 'all';
 
         function formatDate(dateStr) {
             if (!dateStr) return 'N/A';
@@ -67,6 +133,75 @@
             if (isNaN(d.getTime())) return dateStr;
             return d.toLocaleDateString();
         }
+
+        function getStatusClass(status) {
+            const normalized = String(status || '').toLowerCase();
+            if (normalized.includes('processing') || normalized.includes('pending')) return 'status-pending';
+            if (normalized.includes('confirmed')) return 'status-confirmed';
+            return 'status-delivered';
+        }
+
+        function renderEntries() {
+            const q = searchInput.value.trim().toLowerCase();
+            const visible = allEntries
+                .filter((entry) => {
+                    const status = String(entry.status || '').toLowerCase();
+                    return !(status.includes('completed') || status.includes('delivered'));
+                })
+                .filter((entry) => {
+                    if (activeFilter === 'orders') return entry.type === 'order';
+                    if (activeFilter === 'bookings') return entry.type === 'booking';
+                    return true;
+                })
+                .filter((entry) => {
+                    if (!q) return true;
+                    const ref = String(entry.transactionId || '');
+                    const name = entry.type === 'order' ? String(entry.name || '') : String(entry.title || '');
+                    const details = entry.type === 'order'
+                        ? String(entry.deliveryAddress || '')
+                        : `${entry.timeSlot || ''} ${entry.description || ''}`;
+                    return `${name} ${ref} ${details}`.toLowerCase().includes(q);
+                });
+
+            resultCount.innerText = `${visible.length} active items`;
+
+            if (visible.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-dim);">No active deliveries for current search/filter.</div>';
+                return;
+            }
+
+            grid.innerHTML = visible.map(entry => {
+                const isOrder = entry.type === 'order';
+                const name = isOrder ? `${entry.name} (x${entry.quantity})` : entry.title;
+                const date = isOrder ? formatDate(entry.orderTime) : formatDate(entry.bookingDate);
+                const statusClass = getStatusClass(entry.status || 'Confirmed');
+
+                return `
+                <div class="item-card" style="padding: 16px; margin-bottom: 12px; height: auto;">
+                    <div style="width: 100%;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div style="font-weight: 700; font-size: 1.1rem; flex: 1; padding-right: 10px;">${name}</div>
+                            <div class="status-badge ${statusClass}">${entry.status || 'Confirmed'}</div>
+                        </div>
+                        <div style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 8px;">
+                            Ref: ${entry.transactionId || 'Prepaid/Included'}
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+                            <i class="mdi mdi-calendar" style="color: var(--primary);"></i>
+                            <span>${date}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        searchInput.addEventListener('input', renderEntries);
+        filterBtn.addEventListener('click', () => {
+            activeFilter = activeFilter === 'all' ? 'orders' : activeFilter === 'orders' ? 'bookings' : 'all';
+            filterLabel.innerText = activeFilter === 'all' ? 'All' : activeFilter === 'orders' ? 'Orders' : 'Bookings';
+            renderEntries();
+        });
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -83,46 +218,24 @@
                     const history = data.history || [];
                     const bookings = data.booking || [];
 
-                    let combined = [
+                    allEntries = [
                         ...history.map(h => ({ ...h, type: 'order' })),
                         ...bookings.map(b => ({ ...b, type: 'booking' }))
                     ];
 
-                    combined.sort((a, b) => {
+                    allEntries.sort((a, b) => {
                         const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
                         const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
                         return dateB - dateA;
                     });
 
-                    if (combined.length === 0) {
+                    if (allEntries.length === 0) {
                         grid.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-dim);">No active orders or bookings found.</div>';
+                        resultCount.innerText = '0 active items';
                         return;
                     }
 
-                    grid.innerHTML = combined.map(entry => {
-                        const isOrder = entry.type === 'order';
-                        const name = isOrder ? `${entry.name} (x${entry.quantity})` : entry.title;
-                        const date = isOrder ? formatDate(entry.orderTime) : formatDate(entry.bookingDate);
-                        const statusClass = entry.status === 'Processing' ? 'status-pending' : 'status-delivered';
-
-                        return `
-                        <div class="item-card" style="padding: 16px; margin-bottom: 12px; height: auto;">
-                            <div style="width: 100%;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                                    <div style="font-weight: 700; font-size: 1.1rem; flex: 1; padding-right: 10px;">${name}</div>
-                                    <div class="status-badge ${statusClass}">${entry.status || 'Confirmed'}</div>
-                                </div>
-                                <div style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 8px;">
-                                    Ref: ${entry.transactionId || 'Prepaid/Included'}
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
-                                    <i class="mdi mdi-calendar" style="color: var(--primary);"></i>
-                                    <span>${date}</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    }).join('');
+                    renderEntries();
 
                 } else {
                     grid.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-dim);">No user record found.</div>';

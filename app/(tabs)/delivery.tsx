@@ -13,6 +13,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   UIManager,
   View,
@@ -32,6 +33,8 @@ export default function DeliveryPage() {
   const [orderHistory, setOrderHistory] = useState<any[]>([]);
   const [expandedOrders, setExpandedOrders] = useState<Set<number>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState('');
+  const [entryFilter, setEntryFilter] = useState<'all' | 'orders' | 'bookings'>('all');
 
   const fetchUserHistory = async () => {
     const currentUser = auth.currentUser;
@@ -86,7 +89,28 @@ export default function DeliveryPage() {
     setExpandedOrders(newSet);
   };
 
-  const latest = orderHistory.length > 0 ? orderHistory[0] : null;
+  const visibleHistory = orderHistory
+    .filter((entry) => {
+      const status = String(entry.status || '').toLowerCase();
+      return !(status.includes('completed') || status.includes('delivered'));
+    })
+    .filter((entry) => {
+      if (entryFilter === 'orders') return entry.type === 'order';
+      if (entryFilter === 'bookings') return entry.type === 'booking';
+      return true;
+    })
+    .filter((entry) => {
+      const q = search.trim().toLowerCase();
+      if (!q) return true;
+      const ref = String(entry.transactionId || '');
+      const name = entry.type === 'order' ? String(entry.name || '') : String(entry.title || '');
+      const details = entry.type === 'order'
+        ? String(entry.deliveryAddress || '')
+        : `${entry.timeSlot || ''} ${entry.description || ''}`;
+      return `${name} ${ref} ${details}`.toLowerCase().includes(q);
+    });
+
+  const latest = visibleHistory.length > 0 ? visibleHistory[0] : null;
 
   return (
     <ScrollView
@@ -108,6 +132,33 @@ export default function DeliveryPage() {
         <Text style={[styles.subtitle, { color: theme.textDim }]}>
           Real-time updates on your equipment delivery status
         </Text>
+      </View>
+
+      <View style={styles.searchSection}>
+        <View style={[styles.searchBox, { backgroundColor: theme.unselectedTab }]}>
+          <Ionicons name="search" size={18} color={theme.textDim} />
+          <TextInput
+            style={[styles.searchInput, { color: theme.text }]}
+            placeholder="Search orders, bookings, reference..."
+            placeholderTextColor={theme.textDim}
+            value={search}
+            onChangeText={setSearch}
+          />
+        </View>
+        <TouchableOpacity
+          style={[styles.filterBtn, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}
+          onPress={() =>
+            setEntryFilter((prev) =>
+              prev === 'all' ? 'orders' : prev === 'orders' ? 'bookings' : 'all'
+            )
+          }
+          activeOpacity={0.8}
+        >
+          <Ionicons name="options-outline" size={18} color={theme.primary} />
+          <Text style={[styles.filterBtnText, { color: theme.primary }]}>
+            {entryFilter === 'all' ? 'All' : entryFilter === 'orders' ? 'Orders' : 'Bookings'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Hero section: Latest Activity */}
@@ -151,7 +202,7 @@ export default function DeliveryPage() {
       ) : (
         <View style={[styles.heroCard, { backgroundColor: theme.surface, padding: 40, alignItems: 'center', borderWidth: 2, borderColor: theme.border }]}>
           <Ionicons name="basket-outline" size={48} color={theme.textDim} style={{ opacity: 0.2 }} />
-          <Text style={[styles.emptyHeroText, { color: theme.textDim }]}>No active orders found.</Text>
+          <Text style={[styles.emptyHeroText, { color: theme.textDim }]}>No active deliveries found.</Text>
         </View>
       )}
 
@@ -160,11 +211,11 @@ export default function DeliveryPage() {
         <View style={styles.historyHeader}>
           <Text style={[styles.historyTitle, { color: theme.text }]}>Timeline</Text>
           <View style={[styles.countBadge, { backgroundColor: '#F1F5F9' }]}>
-            <Text style={styles.countText}>{orderHistory.length}</Text>
+            <Text style={styles.countText}>{visibleHistory.length}</Text>
           </View>
         </View>
 
-        {orderHistory.map((entry, idx) => {
+        {visibleHistory.map((entry, idx) => {
           const expanded = expandedOrders.has(idx);
           const isOrder = entry.type === 'order';
           return (
@@ -228,6 +279,12 @@ export default function DeliveryPage() {
             </TouchableOpacity>
           );
         })}
+        {visibleHistory.length === 0 && (
+          <View style={[styles.timelineCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border, alignItems: 'center' }]}>
+            <Ionicons name="hourglass-outline" size={32} color={theme.textDim} style={{ opacity: 0.4 }} />
+            <Text style={[styles.emptyHeroText, { color: theme.textDim, marginTop: 8 }]}>No active results for current search/filter.</Text>
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -259,6 +316,39 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 26, fontWeight: '900' },
   subtitle: { fontSize: 13, fontWeight: '500', marginTop: 4, textAlign: 'center', maxWidth: '85%' },
+  searchSection: {
+    marginHorizontal: 20,
+    marginBottom: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  searchBox: {
+    flex: 1,
+    height: 46,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  filterBtn: {
+    height: 46,
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  filterBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+  },
   heroCard: {
     marginHorizontal: 20,
     padding: 24,

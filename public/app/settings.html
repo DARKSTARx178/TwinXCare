@@ -109,8 +109,8 @@
             </a>
         </div>
 
-        <div style="text-align: center; color: var(--text-dim); font-size: 0.8rem; margin: 40px 0;">
-            TwinXCare v1.2.0 Alpha Web<br>
+        <div id="app-version-footer" style="text-align: center; color: var(--text-dim); font-size: 0.8rem; margin: 40px 0;">
+            TwinXCare v... Alpha Web<br>
             © 2026 TwinXCare.
         </div>
 
@@ -147,6 +147,17 @@
         const userNameEl = document.getElementById('user-name');
         const userAvatarEl = document.getElementById('user-avatar');
         const logoutBtnWrap = document.getElementById('logout-btn-wrap');
+        const appVersionFooter = document.getElementById('app-version-footer');
+
+        (async () => {
+            try {
+                const res = await fetch('/api/app-version');
+                const data = await res.json();
+                if (res.ok && data?.version && appVersionFooter) {
+                    appVersionFooter.innerHTML = `TwinXCare v${data.version} Alpha Web<br>© 2026 TwinXCare.`;
+                }
+            } catch (e) { }
+        })();
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {

@@ -8,7 +8,7 @@ export const homeTranslations = {
     welcome: 'Welcome',
     createAccount: 'Create an Account',
     login: 'Login',
-    submitFeedback: 'Submit Feedback',
+    submitFeedback: 'Feedback',
     orderHistory: 'History',
     signInToSeeHistory: 'Sign in to see order history.',
     noOrders: 'No orders yet.',

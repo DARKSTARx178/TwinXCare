@@ -25,6 +25,13 @@ const formatTimestamp = (value: any) => {
   return value.toDate().toLocaleString();
 };
 
+const isOlderThan30Days = (value: any) => {
+  if (!value?.toDate) return false;
+  const createdAt = value.toDate().getTime();
+  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+  return Date.now() - createdAt >= thirtyDaysMs;
+};
+
 export default function AdminSupport() {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
@@ -40,6 +47,26 @@ export default function AdminSupport() {
       const feedbackSnap = await getDocs(query(collection(db, 'feedback'), orderBy('createdAt', 'desc')));
       const requestSnap = await getDocs(query(collection(db, 'requests'), orderBy('createdAt', 'desc')));
 
+      const autoArchiveTasks: Promise<void>[] = [];
+
+      feedbackSnap.docs.forEach((d) => {
+        const data = d.data() as any;
+        if (!data.archived && isOlderThan30Days(data.createdAt)) {
+          autoArchiveTasks.push(updateDoc(doc(db, 'feedback', d.id), { archived: true }));
+        }
+      });
+
+      requestSnap.docs.forEach((d) => {
+        const data = d.data() as any;
+        if (!data.archived && isOlderThan30Days(data.createdAt)) {
+          autoArchiveTasks.push(updateDoc(doc(db, 'requests', d.id), { archived: true }));
+        }
+      });
+
+      if (autoArchiveTasks.length) {
+        await Promise.all(autoArchiveTasks);
+      }
+
       const feedbackItems = feedbackSnap.docs.map((d) => {
         const data = d.data() as any;
         return {
@@ -48,7 +75,7 @@ export default function AdminSupport() {
           username: data.username || 'Anonymous',
           message: data.message || '-',
           rating: data.rating,
-          archived: !!data.archived,
+          archived: !!data.archived || isOlderThan30Days(data.createdAt),
           createdAtLabel: formatTimestamp(data.createdAt),
         };
       });
@@ -60,7 +87,7 @@ export default function AdminSupport() {
           type: 'request' as SupportType,
           username: data.username || 'Anonymous',
           message: data.message || '-',
-          archived: !!data.archived,
+          archived: !!data.archived || isOlderThan30Days(data.createdAt),
           createdAtLabel: formatTimestamp(data.createdAt),
         };
       });

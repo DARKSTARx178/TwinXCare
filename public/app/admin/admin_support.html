@@ -127,9 +127,16 @@
         let statusFilter = 'active';
         let typeFilter = 'all';
 
+        const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
         const formatDate = (value) => {
             if (!value || !value.toDate) return 'Pending timestamp';
             return value.toDate().toLocaleString();
+        };
+
+        const isOlderThan30Days = (value) => {
+            if (!value || !value.toDate) return false;
+            return (Date.now() - value.toDate().getTime()) >= THIRTY_DAYS_MS;
         };
 
         const createFilterButtons = (container, values, getLabel, onClick, activeValue) => {
@@ -253,9 +260,26 @@
                 const feedbackSnap = await getDocs(query(collection(db, 'feedback'), orderBy('createdAt', 'desc')));
                 const requestSnap = await getDocs(query(collection(db, 'requests'), orderBy('createdAt', 'desc')));
 
+                const autoArchiveTasks = [];
+                feedbackSnap.docs.forEach((d) => {
+                    const data = d.data();
+                    if (!data.archived && isOlderThan30Days(data.createdAt)) {
+                        autoArchiveTasks.push(updateDoc(doc(db, 'feedback', d.id), { archived: true }));
+                    }
+                });
+                requestSnap.docs.forEach((d) => {
+                    const data = d.data();
+                    if (!data.archived && isOlderThan30Days(data.createdAt)) {
+                        autoArchiveTasks.push(updateDoc(doc(db, 'requests', d.id), { archived: true }));
+                    }
+                });
+                if (autoArchiveTasks.length) {
+                    await Promise.all(autoArchiveTasks);
+                }
+
                 allItems = [
-                    ...feedbackSnap.docs.map((d) => ({ id: d.id, type: 'feedback', ...d.data(), archived: !!d.data().archived })),
-                    ...requestSnap.docs.map((d) => ({ id: d.id, type: 'request', ...d.data(), archived: !!d.data().archived })),
+                    ...feedbackSnap.docs.map((d) => ({ id: d.id, type: 'feedback', ...d.data(), archived: !!d.data().archived || isOlderThan30Days(d.data().createdAt) })),
+                    ...requestSnap.docs.map((d) => ({ id: d.id, type: 'request', ...d.data(), archived: !!d.data().archived || isOlderThan30Days(d.data().createdAt) })),
                 ];
 
                 createFilterButtons(statusFiltersEl, ['active', 'archived', 'all'], (v) => v[0].toUpperCase() + v.slice(1), setStatusFilter, statusFilter);

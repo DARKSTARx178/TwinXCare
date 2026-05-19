@@ -1,16 +1,22 @@
 import { ThemeContext } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { collection, getDocs, orderBy, query } from 'firebase/firestore';
-import React, { useCallback, useContext, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc } from 'firebase/firestore';
+import React, { useCallback, useContext, useMemo, useState } from 'react';
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { db } from '../../firebase/firebase';
+
+type SupportType = 'feedback' | 'request';
+type StatusFilter = 'all' | 'active' | 'archived';
+type TypeFilter = 'all' | SupportType;
 
 type SupportItem = {
   id: string;
+  type: SupportType;
   username: string;
   message: string;
   createdAtLabel: string;
+  archived: boolean;
   rating?: number;
 };
 
@@ -22,42 +28,46 @@ const formatTimestamp = (value: any) => {
 export default function AdminSupport() {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
-  const [feedback, setFeedback] = useState<SupportItem[]>([]);
-  const [requests, setRequests] = useState<SupportItem[]>([]);
+  const [items, setItems] = useState<SupportItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('active');
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
 
   const loadData = useCallback(async () => {
     try {
       const feedbackSnap = await getDocs(query(collection(db, 'feedback'), orderBy('createdAt', 'desc')));
       const requestSnap = await getDocs(query(collection(db, 'requests'), orderBy('createdAt', 'desc')));
 
-      setFeedback(
-        feedbackSnap.docs.map((d) => {
-          const data = d.data() as any;
-          return {
-            id: d.id,
-            username: data.username || 'Anonymous',
-            message: data.message || '-',
-            rating: data.rating,
-            createdAtLabel: formatTimestamp(data.createdAt),
-          };
-        })
-      );
+      const feedbackItems = feedbackSnap.docs.map((d) => {
+        const data = d.data() as any;
+        return {
+          id: d.id,
+          type: 'feedback' as SupportType,
+          username: data.username || 'Anonymous',
+          message: data.message || '-',
+          rating: data.rating,
+          archived: !!data.archived,
+          createdAtLabel: formatTimestamp(data.createdAt),
+        };
+      });
 
-      setRequests(
-        requestSnap.docs.map((d) => {
-          const data = d.data() as any;
-          return {
-            id: d.id,
-            username: data.username || 'Anonymous',
-            message: data.message || '-',
-            createdAtLabel: formatTimestamp(data.createdAt),
-          };
-        })
-      );
+      const requestItems = requestSnap.docs.map((d) => {
+        const data = d.data() as any;
+        return {
+          id: d.id,
+          type: 'request' as SupportType,
+          username: data.username || 'Anonymous',
+          message: data.message || '-',
+          archived: !!data.archived,
+          createdAtLabel: formatTimestamp(data.createdAt),
+        };
+      });
+
+      setItems([...feedbackItems, ...requestItems]);
     } catch (error) {
-      console.error('Error loading support data:', error);
+      console.error('Error loading data:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -76,16 +86,91 @@ export default function AdminSupport() {
     loadData();
   };
 
-  const renderCard = (item: SupportItem, type: 'feedback' | 'request') => (
-    <View key={item.id} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
+  const filteredItems = useMemo(() => {
+    const keyword = search.trim().toLowerCase();
+    return items.filter((item) => {
+      if (statusFilter === 'active' && item.archived) return false;
+      if (statusFilter === 'archived' && !item.archived) return false;
+      if (typeFilter !== 'all' && item.type !== typeFilter) return false;
+      if (!keyword) return true;
+      return item.username.toLowerCase().includes(keyword) || item.message.toLowerCase().includes(keyword);
+    });
+  }, [items, search, statusFilter, typeFilter]);
+
+  const handleArchiveToggle = async (item: SupportItem) => {
+    try {
+      const collectionName = item.type === 'feedback' ? 'feedback' : 'requests';
+      await updateDoc(doc(db, collectionName, item.id), { archived: !item.archived });
+      setItems((prev) => prev.map((entry) => (entry.id === item.id && entry.type === item.type ? { ...entry, archived: !entry.archived } : entry)));
+    } catch (error) {
+      console.error('Error updating archive status:', error);
+      Alert.alert('Error', 'Failed to update archive status.');
+    }
+  };
+
+  const handleDelete = async (item: SupportItem) => {
+    Alert.alert('Delete Entry', 'This action is irreversible.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const collectionName = item.type === 'feedback' ? 'feedback' : 'requests';
+            await deleteDoc(doc(db, collectionName, item.id));
+            setItems((prev) => prev.filter((entry) => !(entry.id === item.id && entry.type === item.type)));
+          } catch (error) {
+            console.error('Error deleting entry:', error);
+            Alert.alert('Error', 'Failed to delete entry.');
+          }
+        },
+      },
+    ]);
+  };
+
+  const counts = useMemo(() => ({
+    feedback: items.filter((x) => x.type === 'feedback').length,
+    request: items.filter((x) => x.type === 'request').length,
+    shown: filteredItems.length,
+  }), [items, filteredItems]);
+
+  const renderCard = (item: SupportItem) => (
+    <View key={`${item.type}-${item.id}`} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
       <View style={styles.row}>
         <Text style={[styles.username, { color: theme.text }]}>{item.username}</Text>
         <Text style={[styles.time, { color: theme.textDim }]}>{item.createdAtLabel}</Text>
       </View>
-      {type === 'feedback' && typeof item.rating === 'number' && (
+
+      <View style={styles.typeRow}>
+        <Text style={[styles.typeBadge, { color: item.type === 'feedback' ? theme.primary : '#10b981' }]}>
+          {item.type === 'feedback' ? 'Feedback' : 'Assistance'}
+        </Text>
+        {item.archived && <Text style={[styles.archivedBadge, { color: theme.textDim }]}>Archived</Text>}
+      </View>
+
+      {item.type === 'feedback' && typeof item.rating === 'number' && (
         <Text style={[styles.meta, { color: theme.primary }]}>Rating: {item.rating}/5</Text>
       )}
+
       <Text style={[styles.message, { color: theme.text }]}>{item.message}</Text>
+
+      <View style={styles.actionsRow}>
+        <TouchableOpacity
+          style={[styles.actionBtn, { borderColor: theme.border, backgroundColor: theme.background }]}
+          onPress={() => handleArchiveToggle(item)}
+        >
+          <Ionicons name={item.archived ? 'archive-outline' : 'archive'} size={16} color={theme.text} />
+          <Text style={[styles.actionText, { color: theme.text }]}>{item.archived ? 'Unarchive' : 'Archive'}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionBtn, { borderColor: '#fecaca', backgroundColor: '#fff1f2' }]}
+          onPress={() => handleDelete(item)}
+        >
+          <Ionicons name="trash-outline" size={16} color="#dc2626" />
+          <Text style={[styles.actionText, { color: '#dc2626' }]}>Delete</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -100,32 +185,63 @@ export default function AdminSupport() {
       </TouchableOpacity>
 
       <View style={styles.header}>
-        <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
+        <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}> 
           <Ionicons name="mail-open-outline" size={30} color={theme.primary} />
         </View>
-        <Text style={[styles.title, { color: theme.text }]}>Support Inbox</Text>
+        <Text style={[styles.title, { color: theme.text }]}>Inbox</Text>
         <Text style={[styles.subtitle, { color: theme.textDim }]}>Feedback and assistance requests from users</Text>
+      </View>
+
+      <TextInput
+        value={search}
+        onChangeText={setSearch}
+        placeholder="Search by username or message"
+        placeholderTextColor={theme.textDim}
+        style={[styles.searchInput, { borderColor: theme.border, color: theme.text, backgroundColor: theme.surface }]}
+      />
+
+      <View style={styles.filterWrap}>
+        {(['active', 'archived', 'all'] as StatusFilter[]).map((value) => (
+          <TouchableOpacity
+            key={value}
+            onPress={() => setStatusFilter(value)}
+            style={[
+              styles.filterBtn,
+              { borderColor: theme.border, backgroundColor: statusFilter === value ? theme.primaryGlow : theme.surface },
+            ]}
+          >
+            <Text style={[styles.filterText, { color: theme.text }]}>{value[0].toUpperCase() + value.slice(1)}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <View style={styles.filterWrap}>
+        {(['all', 'feedback', 'request'] as TypeFilter[]).map((value) => (
+          <TouchableOpacity
+            key={value}
+            onPress={() => setTypeFilter(value)}
+            style={[
+              styles.filterBtn,
+              { borderColor: theme.border, backgroundColor: typeFilter === value ? theme.primaryGlow : theme.surface },
+            ]}
+          >
+            <Text style={[styles.filterText, { color: theme.text }]}>
+              {value === 'all' ? 'All Types' : value === 'feedback' ? 'Feedback' : 'Assistance'}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {loading ? (
         <ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 30 }} />
       ) : (
         <>
+          <Text style={[styles.summary, { color: theme.textDim }]}>Shown {counts.shown} | Feedback {counts.feedback} | Assistance {counts.request}</Text>
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Feedback ({feedback.length})</Text>
-            {feedback.length === 0 ? (
-              <Text style={[styles.empty, { color: theme.textDim }]}>No feedback submitted yet.</Text>
+            {filteredItems.length === 0 ? (
+              <Text style={[styles.empty, { color: theme.textDim }]}>No entries match your search/filter.</Text>
             ) : (
-              feedback.map((item) => renderCard(item, 'feedback'))
-            )}
-          </View>
-
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Assistance Requests ({requests.length})</Text>
-            {requests.length === 0 ? (
-              <Text style={[styles.empty, { color: theme.textDim }]}>No assistance requests submitted yet.</Text>
-            ) : (
-              requests.map((item) => renderCard(item, 'request'))
+              filteredItems.map((item) => renderCard(item))
             )}
           </View>
         </>
@@ -146,7 +262,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: 'rgba(0,0,0,0.03)',
   },
-  header: { alignItems: 'center', marginBottom: 24 },
+  header: { alignItems: 'center', marginBottom: 16 },
   iconCircle: {
     width: 64,
     height: 64,
@@ -157,8 +273,12 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 26, fontWeight: '800', textAlign: 'center' },
   subtitle: { marginTop: 4, fontSize: 14, fontWeight: '500', textAlign: 'center' },
+  searchInput: { borderWidth: 1, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, marginBottom: 12 },
+  filterWrap: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  filterBtn: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 },
+  filterText: { fontSize: 12, fontWeight: '700' },
+  summary: { fontSize: 12, fontWeight: '600', marginBottom: 10 },
   section: { marginBottom: 22 },
-  sectionTitle: { fontSize: 18, fontWeight: '800', marginBottom: 10 },
   empty: { fontSize: 13, fontWeight: '500' },
   card: {
     borderWidth: 1,
@@ -169,6 +289,12 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
   username: { fontSize: 14, fontWeight: '700', flex: 1 },
   time: { fontSize: 11, fontWeight: '500' },
+  typeRow: { flexDirection: 'row', marginTop: 8, gap: 10, alignItems: 'center' },
+  typeBadge: { fontSize: 12, fontWeight: '700' },
+  archivedBadge: { fontSize: 11, fontWeight: '700' },
   meta: { marginTop: 8, fontSize: 12, fontWeight: '700' },
   message: { marginTop: 8, fontSize: 13, lineHeight: 19, fontWeight: '500' },
+  actionsRow: { flexDirection: 'row', gap: 8, marginTop: 12 },
+  actionBtn: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  actionText: { fontSize: 12, fontWeight: '700' },
 });

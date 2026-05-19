@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TwinXCare - Support Inbox</title>
+    <title>TwinXCare - Inbox</title>
     <link rel="stylesheet" href="/app/app.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
     <style>
-        .header { text-align: center; margin: 30px 0 24px; }
+        .header { text-align: center; margin: 30px 0 18px; }
         .icon-circle {
             width: 64px;
             height: 64px;
@@ -22,8 +22,28 @@
             justify-content: center;
             font-size: 30px;
         }
-        .section { margin-bottom: 22px; }
-        .section-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 10px; color: var(--text); }
+        .tools { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+        .search {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-size: .88rem;
+            color: var(--text);
+            background: var(--surface);
+        }
+        .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .filter-btn {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 12px;
+            background: var(--surface);
+            font-size: .76rem;
+            font-weight: 700;
+            color: var(--text);
+            cursor: pointer;
+        }
+        .filter-btn.active { background: var(--primary-glow); }
+        .summary { font-size: .78rem; color: var(--text-dim); margin-bottom: 10px; }
         .card {
             border: 1px solid var(--border);
             background: var(--surface);
@@ -34,8 +54,26 @@
         .row { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
         .username { font-size: .9rem; font-weight: 700; color: var(--text); }
         .time { font-size: .72rem; color: var(--text-dim); }
-        .meta { margin-top: 8px; font-size: .78rem; font-weight: 700; color: var(--primary); }
+        .meta-row { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+        .meta { font-size: .78rem; font-weight: 700; color: var(--primary); }
+        .badge { font-size: .74rem; font-weight: 700; }
+        .archived { color: var(--text-dim); }
         .message { margin-top: 8px; font-size: .84rem; line-height: 1.45; color: var(--text); }
+        .action-row { display: flex; gap: 8px; margin-top: 12px; }
+        .action-btn {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: .76rem;
+            font-weight: 700;
+            color: var(--text);
+            background: var(--background);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .delete-btn { border-color: #fecaca; background: #fff1f2; color: #dc2626; }
         .empty { font-size: .82rem; color: var(--text-dim); }
         .back-btn {
             position: absolute;
@@ -62,54 +100,141 @@
     <main>
         <div class="header">
             <div class="icon-circle"><i class="mdi mdi-email-open-outline"></i></div>
-            <h1>Support Inbox</h1>
-            <p>Feedback and assistance requests from users</p>
+            <h1>Inbox</h1>
+            <p>Feedback and assistance requests</p>
         </div>
 
-        <section class="section">
-            <div class="section-title" id="feedback-title">Feedback (0)</div>
-            <div id="feedback-list"></div>
-        </section>
+        <div class="tools">
+            <input id="search" class="search" placeholder="Search by username or message" />
+            <div class="filter-row" id="status-filters"></div>
+            <div class="filter-row" id="type-filters"></div>
+        </div>
 
-        <section class="section">
-            <div class="section-title" id="request-title">Assistance Requests (0)</div>
-            <div id="request-list"></div>
-        </section>
+        <div class="summary" id="summary"></div>
+        <div id="list"></div>
     </main>
 
     <script type="module">
-        import { auth, onAuthStateChanged, db, doc, getDoc, collection, getDocs, query, orderBy } from '/app/firebase.js';
+        import { auth, onAuthStateChanged, db, doc, getDoc, collection, getDocs, query, orderBy, updateDoc, deleteDoc } from '/app/firebase.js';
 
-        const feedbackList = document.getElementById('feedback-list');
-        const requestList = document.getElementById('request-list');
-        const feedbackTitle = document.getElementById('feedback-title');
-        const requestTitle = document.getElementById('request-title');
+        const listEl = document.getElementById('list');
+        const summaryEl = document.getElementById('summary');
+        const searchEl = document.getElementById('search');
+        const statusFiltersEl = document.getElementById('status-filters');
+        const typeFiltersEl = document.getElementById('type-filters');
+
+        let allItems = [];
+        let statusFilter = 'active';
+        let typeFilter = 'all';
 
         const formatDate = (value) => {
             if (!value || !value.toDate) return 'Pending timestamp';
             return value.toDate().toLocaleString();
         };
 
-        const renderCard = (item, type) => {
-            const div = document.createElement('div');
-            div.className = 'card';
-            div.innerHTML = `
-                <div class="row">
-                    <div class="username">${item.username || 'Anonymous'}</div>
-                    <div class="time">${formatDate(item.createdAt)}</div>
-                </div>
-                ${type === 'feedback' && typeof item.rating === 'number' ? `<div class="meta">Rating: ${item.rating}/5</div>` : ''}
-                <div class="message">${item.message || '-'}</div>
-            `;
-            return div;
+        const createFilterButtons = (container, values, getLabel, onClick, activeValue) => {
+            container.innerHTML = '';
+            values.forEach((value) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `filter-btn ${activeValue === value ? 'active' : ''}`;
+                btn.textContent = getLabel(value);
+                btn.onclick = () => onClick(value);
+                container.appendChild(btn);
+            });
         };
 
-        const renderEmpty = (container, text) => {
-            const p = document.createElement('p');
-            p.className = 'empty';
-            p.textContent = text;
-            container.appendChild(p);
+        const getCollectionName = (type) => type === 'feedback' ? 'feedback' : 'requests';
+
+        const applyFilters = () => {
+            const keyword = searchEl.value.trim().toLowerCase();
+            return allItems.filter((item) => {
+                if (statusFilter === 'active' && item.archived) return false;
+                if (statusFilter === 'archived' && !item.archived) return false;
+                if (typeFilter !== 'all' && item.type !== typeFilter) return false;
+                if (!keyword) return true;
+                return (item.username || '').toLowerCase().includes(keyword) || (item.message || '').toLowerCase().includes(keyword);
+            });
         };
+
+        const render = () => {
+            const filtered = applyFilters();
+            const feedbackCount = allItems.filter((x) => x.type === 'feedback').length;
+            const requestCount = allItems.filter((x) => x.type === 'request').length;
+            summaryEl.textContent = `Shown ${filtered.length} | Feedback ${feedbackCount} | Assistance ${requestCount}`;
+
+            listEl.innerHTML = '';
+            if (!filtered.length) {
+                const p = document.createElement('p');
+                p.className = 'empty';
+                p.textContent = 'No entries match your search/filter.';
+                listEl.appendChild(p);
+                return;
+            }
+
+            filtered.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="row">
+                        <div class="username">${item.username || 'Anonymous'}</div>
+                        <div class="time">${formatDate(item.createdAt)}</div>
+                    </div>
+                    <div class="meta-row">
+                        <div class="badge" style="color:${item.type === 'feedback' ? 'var(--primary)' : '#10b981'}">${item.type === 'feedback' ? 'Feedback' : 'Assistance'}</div>
+                        ${item.archived ? '<div class="badge archived">Archived</div>' : ''}
+                    </div>
+                    ${item.type === 'feedback' && typeof item.rating === 'number' ? `<div class="meta">Rating: ${item.rating}/5</div>` : ''}
+                    <div class="message">${item.message || '-'}</div>
+                    <div class="action-row">
+                        <button class="action-btn archive-btn"><i class="mdi mdi-archive-outline"></i>${item.archived ? 'Unarchive' : 'Archive'}</button>
+                        <button class="action-btn delete-btn"><i class="mdi mdi-delete-outline"></i>Delete</button>
+                    </div>
+                `;
+
+                const archiveBtn = card.querySelector('.archive-btn');
+                const deleteBtn = card.querySelector('.delete-btn');
+
+                archiveBtn.onclick = async () => {
+                    try {
+                        await updateDoc(doc(db, getCollectionName(item.type), item.id), { archived: !item.archived });
+                        allItems = allItems.map((entry) => entry.id === item.id && entry.type === item.type ? { ...entry, archived: !entry.archived } : entry);
+                        render();
+                    } catch (e) {
+                        console.error(e);
+                        alert('Failed to update.');
+                    }
+                };
+
+                deleteBtn.onclick = async () => {
+                    if (!confirm('This action is irreversible.')) return;
+                    try {
+                        await deleteDoc(doc(db, getCollectionName(item.type), item.id));
+                        allItems = allItems.filter((entry) => !(entry.id === item.id && entry.type === item.type));
+                        render();
+                    } catch (e) {
+                        console.error(e);
+                        alert('Failed to delete.');
+                    }
+                };
+
+                listEl.appendChild(card);
+            });
+        };
+
+        const setStatusFilter = (value) => {
+            statusFilter = value;
+            createFilterButtons(statusFiltersEl, ['active', 'archived', 'all'], (v) => v[0].toUpperCase() + v.slice(1), setStatusFilter, statusFilter);
+            render();
+        };
+
+        const setTypeFilter = (value) => {
+            typeFilter = value;
+            createFilterButtons(typeFiltersEl, ['all', 'feedback', 'request'], (v) => v === 'all' ? 'All Types' : v === 'feedback' ? 'Feedback' : 'Assistance', setTypeFilter, typeFilter);
+            render();
+        };
+
+        searchEl.addEventListener('input', render);
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -120,7 +245,7 @@
             try {
                 const userDoc = await getDoc(doc(db, 'users', user.uid));
                 if (!userDoc.exists() || userDoc.data().role !== 'admin') {
-                    alert('Unauthorized access. Admin privileges required.');
+                    alert('Unauthorized access');
                     window.location.href = '/app/index.html';
                     return;
                 }
@@ -128,23 +253,17 @@
                 const feedbackSnap = await getDocs(query(collection(db, 'feedback'), orderBy('createdAt', 'desc')));
                 const requestSnap = await getDocs(query(collection(db, 'requests'), orderBy('createdAt', 'desc')));
 
-                feedbackTitle.textContent = `Feedback (${feedbackSnap.size})`;
-                requestTitle.textContent = `Assistance Requests (${requestSnap.size})`;
+                allItems = [
+                    ...feedbackSnap.docs.map((d) => ({ id: d.id, type: 'feedback', ...d.data(), archived: !!d.data().archived })),
+                    ...requestSnap.docs.map((d) => ({ id: d.id, type: 'request', ...d.data(), archived: !!d.data().archived })),
+                ];
 
-                if (feedbackSnap.empty) {
-                    renderEmpty(feedbackList, 'No feedback submitted yet.');
-                } else {
-                    feedbackSnap.forEach((d) => feedbackList.appendChild(renderCard(d.data(), 'feedback')));
-                }
-
-                if (requestSnap.empty) {
-                    renderEmpty(requestList, 'No assistance requests submitted yet.');
-                } else {
-                    requestSnap.forEach((d) => requestList.appendChild(renderCard(d.data(), 'request')));
-                }
+                createFilterButtons(statusFiltersEl, ['active', 'archived', 'all'], (v) => v[0].toUpperCase() + v.slice(1), setStatusFilter, statusFilter);
+                createFilterButtons(typeFiltersEl, ['all', 'feedback', 'request'], (v) => v === 'all' ? 'All Types' : v === 'feedback' ? 'Feedback' : 'Assistance', setTypeFilter, typeFilter);
+                render();
             } catch (e) {
                 console.error(e);
-                alert('Failed to load support inbox.');
+                alert('Error');
             }
         });
     </script>

@@ -561,30 +561,7 @@
             text-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
         }
 
-        /* Auth Screen */
-        #auth-view {
-            display: flex;
-            min-height: 85vh;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .login-card {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            padding: 4rem;
-            border-radius: 40px;
-            width: 100%;
-            max-width: 450px;
-            text-align: center;
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
-        }
-
         /* Utility */
-        #dashboard-view {
-            display: none;
-        }
-
         .hidden {
             display: none;
         }
@@ -611,37 +588,10 @@
             <span id="offline-label" class="badge-glass badge-pending hidden">
                 <i class="fas fa-wifi-slash"></i> Offline Sync
             </span>
-            <button class="logout-btn hidden" id="logout-btn">
-                <i class="fas fa-power-off"></i>
-            </button>
         </div>
     </nav>
 
     <div class="container">
-        <!-- Auth View -->
-        <section id="auth-view">
-            <div class="login-card">
-                <i class="fas fa-fingerprint" style="font-size: 3rem; color: var(--primary); margin-bottom: 2rem;"></i>
-                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 1rem;">Admin page</h2>
-                <p style="color: var(--text-dim); margin-bottom: 3rem;">Authorized access only.</p>
-                <form id="login-form">
-                    <div class="form-group" style="text-align: left;">
-                        <label>Email</label>
-                        <input type="email" id="login-email" class="input-dark" placeholder="hi@gmail.com" required>
-                    </div>
-                    <div class="form-group" style="text-align: left;">
-                        <label>Password</label>
-                        <input type="password" id="login-pass" class="input-dark" placeholder="12345" required>
-                    </div>
-                    <button type="submit" class="btn-premium"
-                        style="background: var(--primary); color: #FFFFFF; margin-top: 1.5rem;">
-                        <i class="fas fa-unlock"></i> Login
-                    </button>
-                </form>
-            </div>
-        </section>
-
-        <!-- Dashboard View -->
         <section id="dashboard-view">
             <!-- Stats -->
             <div class="stats-row">
@@ -898,8 +848,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfigResponse = await fetch('/api/firebase-config');
         if (!firebaseConfigResponse.ok) {
@@ -920,46 +870,12 @@
         let selectedRating = 0;
 
         const loader = document.getElementById('loader');
-        const authView = document.getElementById('auth-view');
         const dashboardView = document.getElementById('dashboard-view');
-        const logoutBtn = document.getElementById('logout-btn');
 
         // INITIALIZATION
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // Verify Admin Role
-                try {
-                    const userSnap = await getDoc(doc(db, 'users', user.uid));
-                    if (userSnap.exists() && userSnap.data().role === 'admin') {
-                        dashboardView.style.display = 'block';
-                        authView.style.display = 'none';
-                        logoutBtn.classList.remove('hidden');
-                        syncData();
-                    } else {
-                        alert("Unauthorized access. Admin credentials required.");
-                        await signOut(auth);
-                        location.reload();
-                    }
-                } catch (err) {
-                    console.error("Auth verification failed:", err);
-                    await signOut(auth);
-                }
-            } else {
-                dashboardView.style.display = 'none';
-                authView.style.display = 'flex';
-                logoutBtn.classList.add('hidden');
-            }
-            hideLoader();
-        });
-
-        // AUTH HANDLERS
-        document.getElementById('login-form').onsubmit = async (e) => {
-            e.preventDefault();
-            try {
-                await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value);
-            } catch (err) { alert(err.message); }
-        };
-        logoutBtn.onclick = () => signOut(auth);
+        dashboardView.style.display = 'block';
+        syncData();
+        hideLoader();
 
         // DATA SYNC
         function syncData() {

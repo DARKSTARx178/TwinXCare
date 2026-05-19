@@ -430,30 +430,7 @@
             color: #FFFFFF;
         }
 
-        /* Auth Screen */
-        #auth-view {
-            display: flex;
-            min-height: 85vh;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .login-card {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            padding: 4rem;
-            border-radius: 40px;
-            width: 100%;
-            max-width: 450px;
-            text-align: center;
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
-        }
-
         /* Utility */
-        #dashboard-view {
-            display: none;
-        }
-
         .hidden {
             display: none;
         }
@@ -477,38 +454,10 @@
             <span id="offline-label" class="badge-glass badge-pending hidden">
                 <i class="fas fa-wifi-slash"></i> Offline Sync
             </span>
-            <button class="logout-btn hidden" id="logout-btn">
-                <i class="fas fa-power-off"></i>
-            </button>
         </div>
     </nav>
 
     <div class="container">
-        <!-- Auth View -->
-        <section id="auth-view">
-            <div class="login-card">
-                <i class="fas fa-user-circle" style="font-size: 3rem; color: var(--primary); margin-bottom: 2rem;"></i>
-                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 1rem;">Escort Portal</h2>
-                <p style="color: var(--text-dim); margin-bottom: 3rem;">Sign in to manage your care requests and
-                    availability.</p>
-                <form id="login-form">
-                    <div class="form-group" style="text-align: left;">
-                        <label>Email Address</label>
-                        <input type="email" id="login-email" class="input-dark" placeholder="your@email.com" required>
-                    </div>
-                    <div class="form-group" style="text-align: left;">
-                        <label>Password</label>
-                        <input type="password" id="login-pass" class="input-dark" placeholder="••••••••" required>
-                    </div>
-                    <button type="submit" class="btn-premium"
-                        style="background: var(--primary); color: #FFFFFF; margin-top: 1.5rem;">
-                        <i class="fas fa-sign-in-alt"></i> Sign In
-                    </button>
-                </form>
-            </div>
-        </section>
-
-        <!-- Dashboard View -->
         <section id="dashboard-view">
             <!-- Information Banner -->
             <div class="glass-box"
@@ -661,7 +610,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, where, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfigResponse = await fetch('/api/firebase-config');
@@ -680,9 +629,7 @@
         let myRequests = [];
 
         const loader = document.getElementById('loader');
-        const authView = document.getElementById('auth-view');
         const dashboardView = document.getElementById('dashboard-view');
-        const logoutBtn = document.getElementById('logout-btn');
 
         // INITIALIZATION
         onAuthStateChanged(auth, async (user) => {
@@ -701,28 +648,20 @@
                     }
 
                     dashboardView.style.display = 'block';
-                    authView.style.display = 'none';
-                    logoutBtn.classList.remove('hidden');
                     syncUserData(user.uid);
                 } catch (err) {
                     console.error("User profile fetch error:", err);
+                    dashboardView.style.display = 'block';
                 }
             } else {
-                dashboardView.style.display = 'none';
-                authView.style.display = 'flex';
-                logoutBtn.classList.add('hidden');
+                dashboardView.style.display = 'block';
+                document.getElementById('vol-form-container').style.display = 'block';
+                document.getElementById('vol-data-container').style.display = 'block';
+                document.getElementById('req-form-container').style.display = 'block';
+                document.getElementById('req-data-container').style.display = 'block';
             }
             hideLoader();
         });
-
-        // AUTH HANDLERS
-        document.getElementById('login-form').onsubmit = async (e) => {
-            e.preventDefault();
-            try {
-                await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value);
-            } catch (err) { alert(err.message); }
-        };
-        logoutBtn.onclick = () => signOut(auth);
 
         // DATA SYNC
         function syncUserData(uid) {
@@ -743,10 +682,9 @@
         // ENTRY SUBMISSIONS
         document.getElementById('vol-form').onsubmit = async (e) => {
             e.preventDefault();
-            if (!auth.currentUser) return;
             const data = {
-                providerId: auth.currentUser.uid,
-                providerEmail: auth.currentUser.email,
+                providerId: auth.currentUser?.uid || 'guest',
+                providerEmail: auth.currentUser?.email || 'guest',
                 date: document.getElementById('vol-date').value,
                 fromTime: document.getElementById('vol-start').value,
                 toTime: document.getElementById('vol-end').value,
@@ -767,10 +705,9 @@
 
         document.getElementById('req-form').onsubmit = async (e) => {
             e.preventDefault();
-            if (!auth.currentUser) return;
             const data = {
-                userId: auth.currentUser.uid,
-                userEmail: auth.currentUser.email,
+                userId: auth.currentUser?.uid || 'guest',
+                userEmail: auth.currentUser?.email || 'guest',
                 date: document.getElementById('req-date').value,
                 time: document.getElementById('req-start').value,
                 endTime: document.getElementById('req-end').value,

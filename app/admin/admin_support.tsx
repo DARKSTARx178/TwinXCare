@@ -39,7 +39,7 @@ export default function AdminSupport() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('active');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
 
   const loadData = useCallback(async () => {
@@ -162,7 +162,16 @@ export default function AdminSupport() {
   }), [items, filteredItems]);
 
   const renderCard = (item: SupportItem) => (
-    <View key={`${item.type}-${item.id}`} style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
+    <View
+      key={`${item.type}-${item.id}`}
+      style={[
+        styles.card,
+        {
+          backgroundColor: item.archived ? '#fffbea' : theme.surface,
+          borderColor: item.archived ? '#fef3c7' : theme.border,
+        },
+      ]}
+    >
       <View style={styles.row}>
         <Text style={[styles.username, { color: theme.text }]}>{item.username}</Text>
         <Text style={[styles.time, { color: theme.textDim }]}>{item.createdAtLabel}</Text>
@@ -224,6 +233,8 @@ export default function AdminSupport() {
         onChangeText={setSearch}
         placeholder="Search by username or message"
         placeholderTextColor={theme.textDim}
+        autoCorrect={false}
+        autoCapitalize="none"
         style={[styles.searchInput, { borderColor: theme.border, color: theme.text, backgroundColor: theme.surface }]}
       />
 

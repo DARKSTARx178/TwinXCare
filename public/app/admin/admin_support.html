@@ -51,6 +51,10 @@
             padding: 14px;
             margin-bottom: 10px;
         }
+        .card.archived-card {
+            background: #fffbea;
+            border-color: #fef3c7;
+        }
         .row { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
         .username { font-size: .9rem; font-weight: 700; color: var(--text); }
         .time { font-size: .72rem; color: var(--text-dim); }
@@ -105,7 +109,7 @@
         </div>
 
         <div class="tools">
-            <input id="search" class="search" placeholder="Search by username or message" />
+            <input id="search" class="search" placeholder="Search by username or message" autocomplete="off" />
             <div class="filter-row" id="status-filters"></div>
             <div class="filter-row" id="type-filters"></div>
         </div>
@@ -124,7 +128,7 @@
         const typeFiltersEl = document.getElementById('type-filters');
 
         let allItems = [];
-        let statusFilter = 'active';
+        let statusFilter = 'all';
         let typeFilter = 'all';
 
         const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
@@ -181,7 +185,7 @@
 
             filtered.forEach((item) => {
                 const card = document.createElement('div');
-                card.className = 'card';
+                card.className = `card ${item.archived ? 'archived-card' : ''}`;
                 card.innerHTML = `
                     <div class="row">
                         <div class="username">${item.username || 'Anonymous'}</div>

@@ -225,7 +225,6 @@
 
         const form = document.getElementById('feedback-form');
         const btnSubmit = document.getElementById('btn-submit');
-        const apiBaseUrl = (window.TWINXCARE_API_BASE_URL || window.location.origin || '').replace(/\/$/, '');
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -243,38 +242,21 @@
                     createdAt: serverTimestamp()
                 });
 
-                if (!apiBaseUrl) {
-                    throw new Error('Server not configured.');
+                /*
+                // Temporarily disabled: Send email via API
+                const apiBaseUrl = (window.TWINXCARE_API_BASE_URL || window.location.origin || '').replace(/\/$/, '');
+                if (apiBaseUrl) {
+                    await fetch(`${apiBaseUrl}/api/send-email`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: `Feedback from ${username} (Rating: ${rating}):\n\n${message}`,
+                            username,
+                            type: 'feedback'
+                        }),
+                    });
                 }
-
-                const response = await fetch(`${apiBaseUrl}/api/send-email`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: `Feedback from ${username} (Rating: ${rating}):\n\n${message}`,
-                        username,
-                        type: 'feedback'
-                    }),
-                });
-
-                if (response.status === 429) {
-                    await new Promise((resolve) => setTimeout(resolve, 2000));
-                    throw new Error('Rate limited. Please try again.');
-                }
-
-                const responseText = await response.text();
-                let data = { success: false, error: '' };
-                try {
-                    data = responseText ? JSON.parse(responseText) : { success: false, error: 'Empty server response' };
-                } catch {
-                    data = { success: false, error: `Server error (${response.status})` };
-                }
-                if (!response.ok || !data.success) {
-                    throw new Error(data.error || `Server error (${response.status})`);
-                }
+                */
 
                 alert('Thank you! Your feedback has been submitted.');
                 window.history.back();

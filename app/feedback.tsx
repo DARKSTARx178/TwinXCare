@@ -14,7 +14,6 @@ export default function Feedback() {
   const [username, setUsername] = useState('Anonymous');
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
-  const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.replace(/\/$/, '') || '';
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -54,54 +53,23 @@ export default function Feedback() {
         createdAt: serverTimestamp(),
       });
 
-      // 2️⃣ Send email via Vercel function
-      if (!apiBaseUrl) {
-        Alert.alert('Server Not Configured', 'Set EXPO_PUBLIC_API_BASE_URL so feedback can call the backend.');
-        return;
+      /*
+      // 2️⃣ Temporarily disabled: Send email via Vercel function
+      const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.replace(/\/$/, '') || '';
+      if (apiBaseUrl) {
+        await fetch(`${apiBaseUrl}/api/send-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: `Feedback from ${username || 'Anonymous'} (Rating: ${rating}):\n\n${message}`,
+            username: username || 'Anonymous',
+            type: 'feedback',
+          }),
+        });
       }
-
-      const response = await fetch(`${apiBaseUrl}/api/send-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'TwinXCareApp/1.0',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          message: `Feedback from ${username || 'Anonymous'} (Rating: ${rating}):\n\n${message}`,
-          username: username || 'Anonymous',
-          type: 'feedback', // optional to differentiate in logs/email
-        }),
-      });
-
-      let data;
-      if (response.status === 429) {
-        console.error('Rate limited by Vercel. Retrying in 2 seconds...');
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        throw new Error('Rate limited. Please try again.');
-      }
-
-      if (!response.ok && response.status >= 400) {
-        const text = await response.text();
-        console.error(`API error ${response.status}:`, text.substring(0, 200));
-        try {
-          data = text ? JSON.parse(text) : { success: false, error: `Server error (${response.status})` };
-        } catch {
-          data = { success: false, error: `Server error (${response.status})` };
-        }
-      } else {
-        const text = await response.text();
-        try {
-          data = text ? JSON.parse(text) : { success: false, error: 'Empty server response' };
-        } catch (e) {
-          console.warn('Failed to parse JSON response:', e);
-          data = { success: false, error: 'Invalid server response' };
-        }
-      }
-
-      if (!data.success) {
-        console.warn('Email sending failed:', data.error);
-      }
+      */
 
       setMessage('');
       setRating(0);

@@ -16,6 +16,7 @@ export default function Admin() {
         { title: 'Manage Deliveries', icon: 'car-outline', route: './admin_delivery', color: '#10b981' },
         { title: 'Manage Users', icon: 'people-outline', route: './admin_userMgt', color: '#f59e0b' },
         { title: 'Escort Matching', icon: 'hand-left-outline', route: './admin_escort_match', color: '#8b5cf6' },
+        { title: 'Support Inbox', icon: 'mail-open-outline', route: './admin_support', color: '#ec4899' },
     ];
 
     return (

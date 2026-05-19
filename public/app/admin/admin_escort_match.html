@@ -13,18 +13,19 @@
     <style>
         :root {
             /* Premium Dark Theme - Restored Style */
-            --bg-base: #0f1115;
-            --bg-card: #1a1d23;
+            --bg-base: #F8FAFC;
+            --bg-card: #FFFFFF;
             --primary: #81ade7;
             --primary-glow: rgba(129, 173, 231, 0.4);
-            --text-main: #ffffff;
-            --text-dim: #94a3b8;
+            --text-main: #1E293B;
+            --text-dim: #64748B;
             --accent: #62b8ea;
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
-            --border: rgba(255, 255, 255, 0.08);
-            --glass: rgba(26, 29, 35, 0.8);
+            --border: rgba(0, 0, 0, 0.05);
+            --glass: #FFFFFF;
+            --surface-hover: #F1F5F9;
             --indigo-600: #818cf8;
             --rose-600: #fb7185;
         }
@@ -33,7 +34,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
@@ -42,9 +43,7 @@
             min-height: 100vh;
             overflow-x: hidden;
             line-height: 1.6;
-            background-image:
-                radial-gradient(at 0% 0%, rgba(129, 173, 231, 0.05) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(98, 184, 234, 0.05) 0px, transparent 50%);
+            background-image: radial-gradient(at 0% 0%, rgba(129, 173, 231, 0.08) 0px, transparent 45%), radial-gradient(at 100% 100%, rgba(98, 184, 234, 0.08) 0px, transparent 45%);
         }
 
         /* Glass Scrollbar */
@@ -132,7 +131,7 @@
         .logo h1 {
             font-size: 1.4rem;
             font-weight: 800;
-            color: white;
+            color: var(--text-main);
             letter-spacing: -0.01em;
         }
 
@@ -143,8 +142,8 @@
         }
 
         .logout-btn {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
+            background: var(--surface-hover);
+            color: var(--text-main);
             border: 1px solid var(--border);
             padding: 0.6rem 1.2rem;
             border-radius: 12px;
@@ -211,7 +210,7 @@
         .stat-data .value {
             font-size: 1.6rem;
             font-weight: 800;
-            color: white;
+            color: var(--text-main);
         }
 
         /* Layout */
@@ -286,11 +285,11 @@
 
         .input-dark {
             width: 100%;
-            background: rgba(255, 255, 255, 0.03);
+            background: #F8FAFC;
             border: 1px solid var(--border);
             border-radius: 14px;
             padding: 0.8rem 1rem;
-            color: white;
+            color: var(--text-main);
             font-size: 0.95rem;
             transition: all 0.3s;
         }
@@ -325,7 +324,7 @@
 
         .btn-indigo-outline:hover {
             background: var(--indigo-600);
-            color: white;
+            color: var(--text-main);
         }
 
         .btn-rose-outline {
@@ -336,7 +335,7 @@
 
         .btn-rose-outline:hover {
             background: var(--rose-600);
-            color: white;
+            color: var(--text-main);
         }
 
         /* Card Listings - PREMIUM GRID */
@@ -348,7 +347,7 @@
         }
 
         .entry-card {
-            background: rgba(255, 255, 255, 0.02);
+            background: #FFFFFF;
             border: 1px solid var(--border);
             border-radius: 20px;
             padding: 1.25rem;
@@ -357,7 +356,7 @@
 
         .entry-card:hover {
             border-color: var(--primary);
-            background: rgba(255, 255, 255, 0.04);
+            background: #F1F5F9;
             transform: translateY(-3px);
         }
 
@@ -390,7 +389,7 @@
         .card-name {
             font-weight: 700;
             font-size: 1rem;
-            color: white;
+            color: var(--text-main);
         }
 
         .card-sub {
@@ -429,7 +428,7 @@
 
         .badge-completed {
             color: var(--text-dim);
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--surface-hover);
             border: 1px solid var(--border);
         }
 
@@ -445,7 +444,7 @@
             align-items: center;
             gap: 10px;
             font-size: 0.85rem;
-            color: #cbd5e1;
+            color: var(--text-dim);
         }
 
         .detail-item i {
@@ -474,14 +473,14 @@
 
         .btn-sm:hover {
             background: var(--primary);
-            color: #000;
+            color: #FFFFFF;
         }
 
         /* Modals - RESTORED PREMIUM GLASS */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(15, 23, 42, 0.35);
             backdrop-filter: blur(8px);
             z-index: 2000;
             display: none;
@@ -498,7 +497,7 @@
             max-width: 550px;
             padding: 2.5rem;
             position: relative;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
         }
 
         .modal-header h3 {
@@ -521,7 +520,7 @@
         }
 
         .option-item {
-            background: rgba(255, 255, 255, 0.03);
+            background: #F8FAFC;
             border: 1px solid var(--border);
             padding: 1.25rem;
             border-radius: 20px;
@@ -578,7 +577,7 @@
             width: 100%;
             max-width: 450px;
             text-align: center;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
         }
 
         /* Utility */
@@ -635,7 +634,7 @@
                         <input type="password" id="login-pass" class="input-dark" placeholder="12345" required>
                     </div>
                     <button type="submit" class="btn-premium"
-                        style="background: var(--primary); color: #000; margin-top: 1.5rem;">
+                        style="background: var(--primary); color: #FFFFFF; margin-top: 1.5rem;">
                         <i class="fas fa-unlock"></i> Login
                     </button>
                 </form>
@@ -842,7 +841,7 @@
                         <div class="box-header">
                             <h2><i class="fas fa-clipboard-list"></i> Pending Care Queue</h2>
                             <div style="display: flex; gap: 10px;">
-                                <button class="btn-sm" style="background: var(--primary); color: #000;"
+                                <button class="btn-sm" style="background: var(--primary); color: #FFFFFF;"
                                     onclick="autoMatchAll()">
                                     <i class="fas fa-magic"></i> Auto-Match
                                 </button>
@@ -868,7 +867,7 @@
                 <p id="match-subtitle"></p>
             </div>
             <div id="match-options" class="modal-options"></div>
-            <button class="btn-premium" style="background: rgba(255,255,255,0.05); color: white;"
+            <button class="btn-premium" style="background: rgba(255,255,255,0.05); color: var(--text-main);"
                 onclick="closeModal('match-modal')">Discard</button>
         </div>
     </div>
@@ -888,7 +887,7 @@
                 <i class="fas fa-star star-box" data-val="5"></i>
             </div>
             <div style="display: flex; gap: 1rem;">
-                <button class="btn-premium" style="background: var(--success); color: #000;"
+                <button class="btn-premium" style="background: var(--success); color: #FFFFFF;"
                     id="confirm-rate-btn">Finalize & Log</button>
                 <button class="btn-premium"
                     style="background: transparent; border-color: var(--border); color: var(--text-dim);"

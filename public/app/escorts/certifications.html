@@ -169,6 +169,27 @@
             </div>
 
             <div class="input-wrapper">
+                <div class="label">Date of Issue</div>
+                <input id="cert-issue-date" class="input" type="date" />
+            </div>
+
+            <div class="input-wrapper">
+                <div class="label">Cert ID / Number</div>
+                <input id="cert-number" class="input" type="text" placeholder="e.g. CPR-2026-01982" />
+            </div>
+
+            <div class="input-wrapper">
+                <div class="label">Expiry Date</div>
+                <input id="cert-expiry-date" class="input" type="date" />
+            </div>
+
+            <div class="input-wrapper">
+                <div class="label">Certificate Photo</div>
+                <input id="cert-photo" class="input" type="file" accept="image/*" />
+                <div class="helper">Upload a clear photo/screenshot of the certificate.</div>
+            </div>
+
+            <div class="input-wrapper">
                 <div class="label">Notes (Optional)</div>
                 <textarea id="cert-notes" class="input" rows="3" placeholder="Issuing body, cert number, expiry date..." style="resize:none;"></textarea>
             </div>
@@ -208,7 +229,7 @@
     </nav>
 
     <script type="module">
-        import { auth, db, onAuthStateChanged, collection, getDocs, query, where, addDoc, serverTimestamp } from '/app/firebase.js';
+        import { auth, db, storage, ref, uploadBytes, getDownloadURL, onAuthStateChanged, collection, getDocs, query, where, addDoc, serverTimestamp } from '/app/firebase.js';
 
         const CERT_CATALOG_PATH = 'escort/certifications/catalog';
         const CERT_SUBMISSIONS_PATH = 'escort/certifications/submissions';
@@ -216,6 +237,10 @@
         const certTypeEl = document.getElementById('cert-type');
         const certDescEl = document.getElementById('cert-desc');
         const certLinkEl = document.getElementById('cert-link');
+        const certIssueDateEl = document.getElementById('cert-issue-date');
+        const certNumberEl = document.getElementById('cert-number');
+        const certExpiryDateEl = document.getElementById('cert-expiry-date');
+        const certPhotoEl = document.getElementById('cert-photo');
         const certNotesEl = document.getElementById('cert-notes');
         const submitBtn = document.getElementById('submit-btn');
         const historyListEl = document.getElementById('history-list');
@@ -235,6 +260,16 @@
             if (typeof value.toDate === 'function') return value.toDate().toLocaleString();
             if (typeof value.seconds === 'number') return new Date(value.seconds * 1000).toLocaleString();
             return 'Pending timestamp';
+        }
+
+        async function uploadCertificatePhoto(file) {
+            if (!file) return { photoUrl: '', photoPath: '' };
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const path = `escort/certifications/photos/${currentUser.uid}/${Date.now()}_${safeName}`;
+            const photoRef = ref(storage, path);
+            await uploadBytes(photoRef, file);
+            const photoUrl = await getDownloadURL(photoRef);
+            return { photoUrl, photoPath: path };
         }
 
         function renderCatalog() {
@@ -294,7 +329,11 @@
                     <div class="meta">Submitted: ${tsLabel(item.createdAt)}</div>
                     ${item.reviewedAt ? `<div class="meta">Reviewed: ${tsLabel(item.reviewedAt)}</div>` : ''}
                     ${item.reviewedByEmail ? `<div class="meta">Reviewer: ${item.reviewedByEmail}</div>` : ''}
+                    ${item.issueDate ? `<div class="meta">Issue Date: ${item.issueDate}</div>` : ''}
+                    ${item.certNumber ? `<div class="meta">Cert ID/No: ${item.certNumber}</div>` : ''}
+                    ${item.expiryDate ? `<div class="meta">Expiry Date: ${item.expiryDate}</div>` : ''}
                     ${item.certificateLink ? `<div class="link">${item.certificateLink}</div>` : ''}
+                    ${item.photoUrl ? `<div style="margin-top:8px;"><img src="${item.photoUrl}" alt="Certificate Photo" style="width:100%;max-height:180px;object-fit:cover;border-radius:12px;border:1px solid var(--border);" /></div>` : ''}
                 </div>
             `).join('');
         }
@@ -314,8 +353,25 @@
             }
 
             const link = certLinkEl.value.trim();
-            if (!link) {
-                alert('Please provide a certificate URL.');
+            const issueDate = certIssueDateEl.value;
+            const certNumber = certNumberEl.value.trim();
+            const expiryDate = certExpiryDateEl.value;
+            const photoFile = certPhotoEl.files?.[0] || null;
+
+            if (!link && !photoFile) {
+                alert('Please provide a certificate URL or upload a photo.');
+                return;
+            }
+            if (!issueDate) {
+                alert('Please provide the date of issue.');
+                return;
+            }
+            if (!certNumber) {
+                alert('Please provide the cert ID/number.');
+                return;
+            }
+            if (!expiryDate) {
+                alert('Please provide the expiry date.');
                 return;
             }
 
@@ -323,6 +379,7 @@
             submitBtn.textContent = 'Submitting...';
 
             try {
+                const { photoUrl, photoPath } = await uploadCertificatePhoto(photoFile);
                 await addDoc(collection(db, CERT_SUBMISSIONS_PATH), {
                     userId: currentUser.uid,
                     userEmail: currentUser.email,
@@ -330,12 +387,22 @@
                     certTypeName: selected.name,
                     certTypeDescription: selected.description || '',
                     certificateLink: link,
+                    issueDate,
+                    certNumber,
+                    expiryDate,
+                    photoUrl,
+                    photoPath,
+                    photoFileName: photoFile ? photoFile.name : '',
                     notes: certNotesEl.value.trim(),
                     status: 'pending',
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp(),
                 });
                 certLinkEl.value = '';
+                certIssueDateEl.value = '';
+                certNumberEl.value = '';
+                certExpiryDateEl.value = '';
+                certPhotoEl.value = '';
                 certNotesEl.value = '';
                 alert('Certification submitted for review.');
                 await loadHistory();

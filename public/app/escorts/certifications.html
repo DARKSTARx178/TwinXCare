@@ -231,7 +231,6 @@
 
         const certTypeEl = document.getElementById('cert-type');
         const certDescEl = document.getElementById('cert-desc');
-        const certLinkEl = document.getElementById('cert-link');
         const certIssueDateEl = document.getElementById('cert-issue-date');
         const certNumberEl = document.getElementById('cert-number');
         const certExpiryDateEl = document.getElementById('cert-expiry-date');
@@ -327,7 +326,6 @@
                     ${item.issueDate ? `<div class="meta">Issue Date: ${item.issueDate}</div>` : ''}
                     ${item.certNumber ? `<div class="meta">Cert ID/No: ${item.certNumber}</div>` : ''}
                     ${item.expiryDate ? `<div class="meta">Expiry Date: ${item.expiryDate}</div>` : ''}
-                    ${item.certificateLink ? `<div class="link">${item.certificateLink}</div>` : ''}
                     ${item.photoUrl ? `<div style="margin-top:8px;"><img src="${item.photoUrl}" alt="Certificate Photo" style="width:100%;max-height:180px;object-fit:cover;border-radius:12px;border:1px solid var(--border);" /></div>` : ''}
                 </div>
             `).join('');
@@ -347,13 +345,12 @@
                 return;
             }
 
-            const link = certLinkEl.value.trim();
             const issueDate = certIssueDateEl.value;
             const certNumber = certNumberEl.value.trim();
             const expiryDate = certExpiryDateEl.value;
             const photoFile = certPhotoEl.files?.[0] || null;
 
-            if (!link && !photoFile) {
+            if (!photoFile) {
                 alert('Please provide a certificate URL or upload a photo.');
                 return;
             }
@@ -381,7 +378,6 @@
                     certTypeId: selected.id,
                     certTypeName: selected.name,
                     certTypeDescription: selected.description || '',
-                    certificateLink: link,
                     issueDate,
                     certNumber,
                     expiryDate,
@@ -393,7 +389,6 @@
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp(),
                 });
-                certLinkEl.value = '';
                 certIssueDateEl.value = '';
                 certNumberEl.value = '';
                 certExpiryDateEl.value = '';

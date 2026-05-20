@@ -18,6 +18,10 @@ type CertSubmission = {
   userEmail?: string;
   certTypeName?: string;
   certificateLink?: string;
+  issueDate?: string;
+  certNumber?: string;
+  expiryDate?: string;
+  photoUrl?: string;
   notes?: string;
   status: 'pending' | 'approved' | 'revoked';
   createdAt?: any;
@@ -317,8 +321,14 @@ export default function AdminCertifications() {
                 </View>
                 <Text style={[styles.metaText, { color: theme.textDim }]}>User: {item.userEmail || 'Unknown'}</Text>
                 <Text style={[styles.metaText, { color: theme.textDim }]}>Submitted: {toDateLabel(item.createdAt)}</Text>
+                {!!item.issueDate && <Text style={[styles.metaText, { color: theme.textDim }]}>Issue Date: {item.issueDate}</Text>}
+                {!!item.certNumber && <Text style={[styles.metaText, { color: theme.textDim }]}>Cert ID/No: {item.certNumber}</Text>}
+                {!!item.expiryDate && <Text style={[styles.metaText, { color: theme.textDim }]}>Expiry Date: {item.expiryDate}</Text>}
                 {!!item.certificateLink && (
                   <Text style={[styles.linkText, { color: theme.primary }]} numberOfLines={1}>{item.certificateLink}</Text>
+                )}
+                {!!item.photoUrl && (
+                  <Text style={[styles.linkText, { color: theme.primary }]} numberOfLines={1}>{item.photoUrl}</Text>
                 )}
                 {!!item.notes && <Text style={[styles.metaText, { color: theme.text }]}>{item.notes}</Text>}
 

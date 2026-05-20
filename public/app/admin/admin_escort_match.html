@@ -301,6 +301,20 @@
             box-shadow: 0 0 0 4px var(--primary-glow);
         }
 
+        .time-range {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            width: 100%;
+        }
+
+        .time-range .input-dark {
+            flex: 1 1 0;
+            width: 0;
+            min-width: 0;
+        }
+
         .btn-premium {
             width: 100%;
             padding: 1rem;
@@ -670,11 +684,9 @@
                                     </div>
                                     <div>
                                         <label>Window</label>
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <input type="time" class="input-dark" id="vol-start"
-                                                style="flex: 1; min-width: 0;" required>
-                                            <input type="time" class="input-dark" id="vol-end"
-                                                style="flex: 1; min-width: 0;" required>
+                                        <div class="time-range">
+                                            <input type="time" class="input-dark" id="vol-start" required>
+                                            <input type="time" class="input-dark" id="vol-end" required>
                                         </div>
                                     </div>
                                 </div>
@@ -720,11 +732,9 @@
                                     </div>
                                     <div>
                                         <label>Time Window</label>
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <input type="time" class="input-dark" id="req-start"
-                                                style="flex: 1; min-width: 0;" required>
-                                            <input type="time" class="input-dark" id="req-end"
-                                                style="flex: 1; min-width: 0;" required>
+                                        <div class="time-range">
+                                            <input type="time" class="input-dark" id="req-start" required>
+                                            <input type="time" class="input-dark" id="req-end" required>
                                         </div>
                                     </div>
                                 </div>

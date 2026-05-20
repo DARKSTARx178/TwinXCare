@@ -113,6 +113,14 @@ export const checkMatchForRequest = async (requestId: string, requestData: any) 
     }
 
     try {
+        const latestReq = await getDoc(doc(db, 'escort', 'request', 'entries', requestId));
+        if (!latestReq.exists()) return;
+        const latestReqData = latestReq.data();
+        if (latestReqData.status !== 'pending' || isLockedForManual(latestReqData)) {
+            console.log('⏭️ Request is not eligible for auto-match (status/manual lock).');
+            return;
+        }
+
         // 1. Query available escorts for the same date
         const q = query(
             collection(db, 'escort', 'availability', 'entries'),
@@ -122,12 +130,12 @@ export const checkMatchForRequest = async (requestId: string, requestData: any) 
 
         const snapshot = await getDocs(q);
         console.log(`Found ${snapshot.size} potential availabilities for date ${date}`);
-        let fallbackMatch: { availId: string; avail: any } | null = null;
-        let textLocationFallback: { availId: string; avail: any } | null = null;
+        const candidates: Candidate[] = [];
 
         for (const docSnap of snapshot.docs) {
             const avail = docSnap.data();
             const availId = docSnap.id;
+            if (isLockedForManual(avail)) continue;
 
             console.log(`🔎 Checking Availability ${availId}:`, JSON.stringify(avail));
 
@@ -147,51 +155,50 @@ export const checkMatchForRequest = async (requestId: string, requestData: any) 
                 console.log(`   ✅ Time match found!`);
 
                 const rangeMatch = getRangeMatch(requestData, avail);
+                const locationMatch = locationsMatch(requestLocation, avail.location);
                 if (rangeMatch) {
                     console.log(`   📍 Distance check: ${rangeMatch.distanceKm.toFixed(2)}km within ${rangeMatch.radiusKm}km`);
 
                     if (rangeMatch.inRange) {
-                        console.log(`   ✅ Radius match found!`);
-                        await executeMatch(requestId, requestData, availId, avail, {
+                        candidates.push({
+                            id: availId,
+                            data: avail,
+                            score: getMatchScore(requestData, avail, rangeMatch, locationMatch),
                             matchedByLocation: true,
                             matchDistanceKm: rangeMatch.distanceKm,
                             matchRadiusKm: rangeMatch.radiusKm,
                         });
-                        return;
+                        continue;
                     }
 
                     console.log(`   ❌ Outside volunteer radius.`);
-                    fallbackMatch ??= { availId, avail };
                     continue;
                 }
 
                 console.log(`   🏥 Location check: "${requestLocation}" vs "${avail.location || ''}"`);
 
-                if (locationsMatch(requestLocation, avail.location)) {
-                    console.log(`   ✅ Location match found!`);
-                    textLocationFallback ??= { availId, avail };
-                    continue;
-                }
-
-                console.log(`   ⚠️ Time match found, but location/radius did not match.`);
-                fallbackMatch ??= { availId, avail };
+                candidates.push({
+                    id: availId,
+                    data: avail,
+                    score: getMatchScore(requestData, avail, null, locationMatch),
+                    matchedByLocation: locationMatch,
+                    matchDistanceKm: null,
+                    matchRadiusKm: null,
+                });
             } else {
                 console.log(`   ❌ Time mismatch.`);
             }
         }
 
-        if (textLocationFallback) {
-            console.log('⚠️ No coordinate radius match found. Using text location fallback.');
-            await executeMatch(requestId, requestData, textLocationFallback.availId, textLocationFallback.avail, {
-                matchedByLocation: true,
-            });
-            return;
-        }
-
-        if (fallbackMatch) {
-            console.log('⚠️ No radius/location match found. Using best time-only fallback.');
-            await executeMatch(requestId, requestData, fallbackMatch.availId, fallbackMatch.avail, {
-                matchedByLocation: false,
+        if (candidates.length > 0) {
+            candidates.sort((a, b) => b.score - a.score);
+            const best = candidates[0];
+            console.log(`✅ Best candidate selected: ${best.id} (score ${best.score.toFixed(2)})`);
+            await executeMatch(requestId, requestData, best.id, best.data, {
+                matchedByLocation: best.matchedByLocation,
+                matchDistanceKm: best.matchDistanceKm ?? undefined,
+                matchRadiusKm: best.matchRadiusKm ?? undefined,
+                matchMode: 'auto',
             });
             return;
         }
@@ -218,6 +225,14 @@ export const checkMatchForAvailability = async (availId: string, availData: any)
     }
 
     try {
+        const latestAvail = await getDoc(doc(db, 'escort', 'availability', 'entries', availId));
+        if (!latestAvail.exists()) return;
+        const latestAvailData = latestAvail.data();
+        if (latestAvailData.status !== 'available' || isLockedForManual(latestAvailData)) {
+            console.log('⏭️ Availability is not eligible for auto-match (status/manual lock).');
+            return;
+        }
+
         // 1. Query pending requests for the same date
         const q = query(
             collection(db, 'escort', 'request', 'entries'),
@@ -227,12 +242,12 @@ export const checkMatchForAvailability = async (availId: string, availData: any)
 
         const snapshot = await getDocs(q);
         console.log(`Found ${snapshot.size} pending requests for date ${date}`);
-        let fallbackMatch: { reqId: string; req: any } | null = null;
-        let textLocationFallback: { reqId: string; req: any } | null = null;
+        const candidates: Candidate[] = [];
 
         for (const docSnap of snapshot.docs) {
             const req = docSnap.data();
             const reqId = docSnap.id;
+            if (isLockedForManual(req)) continue;
 
             console.log(`🔎 Checking Request ${reqId}:`, JSON.stringify(req));
 
@@ -251,52 +266,51 @@ export const checkMatchForAvailability = async (availId: string, availData: any)
                 console.log(`   ✅ Time match found!`);
 
                 const rangeMatch = getRangeMatch(req, availData);
+                const locationMatch = locationsMatch(getRequestMatchLocation(req), location);
                 if (rangeMatch) {
                     console.log(`   📍 Distance check: ${rangeMatch.distanceKm.toFixed(2)}km within ${rangeMatch.radiusKm}km`);
 
                     if (rangeMatch.inRange) {
-                        console.log(`   ✅ Radius match found!`);
-                        await executeMatch(reqId, req, availId, availData, {
+                        candidates.push({
+                            id: reqId,
+                            data: req,
+                            score: getMatchScore(req, availData, rangeMatch, locationMatch),
                             matchedByLocation: true,
                             matchDistanceKm: rangeMatch.distanceKm,
                             matchRadiusKm: rangeMatch.radiusKm,
                         });
-                        return;
+                        continue;
                     }
 
                     console.log(`   ❌ Outside volunteer radius.`);
-                    fallbackMatch ??= { reqId, req };
                     continue;
                 }
 
                 const requestLocation = getRequestMatchLocation(req);
                 console.log(`   🏥 Location check: "${requestLocation}" vs "${location}"`);
 
-                if (locationsMatch(requestLocation, location)) {
-                    console.log(`   ✅ Location match found!`);
-                    textLocationFallback ??= { reqId, req };
-                    continue;
-                }
-
-                console.log(`   ⚠️ Time match found, but location/radius did not match.`);
-                fallbackMatch ??= { reqId, req };
+                candidates.push({
+                    id: reqId,
+                    data: req,
+                    score: getMatchScore(req, availData, null, locationMatch),
+                    matchedByLocation: locationMatch,
+                    matchDistanceKm: null,
+                    matchRadiusKm: null,
+                });
             } else {
                 console.log(`   ❌ Time mismatch.`);
             }
         }
 
-        if (textLocationFallback) {
-            console.log('⚠️ No coordinate radius match found. Using text location fallback.');
-            await executeMatch(textLocationFallback.reqId, textLocationFallback.req, availId, availData, {
-                matchedByLocation: true,
-            });
-            return;
-        }
-
-        if (fallbackMatch) {
-            console.log('⚠️ No radius/location match found. Using best time-only fallback.');
-            await executeMatch(fallbackMatch.reqId, fallbackMatch.req, availId, availData, {
-                matchedByLocation: false,
+        if (candidates.length > 0) {
+            candidates.sort((a, b) => b.score - a.score);
+            const best = candidates[0];
+            console.log(`✅ Best candidate selected: ${best.id} (score ${best.score.toFixed(2)})`);
+            await executeMatch(best.id, best.data, availId, availData, {
+                matchedByLocation: best.matchedByLocation,
+                matchDistanceKm: best.matchDistanceKm ?? undefined,
+                matchRadiusKm: best.matchRadiusKm ?? undefined,
+                matchMode: 'auto',
             });
             return;
         }
@@ -312,14 +326,82 @@ type MatchMeta = {
     matchedByLocation?: boolean;
     matchDistanceKm?: number;
     matchRadiusKm?: number;
+    matchMode?: 'auto' | 'manual';
+    manualOverride?: boolean;
+    manualReason?: string | null;
+};
+
+type Candidate = {
+    id: string;
+    data: any;
+    score: number;
+    matchedByLocation: boolean;
+    matchDistanceKm: number | null;
+    matchRadiusKm: number | null;
+};
+
+const isLockedForManual = (data: any) => Boolean(data?.manualLock || data?.manualOverride);
+
+const getMatchScore = (
+    requestData: any,
+    availData: any,
+    rangeMatch: ReturnType<typeof getRangeMatch> | null,
+    locationMatch: boolean
+) => {
+    const reqStart = parseTime(requestData.time);
+    const reqEnd = requestData.endTime ? parseTime(requestData.endTime) : reqStart + 60;
+    const availStart = parseTime(availData.fromTime);
+    const availEnd = parseTime(availData.toTime);
+    const reqDuration = Math.max(0, reqEnd - reqStart);
+    const availDuration = Math.max(1, availEnd - availStart);
+    const fitPenalty = Math.max(0, availDuration - reqDuration);
+
+    let score = 0;
+    score -= fitPenalty * 0.05;
+
+    if (rangeMatch?.inRange) {
+        score += 120;
+        score += Math.max(0, rangeMatch.radiusKm - rangeMatch.distanceKm) * 2;
+    } else if (locationMatch) {
+        score += 80;
+    } else {
+        score += 10;
+    }
+
+    if (typeof availData.rating === 'number') {
+        score += availData.rating * 3;
+    }
+
+    return score;
 };
 
 const executeMatch = async (reqId: string, reqData: any, availId: string, availData: any, matchMeta: MatchMeta = {}) => {
     console.log('🤝 EXECUTING MATCH!');
 
     try {
+        const reqRef = doc(db, 'escort', 'request', 'entries', reqId);
+        const availRef = doc(db, 'escort', 'availability', 'entries', availId);
+        const [freshReq, freshAvail] = await Promise.all([getDoc(reqRef), getDoc(availRef)]);
+        const freshReqData = freshReq.data();
+        const freshAvailData = freshAvail.data();
+
+        if (!freshReq.exists() || !freshAvail.exists()) {
+            console.log('⏭️ Match cancelled: request or availability no longer exists.');
+            return;
+        }
+
+        if ((freshReqData?.status !== 'pending' || freshAvailData?.status !== 'available') && !matchMeta.manualOverride) {
+            console.log('⏭️ Match cancelled: stale status for auto-match.');
+            return;
+        }
+
+        if ((isLockedForManual(freshReqData) || isLockedForManual(freshAvailData)) && !matchMeta.manualOverride) {
+            console.log('⏭️ Match cancelled: manual lock is active.');
+            return;
+        }
+
         // 1. Update Request Doc
-        await updateDoc(doc(db, 'escort', 'request', 'entries', reqId), {
+        await updateDoc(reqRef, {
             status: 'matched',
             matchedAvailabilityId: availId,
             matchedProviderId: availData.providerId,
@@ -327,16 +409,24 @@ const executeMatch = async (reqId: string, reqData: any, availId: string, availD
             matchedByLocation: matchMeta.matchedByLocation ?? false,
             matchDistanceKm: matchMeta.matchDistanceKm ?? null,
             matchRadiusKm: matchMeta.matchRadiusKm ?? null,
+            matchMode: matchMeta.matchMode ?? 'auto',
+            manualOverride: matchMeta.manualOverride ?? false,
+            manualReason: matchMeta.manualReason ?? null,
+            manualLock: matchMeta.manualOverride ?? false,
         });
 
         // 2. Update Availability Doc
-        await updateDoc(doc(db, 'escort', 'availability', 'entries', availId), {
+        await updateDoc(availRef, {
             status: 'matched',
             matchedRequestId: reqId,
             matchedUserId: reqData.userId,
             matchedByLocation: matchMeta.matchedByLocation ?? false,
             matchDistanceKm: matchMeta.matchDistanceKm ?? null,
             matchRadiusKm: matchMeta.matchRadiusKm ?? null,
+            matchMode: matchMeta.matchMode ?? 'auto',
+            manualOverride: matchMeta.manualOverride ?? false,
+            manualReason: matchMeta.manualReason ?? null,
+            manualLock: matchMeta.manualOverride ?? false,
         });
 
         // 3. Notify Patient (Requestor)
@@ -491,7 +581,9 @@ export const triggerManualMatching = async () => {
 
         let matchCount = 0;
         for (const docSnap of snapshot.docs) {
-            await checkMatchForRequest(docSnap.id, docSnap.data());
+            const reqData = docSnap.data();
+            if (isLockedForManual(reqData)) continue;
+            await checkMatchForRequest(docSnap.id, reqData);
             matchCount++;
         }
         await sendLocalNotification('Matching Engine finished', `Checked ${matchCount} pending requests.`);
@@ -499,5 +591,36 @@ export const triggerManualMatching = async () => {
     } catch (e) {
         console.error('Error in manual matching:', e);
         return 0;
+    }
+};
+
+/**
+ * Manual override. Force-links request+availability and locks it from auto rematch.
+ */
+export const manualOverrideMatch = async (
+    reqId: string,
+    availId: string,
+    reason: string = 'Admin manual override'
+) => {
+    try {
+        const reqRef = doc(db, 'escort', 'request', 'entries', reqId);
+        const availRef = doc(db, 'escort', 'availability', 'entries', availId);
+        const [reqSnap, availSnap] = await Promise.all([getDoc(reqRef), getDoc(availRef)]);
+        if (!reqSnap.exists() || !availSnap.exists()) {
+            throw new Error('Request or availability not found.');
+        }
+
+        await executeMatch(reqId, reqSnap.data(), availId, availSnap.data(), {
+            matchedByLocation: true,
+            matchMode: 'manual',
+            manualOverride: true,
+            manualReason: reason || 'Admin manual override',
+        });
+
+        await sendLocalNotification('Manual Match Applied', 'Manual override has locked this match.');
+        return true;
+    } catch (e) {
+        console.error('Error in manualOverrideMatch:', e);
+        return false;
     }
 };

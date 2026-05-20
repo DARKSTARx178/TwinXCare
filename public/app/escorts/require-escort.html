@@ -243,8 +243,9 @@
             </div>
 
             <div class="input-wrapper">
-                <div class="label">Requirements of Volunteer</div>
-                <input type="text" class="input" id="volunteer-requirements-input" placeholder="e.g. CPR certified">
+                <div class="label">Required Certification</div>
+                <select class="input" id="volunteer-certification-select"></select>
+                <div class="hint-text" id="certification-helper">Selected certification will be shared with volunteers.</div>
             </div>
 
             <div class="input-wrapper">
@@ -260,10 +261,12 @@
     </main>
 
     <script type="module">
-        import { auth, db, collection, addDoc, serverTimestamp } from '/app/firebase.js';
+        import { auth, db, collection, addDoc, getDocs, serverTimestamp } from '/app/firebase.js';
         const GEOAPIFY_API_KEY = (window.TWINXCARE_GEOAPIFY_API_KEY || '333dd9a8121f4bfe8173cae287ecf657').trim();
         const GEOAPIFY_AUTOCOMPLETE_URL = (window.TWINXCARE_GEOAPIFY_AUTOCOMPLETE_URL || '').trim();
+        const CERT_CATALOG_PATH = 'escort/certifications/catalog';
         let pickupCoordinates = null;
+        let certificationCatalog = [];
 
         // Init dates
         const d = new Date();
@@ -277,6 +280,8 @@
         const mapPreview = document.getElementById('pickup-map');
         const mapImage = document.getElementById('pickup-map-image');
         const geoHint = document.getElementById('geo-hint');
+        const certSelect = document.getElementById('volunteer-certification-select');
+        const certHelper = document.getElementById('certification-helper');
 
         function getApiKeyFromUrl() {
             const match = GEOAPIFY_AUTOCOMPLETE_URL.match(/[?&]apiKey=([^&]+)/);
@@ -287,6 +292,39 @@
         const hasGeoConfig = Boolean(GEOAPIFY_AUTOCOMPLETE_URL || GEOAPIFY_API_KEY);
         if (!hasGeoConfig) {
             geoHint.style.display = 'block';
+        }
+
+        function renderCertificationOptions() {
+            certSelect.innerHTML = '';
+            if (!certificationCatalog.length) {
+                certSelect.innerHTML = '<option value="">No certification types configured by admin</option>';
+                certSelect.disabled = true;
+                certHelper.textContent = 'Admins have not configured certification options yet.';
+                return;
+            }
+
+            certSelect.disabled = false;
+            certificationCatalog.forEach((item) => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.name || 'Certification';
+                certSelect.appendChild(option);
+            });
+            updateCertificationHelper();
+        }
+
+        function updateCertificationHelper() {
+            const selected = certificationCatalog.find((item) => item.id === certSelect.value);
+            certHelper.textContent = selected?.description || 'Selected certification will be shared with volunteers.';
+        }
+
+        async function loadCertificationCatalog() {
+            const snap = await getDocs(collection(db, CERT_CATALOG_PATH));
+            certificationCatalog = snap.docs
+                .map((d) => ({ id: d.id, ...d.data() }))
+                .filter((item) => item.active !== false)
+                .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+            renderCertificationOptions();
         }
 
         function appendParam(url, key, value) {
@@ -398,6 +436,10 @@
             }, 450);
         });
 
+        certSelect.addEventListener('change', updateCertificationHelper);
+
+        await loadCertificationCatalog();
+
         btnSubmit.addEventListener('click', async () => {
             const hospital = document.getElementById('hospital-input').value.trim();
             const appointmentInfo = document.getElementById('appointment-input').value.trim();
@@ -416,6 +458,7 @@
             btnSubmit.innerHTML = "Processing...";
 
             try {
+                const selectedCertification = certificationCatalog.find((item) => item.id === certSelect.value) || null;
                 const data = {
                     userId: user.uid,
                     userEmail: user.email,
@@ -434,7 +477,9 @@
                     age: Number(document.getElementById('age-input').value) || null,
                     contactPhone: document.getElementById('phone-input').value,
                     emergencyContactPhone: document.getElementById('emergency-phone-input').value,
-                    volunteerRequirements: document.getElementById('volunteer-requirements-input').value,
+                    requiredCertificationId: selectedCertification?.id || null,
+                    requiredCertificationName: selectedCertification?.name || null,
+                    volunteerRequirements: selectedCertification?.name || '',
                     instructions: document.getElementById('instructions-input').value,
                     additionalNotes: document.getElementById('instructions-input').value,
                     createdAt: serverTimestamp(),

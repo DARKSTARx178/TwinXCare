@@ -97,6 +97,7 @@ export default function Profile() {
     { icon: "settings-outline", label: "Settings", onPress: () => router.push("/settings") },
     { icon: "key-outline", label: "Change Password", onPress: () => router.push("/change-password") },
     { icon: "help-circle-outline", label: "Help", onPress: () => router.push("/helpdocs") },
+    user && { icon: "ribbon-outline", label: "My Certifications", onPress: () => router.push("/escorts/certifications") },
     user && { icon: "log-out-outline", label: "Logout", onPress: handleLogout, isLogout: true },
   ].filter(Boolean) as {
     icon: string;

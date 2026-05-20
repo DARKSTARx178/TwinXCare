@@ -4,10 +4,13 @@ import { auth, db } from '@/firebase/firebase';
 import { checkMatchForRequest } from '@/services/matchingService';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import React, { useContext, useState } from 'react';
+import { addDoc, collection, getDocs, serverTimestamp } from 'firebase/firestore';
+import React, { useContext, useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
+const CERT_CATALOG_PATH = 'escort/certifications/catalog';
 
 export default function RequireEscort() {
 	const router = useRouter();
@@ -28,9 +31,29 @@ export default function RequireEscort() {
 	const [age, setAge] = useState('');
 	const [contactPhone, setContactPhone] = useState('');
 	const [emergencyContactPhone, setEmergencyContactPhone] = useState('');
-	const [volunteerRequirements, setVolunteerRequirements] = useState('');
+	const [certCatalog, setCertCatalog] = useState<{ id: string; name: string; description?: string; active?: boolean }[]>([]);
+	const [selectedCertId, setSelectedCertId] = useState('');
 	const [instructions, setInstructions] = useState('');
 	const [submitting, setSubmitting] = useState(false);
+
+	useEffect(() => {
+		const loadCatalog = async () => {
+			try {
+				const snap = await getDocs(collection(db, CERT_CATALOG_PATH));
+				const items = snap.docs
+					.map((d) => ({ id: d.id, ...(d.data() as any) }))
+					.filter((item) => item.active !== false)
+					.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+				setCertCatalog(items);
+				if (items.length) {
+					setSelectedCertId(items[0].id);
+				}
+			} catch (error) {
+				console.error('Failed to load escort certification catalog:', error);
+			}
+		};
+		loadCatalog();
+	}, []);
 
 	// Helpers
 	const formatDate = (d: Date) => d.toISOString().split('T')[0];
@@ -45,6 +68,9 @@ export default function RequireEscort() {
 			Alert.alert('Incomplete Form', 'Please indicate the hospital/clinic and appointment information.');
 			return;
 		}
+
+		const selectedCert = certCatalog.find((item) => item.id === selectedCertId);
+		const certName = selectedCert?.name || '';
 
 		setSubmitting(true);
 		try {
@@ -66,7 +92,9 @@ export default function RequireEscort() {
 				age: age ? Number(age) : null,
 				contactPhone,
 				emergencyContactPhone,
-				volunteerRequirements,
+				requiredCertificationId: selectedCert?.id || null,
+				requiredCertificationName: certName || null,
+				volunteerRequirements: certName || '',
 				instructions,
 				additionalNotes: instructions,
 				createdAt: serverTimestamp(),
@@ -91,7 +119,9 @@ export default function RequireEscort() {
 				age: age ? Number(age) : null,
 				contactPhone,
 				emergencyContactPhone,
-				volunteerRequirements,
+				requiredCertificationId: selectedCert?.id || null,
+				requiredCertificationName: certName || null,
+				volunteerRequirements: certName || '',
 				instructions,
 				additionalNotes: instructions,
 				status: 'pending'
@@ -292,14 +322,28 @@ export default function RequireEscort() {
 				</View>
 
 				<View style={styles.inputWrapper}>
-					<Text style={[styles.label, { color: theme.textDim }]}>Requirements of Volunteer</Text>
-					<TextInput
-						style={[styles.input, { color: theme.text }]}
-						placeholder="e.g. CPR certified"
-						placeholderTextColor="#94a3b8"
-						value={volunteerRequirements}
-						onChangeText={setVolunteerRequirements}
-					/>
+					<Text style={[styles.label, { color: theme.textDim }]}>Required Certification</Text>
+					<View style={[styles.pickerWrap, { borderColor: theme.border }]}>
+						<Picker
+							enabled={!submitting && certCatalog.length > 0}
+							selectedValue={selectedCertId}
+							onValueChange={(value) => setSelectedCertId(String(value))}
+							style={{ color: theme.text }}
+						>
+							{certCatalog.length === 0 ? (
+								<Picker.Item label="No certification types configured by admin" value="" />
+							) : (
+								certCatalog.map((item) => (
+									<Picker.Item key={item.id} label={item.name} value={item.id} />
+								))
+							)}
+						</Picker>
+					</View>
+					{selectedCertId ? (
+						<Text style={[styles.helperText, { color: theme.textDim }]}>
+							{certCatalog.find((item) => item.id === selectedCertId)?.description || 'Selected certification will be shared with volunteers.'}
+						</Text>
+					) : null}
 				</View>
 
 				<View style={styles.inputWrapper}>
@@ -414,6 +458,17 @@ const styles = StyleSheet.create({
 		paddingVertical: 14,
 		fontSize: 15,
 		fontWeight: '600',
+	},
+	pickerWrap: {
+		backgroundColor: '#F1F5F9',
+		borderRadius: 16,
+		borderWidth: 1,
+		overflow: 'hidden',
+	},
+	helperText: {
+		marginTop: 8,
+		fontSize: 12,
+		fontWeight: '500',
 	},
 	submitButton: {
 		flexDirection: 'row',

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Escort Certifications</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <style>
+        .header {
+            margin-top: 40px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .icon-circle {
+            width: 70px;
+            height: 70px;
+            border-radius: 22px;
+            background: var(--primary-glow);
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            margin-bottom: 14px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .stat {
+            border-radius: 14px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat .num {
+            font-size: 1.35rem;
+            font-weight: 900;
+            color: #111827;
+        }
+
+        .stat .label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+        }
+
+        .input,
+        .textarea {
+            width: 100%;
+            border-radius: 14px;
+            border: 1.5px solid var(--border);
+            background: #F1F5F9;
+            color: var(--text);
+            padding: 12px 14px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            box-sizing: border-box;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .textarea {
+            resize: none;
+            min-height: 68px;
+        }
+
+        .input:focus,
+        .textarea:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 13px;
+            border-radius: 14px;
+            border: 2px solid var(--primary);
+            background: var(--surface);
+            color: var(--primary);
+            font-size: 0.95rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .list-item {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px;
+            margin-top: 8px;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .tiny-btn {
+            border-radius: 10px;
+            border: 1.5px solid;
+            padding: 7px 10px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .badge {
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.pending {
+            background: #fff7ed;
+            color: #9a3412;
+        }
+
+        .badge.approved {
+            background: #ecfdf5;
+            color: #047857;
+        }
+
+        .badge.revoked {
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+
+        .meta {
+            color: var(--text-dim);
+            font-size: 0.78rem;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .link {
+            color: var(--primary);
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-top: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--background);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 8px;
+            border-radius: 12px;
+            color: var(--text);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <main class="fade-in" style="padding-top: 18px; padding-bottom: 60px;">
+        <a href="/app/admin/index.html" class="back-btn"><i class="mdi mdi-arrow-left" style="font-size: 24px;"></i></a>
+
+        <div class="header">
+            <div class="icon-circle"><i class="mdi mdi-ribbon"></i></div>
+            <div style="font-size: 1.6rem; font-weight: 900;">Escort Certifications</div>
+            <div style="margin-top: 4px; color: var(--text-dim); font-weight: 500;">Catalog management and submission review</div>
+        </div>
+
+        <div class="stats">
+            <div class="stat" style="background:#fff7ed;">
+                <div id="pending-count" class="num">0</div>
+                <div class="label">Pending</div>
+            </div>
+            <div class="stat" style="background:#ecfdf5;">
+                <div id="approved-count" class="num">0</div>
+                <div class="label">Approved</div>
+            </div>
+            <div class="stat" style="background:#fef2f2;">
+                <div id="revoked-count" class="num">0</div>
+                <div class="label">Revoked</div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 16px;">
+            <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 14px;">Certification Catalog</div>
+            <input id="new-cert-name" class="input" type="text" placeholder="Certification name (e.g. CPR)" style="margin-bottom:10px;">
+            <textarea id="new-cert-desc" class="textarea" placeholder="Description (optional)" style="margin-bottom:10px;"></textarea>
+            <button id="add-cert-btn" class="btn">Add Certification Type</button>
+            <div id="catalog-list" style="margin-top:12px; color: var(--text-dim);">Loading catalog...</div>
+        </div>
+
+        <div class="card">
+            <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 14px;">Review Submissions</div>
+            <div id="submission-list" style="color: var(--text-dim);">Loading submissions...</div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, onAuthStateChanged, db, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp } from '/app/firebase.js';
+
+        const CERT_CATALOG_PATH = 'escort/certifications/catalog';
+        const CERT_SUBMISSIONS_PATH = 'escort/certifications/submissions';
+
+        let currentUser = null;
+        let catalog = [];
+        let submissions = [];
+
+        const loader = document.getElementById('loader');
+        const addCertBtn = document.getElementById('add-cert-btn');
+        const catalogListEl = document.getElementById('catalog-list');
+        const submissionListEl = document.getElementById('submission-list');
+
+        const newCertNameEl = document.getElementById('new-cert-name');
+        const newCertDescEl = document.getElementById('new-cert-desc');
+
+        function tsMs(value) {
+            if (!value) return 0;
+            if (typeof value.toMillis === 'function') return value.toMillis();
+            if (typeof value.seconds === 'number') return value.seconds * 1000;
+            return 0;
+        }
+
+        function tsLabel(value) {
+            if (!value) return 'Pending timestamp';
+            if (typeof value.toDate === 'function') return value.toDate().toLocaleString();
+            if (typeof value.seconds === 'number') return new Date(value.seconds * 1000).toLocaleString();
+            return 'Pending timestamp';
+        }
+
+        function updateStats() {
+            document.getElementById('pending-count').textContent = submissions.filter((s) => s.status === 'pending').length;
+            document.getElementById('approved-count').textContent = submissions.filter((s) => s.status === 'approved').length;
+            document.getElementById('revoked-count').textContent = submissions.filter((s) => s.status === 'revoked').length;
+        }
+
+        function renderCatalog() {
+            if (!catalog.length) {
+                catalogListEl.innerHTML = 'No catalog items yet.';
+                return;
+            }
+            catalogListEl.innerHTML = catalog.map((item) => `
+                <div class="list-item">
+                    <div class="item-row">
+                        <div style="flex:1;">
+                            <div style="font-weight: 800; color: var(--text);">${item.name || 'Certification'}</div>
+                            ${item.description ? `<div class="meta">${item.description}</div>` : ''}
+                            <div class="meta" style="color:${item.active === false ? '#b91c1c' : '#047857'};">${item.active === false ? 'Inactive' : 'Active'}</div>
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="tiny-btn" style="border-color:var(--primary); color:var(--primary);" data-action="toggle" data-id="${item.id}">${item.active === false ? 'Enable' : 'Disable'}</button>
+                        <button class="tiny-btn" style="border-color:#ef4444; color:#ef4444;" data-action="delete" data-id="${item.id}">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderSubmissions() {
+            if (!submissions.length) {
+                submissionListEl.innerHTML = 'No submissions found.';
+                return;
+            }
+
+            submissionListEl.innerHTML = submissions.map((item) => `
+                <div class="list-item">
+                    <div class="item-row">
+                        <div style="font-weight: 800; color: var(--text);">${item.certTypeName || 'Certification'}</div>
+                        <span class="badge ${item.status || 'pending'}">${String(item.status || 'pending').toUpperCase()}</span>
+                    </div>
+                    <div class="meta">User: ${item.userEmail || 'Unknown'}</div>
+                    <div class="meta">Submitted: ${tsLabel(item.createdAt)}</div>
+                    ${item.reviewedAt ? `<div class="meta">Reviewed: ${tsLabel(item.reviewedAt)}</div>` : ''}
+                    ${item.reviewedByEmail ? `<div class="meta">Reviewer: ${item.reviewedByEmail}</div>` : ''}
+                    ${item.certificateLink ? `<div class="link">${item.certificateLink}</div>` : ''}
+                    ${item.notes ? `<div class="meta" style="color:var(--text);">${item.notes}</div>` : ''}
+                    <div class="item-actions">
+                        <button class="tiny-btn" style="border-color:#10b981; color:#10b981;" data-action="approve" data-id="${item.id}">Approve</button>
+                        <button class="tiny-btn" style="border-color:#ef4444; color:#ef4444;" data-action="revoke" data-id="${item.id}">Revoke</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadData() {
+            const [catalogSnap, submissionsSnap] = await Promise.all([
+                getDocs(collection(db, CERT_CATALOG_PATH)),
+                getDocs(collection(db, CERT_SUBMISSIONS_PATH)),
+            ]);
+
+            catalog = catalogSnap.docs
+                .map((d) => ({ id: d.id, ...d.data() }))
+                .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+
+            submissions = submissionsSnap.docs
+                .map((d) => ({ id: d.id, ...d.data() }))
+                .sort((a, b) => {
+                    const aPending = a.status === 'pending' ? 0 : 1;
+                    const bPending = b.status === 'pending' ? 0 : 1;
+                    if (aPending !== bPending) return aPending - bPending;
+                    return tsMs(b.createdAt) - tsMs(a.createdAt);
+                });
+
+            updateStats();
+            renderCatalog();
+            renderSubmissions();
+        }
+
+        async function ensureAdmin(user) {
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            return userDoc.exists() && userDoc.data().role === 'admin';
+        }
+
+        addCertBtn.addEventListener('click', async () => {
+            const name = newCertNameEl.value.trim();
+            if (!name) {
+                alert('Please enter a certification name.');
+                return;
+            }
+
+            addCertBtn.disabled = true;
+            addCertBtn.textContent = 'Saving...';
+            try {
+                await addDoc(collection(db, CERT_CATALOG_PATH), {
+                    name,
+                    description: newCertDescEl.value.trim(),
+                    active: true,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                    createdBy: currentUser?.uid || 'unknown',
+                    createdByEmail: currentUser?.email || 'unknown',
+                });
+                newCertNameEl.value = '';
+                newCertDescEl.value = '';
+                await loadData();
+            } catch (error) {
+                console.error(error);
+                alert('Failed to add certification type.');
+            } finally {
+                addCertBtn.disabled = false;
+                addCertBtn.textContent = 'Add Certification Type';
+            }
+        });
+
+        document.addEventListener('click', async (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) return;
+            const action = target.getAttribute('data-action');
+            const id = target.getAttribute('data-id');
+            if (!action || !id) return;
+
+            try {
+                if (action === 'toggle') {
+                    const item = catalog.find((c) => c.id === id);
+                    if (!item) return;
+                    await updateDoc(doc(db, CERT_CATALOG_PATH, id), {
+                        active: item.active === false,
+                        updatedAt: serverTimestamp(),
+                    });
+                }
+
+                if (action === 'delete') {
+                    const item = catalog.find((c) => c.id === id);
+                    if (!item) return;
+                    if (!confirm(`Delete "${item.name}" from catalog?`)) return;
+                    await deleteDoc(doc(db, CERT_CATALOG_PATH, id));
+                }
+
+                if (action === 'approve' || action === 'revoke') {
+                    await updateDoc(doc(db, CERT_SUBMISSIONS_PATH, id), {
+                        status: action === 'approve' ? 'approved' : 'revoked',
+                        reviewedAt: serverTimestamp(),
+                        reviewedBy: currentUser?.uid || 'unknown',
+                        reviewedByEmail: currentUser?.email || 'unknown',
+                        updatedAt: serverTimestamp(),
+                    });
+                }
+
+                await loadData();
+            } catch (error) {
+                console.error(error);
+                alert('Action failed. Please try again.');
+            }
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = '/app/login.html';
+                return;
+            }
+
+            try {
+                const admin = await ensureAdmin(user);
+                if (!admin) {
+                    alert('Unauthorized access. Admin privileges required.');
+                    window.location.href = '/app/index.html';
+                    return;
+                }
+
+                currentUser = user;
+                await loadData();
+                loader.style.display = 'none';
+            } catch (error) {
+                console.error(error);
+                window.location.href = '/app/index.html';
+            }
+        });
+    </script>
+</body>
+
+</html>

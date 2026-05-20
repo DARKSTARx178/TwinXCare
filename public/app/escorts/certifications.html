@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TwinXCare - Certifications</title>
+    <link rel="stylesheet" href="/app/app.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <style>
+        .header {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 28px;
+        }
+
+        .icon-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: var(--primary-glow);
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+
+        .label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+
+        .input,
+        .select {
+            width: 100%;
+            border-radius: 16px;
+            border: 1.5px solid var(--border);
+            background: #F1F5F9;
+            color: var(--text);
+            padding: 14px 16px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            box-sizing: border-box;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .input:focus,
+        .select:focus {
+            border-color: var(--primary);
+        }
+
+        .input-wrapper {
+            margin-bottom: 14px;
+        }
+
+        .helper {
+            margin-top: 8px;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border-radius: 16px;
+            border: 2px solid var(--primary);
+            background: var(--surface);
+            color: var(--primary);
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .history-item {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+
+        .history-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .badge {
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.pending {
+            background: #fff7ed;
+            color: #9a3412;
+        }
+
+        .badge.approved {
+            background: #ecfdf5;
+            color: #047857;
+        }
+
+        .badge.revoked {
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+
+        .meta {
+            color: var(--text-dim);
+            font-size: 0.78rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .link {
+            color: var(--primary);
+            font-size: 0.82rem;
+            font-weight: 700;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="fade-in" style="padding-top: 18px; padding-bottom: 110px;">
+        <a href="javascript:history.back()"
+            style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.05); padding: 8px; border-radius: 12px; color: var(--text); text-decoration: none;">
+            <i class="mdi mdi-arrow-left" style="font-size: 24px;"></i>
+        </a>
+
+        <div class="header">
+            <div class="icon-circle"><i class="mdi mdi-ribbon-outline"></i></div>
+            <div style="font-size: 1.5rem; font-weight: 900;">My Certifications</div>
+            <div style="color: var(--text-dim); font-weight: 500; margin-top: 4px;">Submit certification links for admin approval</div>
+        </div>
+
+        <div class="card" style="margin-bottom: 18px;">
+            <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 16px;">Submit Certification</div>
+
+            <div class="input-wrapper">
+                <div class="label">Certification Type</div>
+                <select id="cert-type" class="select"></select>
+                <div class="helper" id="cert-desc"></div>
+            </div>
+
+            <div class="input-wrapper">
+                <div class="label">Certificate URL</div>
+                <input id="cert-link" class="input" type="url" placeholder="https://drive.google.com/..." />
+            </div>
+
+            <div class="input-wrapper">
+                <div class="label">Notes (Optional)</div>
+                <textarea id="cert-notes" class="input" rows="3" placeholder="Issuing body, cert number, expiry date..." style="resize:none;"></textarea>
+            </div>
+
+            <button id="submit-btn" class="btn">Submit for Review</button>
+        </div>
+
+        <div class="card">
+            <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 16px;">Submission History</div>
+            <div id="history-list" style="color: var(--text-dim);">Loading submissions...</div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <div class="nav-container">
+            <a href="/app/index.html" class="nav-item">
+                <i class="mdi mdi-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="/app/explore.html" class="nav-item">
+                <i class="mdi mdi-compass-outline"></i>
+                <span>Equipment</span>
+            </a>
+            <a href="/app/escorts.html" class="nav-item active">
+                <i class="mdi mdi-shield-account-outline"></i>
+                <span>Escorts</span>
+            </a>
+            <a href="/app/delivery.html" class="nav-item">
+                <i class="mdi mdi-truck-delivery-outline"></i>
+                <span>History</span>
+            </a>
+            <a href="/app/settings.html" class="nav-item">
+                <i class="mdi mdi-cog-outline"></i>
+                <span>Settings</span>
+            </a>
+        </div>
+    </nav>
+
+    <script type="module">
+        import { auth, db, onAuthStateChanged, collection, getDocs, query, where, addDoc, serverTimestamp } from '/app/firebase.js';
+
+        const CERT_CATALOG_PATH = 'escort/certifications/catalog';
+        const CERT_SUBMISSIONS_PATH = 'escort/certifications/submissions';
+
+        const certTypeEl = document.getElementById('cert-type');
+        const certDescEl = document.getElementById('cert-desc');
+        const certLinkEl = document.getElementById('cert-link');
+        const certNotesEl = document.getElementById('cert-notes');
+        const submitBtn = document.getElementById('submit-btn');
+        const historyListEl = document.getElementById('history-list');
+
+        let currentUser = null;
+        let catalog = [];
+
+        function tsMs(value) {
+            if (!value) return 0;
+            if (typeof value.toMillis === 'function') return value.toMillis();
+            if (typeof value.seconds === 'number') return value.seconds * 1000;
+            return 0;
+        }
+
+        function tsLabel(value) {
+            if (!value) return 'Pending timestamp';
+            if (typeof value.toDate === 'function') return value.toDate().toLocaleString();
+            if (typeof value.seconds === 'number') return new Date(value.seconds * 1000).toLocaleString();
+            return 'Pending timestamp';
+        }
+
+        function renderCatalog() {
+            certTypeEl.innerHTML = '';
+            if (!catalog.length) {
+                certTypeEl.innerHTML = '<option value="">No certification types configured by admin</option>';
+                certDescEl.textContent = '';
+                submitBtn.disabled = true;
+                return;
+            }
+
+            catalog.forEach((item) => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.name || 'Certification';
+                certTypeEl.appendChild(opt);
+            });
+            submitBtn.disabled = false;
+            updateSelectedDesc();
+        }
+
+        function updateSelectedDesc() {
+            const selected = catalog.find((c) => c.id === certTypeEl.value);
+            certDescEl.textContent = selected?.description || 'Selected certification will be sent to volunteers and admins.';
+        }
+
+        async function loadCatalog() {
+            const snap = await getDocs(collection(db, CERT_CATALOG_PATH));
+            catalog = snap.docs
+                .map((d) => ({ id: d.id, ...d.data() }))
+                .filter((d) => d.active !== false)
+                .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+            renderCatalog();
+        }
+
+        async function loadHistory() {
+            if (!currentUser) {
+                historyListEl.innerHTML = 'Please login first.';
+                return;
+            }
+            const snap = await getDocs(query(collection(db, CERT_SUBMISSIONS_PATH), where('userId', '==', currentUser.uid)));
+            const items = snap.docs
+                .map((d) => ({ id: d.id, ...d.data() }))
+                .sort((a, b) => tsMs(b.createdAt) - tsMs(a.createdAt));
+
+            if (!items.length) {
+                historyListEl.innerHTML = 'No certification submissions yet.';
+                return;
+            }
+
+            historyListEl.innerHTML = items.map((item) => `
+                <div class="history-item">
+                    <div class="history-row">
+                        <div style="font-weight: 800; color: var(--text);">${item.certTypeName || 'Certification'}</div>
+                        <span class="badge ${item.status || 'pending'}">${String(item.status || 'pending').toUpperCase()}</span>
+                    </div>
+                    <div class="meta">Submitted: ${tsLabel(item.createdAt)}</div>
+                    ${item.reviewedAt ? `<div class="meta">Reviewed: ${tsLabel(item.reviewedAt)}</div>` : ''}
+                    ${item.reviewedByEmail ? `<div class="meta">Reviewer: ${item.reviewedByEmail}</div>` : ''}
+                    ${item.certificateLink ? `<div class="link">${item.certificateLink}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        certTypeEl.addEventListener('change', updateSelectedDesc);
+
+        submitBtn.addEventListener('click', async () => {
+            if (!currentUser) {
+                alert('Please login first.');
+                return;
+            }
+
+            const selected = catalog.find((c) => c.id === certTypeEl.value);
+            if (!selected) {
+                alert('No certification type selected.');
+                return;
+            }
+
+            const link = certLinkEl.value.trim();
+            if (!link) {
+                alert('Please provide a certificate URL.');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                await addDoc(collection(db, CERT_SUBMISSIONS_PATH), {
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    certTypeId: selected.id,
+                    certTypeName: selected.name,
+                    certTypeDescription: selected.description || '',
+                    certificateLink: link,
+                    notes: certNotesEl.value.trim(),
+                    status: 'pending',
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                });
+                certLinkEl.value = '';
+                certNotesEl.value = '';
+                alert('Certification submitted for review.');
+                await loadHistory();
+            } catch (error) {
+                console.error(error);
+                alert('Failed to submit certification.');
+            } finally {
+                submitBtn.disabled = catalog.length === 0;
+                submitBtn.textContent = 'Submit for Review';
+            }
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = '/app/login.html';
+                return;
+            }
+            currentUser = user;
+            try {
+                await loadCatalog();
+                await loadHistory();
+            } catch (error) {
+                console.error(error);
+                historyListEl.innerHTML = 'Failed to load certification data.';
+            }
+        });
+    </script>
+</body>
+
+</html>

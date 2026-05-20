@@ -762,8 +762,11 @@
                                     <input type="tel" class="input-dark" id="req-emergency-phone" placeholder="Emergency contact number">
                                 </div>
                                 <div class="form-group">
-                                    <label>Requirements of Volunteer</label>
-                                    <input type="text" class="input-dark" id="req-volunteer-requirements" placeholder="e.g. CPR certified">
+                                    <label>Required Certification</label>
+                                    <select class="input-dark" id="req-volunteer-certification"></select>
+                                    <div style="margin-top:8px;font-size:0.75rem;color:var(--text-dim);font-weight:600;" id="req-certification-helper">
+                                        Selected certification will be shared with volunteers.
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label>Instructions</label>
@@ -860,7 +863,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfigResponse = await fetch('/api/firebase-config');
         if (!firebaseConfigResponse.ok) {
@@ -879,14 +882,55 @@
         let volSearch = '';
         let activeRatingRequest = null;
         let selectedRating = 0;
+        let certificationCatalog = [];
+
+        const CERT_CATALOG_PATH = 'escort/certifications/catalog';
+        const reqCertSelect = document.getElementById('req-volunteer-certification');
+        const reqCertHelper = document.getElementById('req-certification-helper');
 
         const loader = document.getElementById('loader');
         const dashboardView = document.getElementById('dashboard-view');
 
         // INITIALIZATION
         dashboardView.style.display = 'block';
+        await loadCertificationCatalog();
         syncData();
         hideLoader();
+
+        async function loadCertificationCatalog() {
+            const snap = await getDocs(collection(db, CERT_CATALOG_PATH));
+            certificationCatalog = snap.docs
+                .map((d) => ({ id: d.id, ...d.data() }))
+                .filter((item) => item.active !== false)
+                .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+            renderCertificationCatalog();
+        }
+
+        function renderCertificationCatalog() {
+            reqCertSelect.innerHTML = '';
+            if (!certificationCatalog.length) {
+                reqCertSelect.innerHTML = '<option value=\"\">No certification types configured by admin</option>';
+                reqCertSelect.disabled = true;
+                reqCertHelper.textContent = 'Configure certification types in Escort Certs first.';
+                return;
+            }
+
+            reqCertSelect.disabled = false;
+            certificationCatalog.forEach((item) => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.name || 'Certification';
+                reqCertSelect.appendChild(option);
+            });
+            updateCertHelper();
+        }
+
+        function updateCertHelper() {
+            const selected = certificationCatalog.find((item) => item.id === reqCertSelect.value);
+            reqCertHelper.textContent = selected?.description || 'Selected certification will be shared with volunteers.';
+        }
+
+        reqCertSelect.addEventListener('change', updateCertHelper);
 
         // DATA SYNC
         function syncData() {
@@ -928,6 +972,7 @@
 
         document.getElementById('req-form').onsubmit = async (e) => {
             e.preventDefault();
+            const selectedCertification = certificationCatalog.find((item) => item.id === reqCertSelect.value) || null;
             const data = {
                 userId: auth?.currentUser?.uid ?? 'guest',
                 userEmail: auth?.currentUser?.email ?? 'guest',
@@ -940,7 +985,9 @@
                 age: Number(document.getElementById('req-age').value) || null,
                 contactPhone: document.getElementById('req-phone').value,
                 emergencyContactPhone: document.getElementById('req-emergency-phone').value,
-                volunteerRequirements: document.getElementById('req-volunteer-requirements').value,
+                requiredCertificationId: selectedCertification?.id || null,
+                requiredCertificationName: selectedCertification?.name || null,
+                volunteerRequirements: selectedCertification?.name || '',
                 medicalDetails: document.getElementById('req-medical').value,
                 instructions: document.getElementById('req-instructions').value,
                 additionalNotes: document.getElementById('req-instructions').value,
@@ -949,6 +996,7 @@
             };
             await addDoc(collection(db, 'escort', 'request', 'entries'), data);
             e.target.reset();
+            updateCertHelper();
         };
 
         // RENDERING LOGIC

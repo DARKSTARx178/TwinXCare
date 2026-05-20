@@ -197,7 +197,7 @@
         </div>
 
         <div class="card" style="margin-bottom: 20px;">
-            <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 20px;">Patient Info</div>
+            <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 20px;">Request Escort Form</div>
 
             <div class="input-wrapper">
                 <div class="label">Hospital / Clinic</div>
@@ -216,8 +216,8 @@
             </div>
 
             <div class="input-wrapper">
-                <div class="label">Reason for Appointment</div>
-                <input type="text" class="input" id="reason-input" placeholder="e.g. Regular checkup, Dialysis">
+                <div class="label">Appointment Info</div>
+                <input type="text" class="input" id="appointment-input" placeholder="e.g. back pain, joint pain">
             </div>
 
             <div class="row">
@@ -238,8 +238,18 @@
             </div>
 
             <div class="input-wrapper">
-                <div class="label">Additional Instructions</div>
-                <textarea class="input" id="notes-input" rows="2" placeholder="Anything else?"
+                <div class="label">Emergency Contact Number</div>
+                <input type="tel" class="input" id="emergency-phone-input" placeholder="Emergency contact number">
+            </div>
+
+            <div class="input-wrapper">
+                <div class="label">Requirements of Volunteer</div>
+                <input type="text" class="input" id="volunteer-requirements-input" placeholder="e.g. CPR certified">
+            </div>
+
+            <div class="input-wrapper">
+                <div class="label">Instructions</div>
+                <textarea class="input" id="instructions-input" rows="2" placeholder="Anything else?"
                     style="resize: none;"></textarea>
             </div>
 
@@ -390,9 +400,9 @@
 
         btnSubmit.addEventListener('click', async () => {
             const hospital = document.getElementById('hospital-input').value.trim();
-            const reason = document.getElementById('reason-input').value.trim();
-            if (!hospital || !reason) {
-                alert("Please enter hospital and reason.");
+            const appointmentInfo = document.getElementById('appointment-input').value.trim();
+            if (!hospital || !appointmentInfo) {
+                alert("Please enter hospital/clinic and appointment info.");
                 return;
             }
 
@@ -418,11 +428,15 @@
                         latitude: pickupCoordinates.latitude,
                         longitude: pickupCoordinates.longitude,
                     } : null,
-                    appointmentReason: reason,
+                    appointmentInfo: appointmentInfo,
+                    appointmentReason: appointmentInfo,
                     medicalDetails: document.getElementById('medical-input').value,
                     age: Number(document.getElementById('age-input').value) || null,
                     contactPhone: document.getElementById('phone-input').value,
-                    additionalNotes: document.getElementById('notes-input').value,
+                    emergencyContactPhone: document.getElementById('emergency-phone-input').value,
+                    volunteerRequirements: document.getElementById('volunteer-requirements-input').value,
+                    instructions: document.getElementById('instructions-input').value,
+                    additionalNotes: document.getElementById('instructions-input').value,
                     createdAt: serverTimestamp(),
                     status: 'pending'
                 };

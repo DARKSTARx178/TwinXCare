@@ -276,10 +276,10 @@
             </div>
 
             <div class="card" style="margin-bottom: 20px;">
-                <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 20px;">Assignment Details</div>
+                <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 20px;">Volunteer Form</div>
 
                 <div class="input-wrapper">
-                    <div class="label">Preferred Location</div>
+                    <div class="label">Location</div>
                     <input type="text" class="input" id="loc-input" placeholder="Hospital, area, or facility">
                     <div id="geo-hint" class="hint-text" style="display:none;">Geoapify location suggestions are unavailable.</div>
                     <div id="loc-suggestions" class="suggestions" style="display:none;"></div>
@@ -291,19 +291,13 @@
 
                 <div class="row">
                     <div class="input-wrapper flex-1">
-                        <div class="label">Capacity</div>
-                        <input type="number" class="input" id="pax-input" placeholder="1">
+                        <div class="label">Location Radius Furthest Travelled (KM)</div>
+                        <input type="number" class="input" id="radius-input" placeholder="5">
                     </div>
                     <div class="input-wrapper flex-2">
                         <div class="label">Contact Phone</div>
                         <input type="tel" class="input" id="phone-input" placeholder="Your active number">
                     </div>
-                </div>
-
-                <div class="input-wrapper">
-                    <div class="label">Additional Notes</div>
-                    <textarea class="input" id="notes-input" rows="2" placeholder="Constraints or references"
-                        style="resize: none;"></textarea>
                 </div>
 
                 <button class="btn-submit" id="btn-submit">
@@ -519,10 +513,11 @@
                             latitude: locationCoordinates.latitude,
                             longitude: locationCoordinates.longitude,
                         } : null,
-                        serviceRadiusKm: 5,
-                        maxPax: Number(document.getElementById('pax-input').value) || 1,
+                        serviceRadiusKm: Number(document.getElementById('radius-input').value) || 5,
+                        locationRadiusKm: Number(document.getElementById('radius-input').value) || 5,
+                        maxPax: 1,
                         contactPhone: document.getElementById('phone-input').value,
-                        notes: document.getElementById('notes-input').value,
+                        notes: '',
                         status: 'available',
                         patientConfirmed: false,
                         volunteerConfirmed: false,

@@ -33,9 +33,7 @@ export default function EscortAvailability() {
   const [location, setLocation] = useState('');
   const [locationCoordinates, setLocationCoordinates] = useState<SelectedLocation | null>(null);
   const [serviceRadiusKm, setServiceRadiusKm] = useState('5');
-  const [maxPax, setMaxPax] = useState('1');
   const [contactPhone, setContactPhone] = useState('');
-  const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [userRating, setUserRating] = useState<number | null>(null);
   const [ratingCount, setRatingCount] = useState(0);
@@ -196,9 +194,10 @@ export default function EscortAvailability() {
           longitude: locationCoordinates.longitude,
         } : null,
         serviceRadiusKm: radiusKm,
-        maxPax: Number(maxPax) || 1,
+        locationRadiusKm: radiusKm,
+        maxPax: 1,
         contactPhone,
-        notes,
+        notes: '',
         createdAt: serverTimestamp(),
         status: 'available',
         patientConfirmed: false,
@@ -219,9 +218,10 @@ export default function EscortAvailability() {
           longitude: locationCoordinates.longitude,
         } : null,
         serviceRadiusKm: radiusKm,
-        maxPax: Number(maxPax) || 1,
+        locationRadiusKm: radiusKm,
+        maxPax: 1,
         contactPhone,
-        notes,
+        notes: '',
         status: 'available'
       };
 
@@ -487,11 +487,11 @@ export default function EscortAvailability() {
           </View>
 
           <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
-            <Text style={[styles.cardHeading, { color: theme.text }]}>Assignment Details</Text>
+            <Text style={[styles.cardHeading, { color: theme.text }]}>Volunteer Details</Text>
 
             <View style={styles.inputWrapper}>
               <LocationAutocomplete
-                label="Preferred Location"
+                label="Location"
                 placeholder="Hospital, area, or facility"
                 value={location}
                 onChangeText={setLocation}
@@ -503,7 +503,7 @@ export default function EscortAvailability() {
 
             <View style={styles.formRow}>
               <View style={[styles.inputWrapper, { flex: 1, marginRight: 12 }]}>
-                <Text style={[styles.label, { color: theme.textDim }]}>Radius (KM)</Text>
+                <Text style={[styles.label, { color: theme.textDim }]}>Location Radius Furthest Travelled (KM)</Text>
                 <TextInput
                   style={[styles.input, { color: theme.text }]}
                   placeholder="5"
@@ -512,17 +512,7 @@ export default function EscortAvailability() {
                   keyboardType="numeric"
                 />
               </View>
-              <View style={[styles.inputWrapper, { flex: 1, marginRight: 12 }]}>
-                <Text style={[styles.label, { color: theme.textDim }]}>Capacity (Pax)</Text>
-                <TextInput
-                  style={[styles.input, { color: theme.text }]}
-                  placeholder="1"
-                  value={maxPax}
-                  onChangeText={setMaxPax}
-                  keyboardType="numeric"
-                />
-              </View>
-              <View style={[styles.inputWrapper, { flex: 1.5 }]}>
+              <View style={[styles.inputWrapper, { flex: 1.2 }]}>
                 <Text style={[styles.label, { color: theme.textDim }]}>Contact Phone</Text>
                 <TextInput
                   style={[styles.input, { color: theme.text }]}
@@ -533,18 +523,6 @@ export default function EscortAvailability() {
                   keyboardType="phone-pad"
                 />
               </View>
-            </View>
-
-            <View style={styles.inputWrapper}>
-              <Text style={[styles.label, { color: theme.textDim }]}>Additional Notes</Text>
-              <TextInput
-                style={[styles.input, { color: theme.text, minHeight: 80, textAlignVertical: 'top' }]}
-                placeholder="Constraints or references..."
-                placeholderTextColor="#94a3b8"
-                value={notes}
-                onChangeText={setNotes}
-                multiline
-              />
             </View>
 
             <TouchableOpacity

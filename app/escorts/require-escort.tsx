@@ -23,11 +23,13 @@ export default function RequireEscort() {
 	const [hospital, setHospital] = useState('');
 	const [pickupLocation, setPickupLocation] = useState('');
 	const [pickupCoordinates, setPickupCoordinates] = useState<SelectedLocation | null>(null);
-	const [appointmentReason, setAppointmentReason] = useState('');
+	const [appointmentInfo, setAppointmentInfo] = useState('');
 	const [medicalDetails, setMedicalDetails] = useState('');
 	const [age, setAge] = useState('');
 	const [contactPhone, setContactPhone] = useState('');
-	const [additionalNotes, setAdditionalNotes] = useState('');
+	const [emergencyContactPhone, setEmergencyContactPhone] = useState('');
+	const [volunteerRequirements, setVolunteerRequirements] = useState('');
+	const [instructions, setInstructions] = useState('');
 	const [submitting, setSubmitting] = useState(false);
 
 	// Helpers
@@ -39,8 +41,8 @@ export default function RequireEscort() {
 		const timeStr = formatTime(time);
 		const endTimeStr = formatTime(endTime);
 
-		if (!hospital.trim() || !appointmentReason.trim()) {
-			Alert.alert('Incomplete Form', 'Please indicate the hospital and reason for the appointment.');
+		if (!hospital.trim() || !appointmentInfo.trim()) {
+			Alert.alert('Incomplete Form', 'Please indicate the hospital/clinic and appointment information.');
 			return;
 		}
 
@@ -58,11 +60,15 @@ export default function RequireEscort() {
 					latitude: pickupCoordinates.latitude,
 					longitude: pickupCoordinates.longitude,
 				} : null,
-				appointmentReason,
+				appointmentInfo,
+				appointmentReason: appointmentInfo,
 				medicalDetails,
 				age: age ? Number(age) : null,
 				contactPhone,
-				additionalNotes,
+				emergencyContactPhone,
+				volunteerRequirements,
+				instructions,
+				additionalNotes: instructions,
 				createdAt: serverTimestamp(),
 				status: 'pending'
 			});
@@ -79,11 +85,15 @@ export default function RequireEscort() {
 					latitude: pickupCoordinates.latitude,
 					longitude: pickupCoordinates.longitude,
 				} : null,
-				appointmentReason,
+				appointmentInfo,
+				appointmentReason: appointmentInfo,
 				medicalDetails,
 				age: age ? Number(age) : null,
 				contactPhone,
-				additionalNotes,
+				emergencyContactPhone,
+				volunteerRequirements,
+				instructions,
+				additionalNotes: instructions,
 				status: 'pending'
 			};
 
@@ -223,13 +233,13 @@ export default function RequireEscort() {
 				</View>
 
 				<View style={styles.inputWrapper}>
-					<Text style={[styles.label, { color: theme.textDim }]}>Reason for Appointment</Text>
+					<Text style={[styles.label, { color: theme.textDim }]}>Appointment Info</Text>
 					<TextInput
 						style={[styles.input, { color: theme.text }]}
-						placeholder="e.g. Regular checkup, Dialysis"
+						placeholder="e.g. back pain, joint pain"
 						placeholderTextColor="#94a3b8"
-						value={appointmentReason}
-						onChangeText={setAppointmentReason}
+						value={appointmentInfo}
+						onChangeText={setAppointmentInfo}
 					/>
 				</View>
 
@@ -258,7 +268,19 @@ export default function RequireEscort() {
 				</View>
 
 				<View style={styles.inputWrapper}>
-					<Text style={[styles.label, { color: theme.textDim }]}>Medical Details</Text>
+					<Text style={[styles.label, { color: theme.textDim }]}>Emergency Contact Number</Text>
+					<TextInput
+						style={[styles.input, { color: theme.text }]}
+						placeholder="Emergency contact number"
+						placeholderTextColor="#94a3b8"
+						value={emergencyContactPhone}
+						onChangeText={setEmergencyContactPhone}
+						keyboardType="phone-pad"
+					/>
+				</View>
+
+				<View style={styles.inputWrapper}>
+					<Text style={[styles.label, { color: theme.textDim }]}>Medical Details / Notes / Constraints</Text>
 					<TextInput
 						style={[styles.input, { color: theme.text, minHeight: 80, textAlignVertical: 'top' }]}
 						placeholder="Mobility constraints, medications, etc."
@@ -270,13 +292,24 @@ export default function RequireEscort() {
 				</View>
 
 				<View style={styles.inputWrapper}>
-					<Text style={[styles.label, { color: theme.textDim }]}>Additional Instructions</Text>
+					<Text style={[styles.label, { color: theme.textDim }]}>Requirements of Volunteer</Text>
+					<TextInput
+						style={[styles.input, { color: theme.text }]}
+						placeholder="e.g. CPR certified"
+						placeholderTextColor="#94a3b8"
+						value={volunteerRequirements}
+						onChangeText={setVolunteerRequirements}
+					/>
+				</View>
+
+				<View style={styles.inputWrapper}>
+					<Text style={[styles.label, { color: theme.textDim }]}>Instructions</Text>
 					<TextInput
 						style={[styles.input, { color: theme.text, minHeight: 60, textAlignVertical: 'top' }]}
 						placeholder="Anything else we should know?"
 						placeholderTextColor="#94a3b8"
-						value={additionalNotes}
-						onChangeText={setAdditionalNotes}
+						value={instructions}
+						onChangeText={setInstructions}
 						multiline
 					/>
 				</View>

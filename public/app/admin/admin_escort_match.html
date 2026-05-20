@@ -676,8 +676,7 @@
                         </div>
                         <div class="form-body">
                             <form id="vol-form">
-                                <div class="form-group"
-                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <div class="form-group" style="display: grid; grid-template-columns: 1fr; gap: 12px;">
                                     <div>
                                         <label>Escort Date</label>
                                         <input type="date" class="input-dark" id="vol-date" required>
@@ -691,26 +690,21 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Preferred Location</label>
+                                    <label>Location</label>
                                     <input type="text" class="input-dark" id="vol-location"
                                         placeholder="Hospital, area, or facility" required>
                                 </div>
                                 <div class="form-group"
                                     style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
                                     <div>
-                                        <label>Capacity</label>
-                                        <input type="number" class="input-dark" id="vol-pax" placeholder="1" value="1">
+                                        <label>Location Radius Furthest Travelled (KM)</label>
+                                        <input type="number" class="input-dark" id="vol-radius" placeholder="5" value="5">
                                     </div>
                                     <div>
                                         <label>Contact Phone</label>
                                         <input type="tel" class="input-dark" id="vol-phone"
                                             placeholder="Provider number">
                                     </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Additional Notes</label>
-                                    <textarea class="input-dark" id="vol-notes" style="height: 80px; resize: none;"
-                                        placeholder="Expertise, constraints..."></textarea>
                                 </div>
                                 <button type="submit" class="btn-premium btn-indigo-outline">Register
                                     Availability</button>
@@ -724,8 +718,7 @@
                         </div>
                         <div class="form-body">
                             <form id="req-form">
-                                <div class="form-group"
-                                    style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
+                                <div class="form-group" style="display: grid; grid-template-columns: 1fr; gap: 12px;">
                                     <div>
                                         <label>Date</label>
                                         <input type="date" class="input-dark" id="req-date" required>
@@ -744,9 +737,9 @@
                                         placeholder="Name of health facility" required>
                                 </div>
                                 <div class="form-group">
-                                    <label>Reason for Appointment</label>
-                                    <input type="text" class="input-dark" id="req-reason"
-                                        placeholder="e.g. Regular checkup" required>
+                                    <label>Appointment Info</label>
+                                    <input type="text" class="input-dark" id="req-appointment-info"
+                                        placeholder="e.g. back pain, joint pain" required>
                                 </div>
                                 <div class="form-group"
                                     style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
@@ -760,13 +753,21 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Medical Details</label>
+                                    <label>Medical Details / Notes / Constraints</label>
                                     <textarea class="input-dark" id="req-medical" style="height: 60px; resize: none;"
                                         placeholder="Mobility, medications..."></textarea>
                                 </div>
                                 <div class="form-group">
-                                    <label>Additional Instructions</label>
-                                    <textarea class="input-dark" id="req-notes" style="height: 60px; resize: none;"
+                                    <label>Emergency Contact Number</label>
+                                    <input type="tel" class="input-dark" id="req-emergency-phone" placeholder="Emergency contact number">
+                                </div>
+                                <div class="form-group">
+                                    <label>Requirements of Volunteer</label>
+                                    <input type="text" class="input-dark" id="req-volunteer-requirements" placeholder="e.g. CPR certified">
+                                </div>
+                                <div class="form-group">
+                                    <label>Instructions</label>
+                                    <textarea class="input-dark" id="req-instructions" style="height: 60px; resize: none;"
                                         placeholder="Specific needs..."></textarea>
                                 </div>
                                 <button type="submit" class="btn-premium btn-rose-outline">Queue Request</button>
@@ -909,9 +910,11 @@
                 fromTime: document.getElementById('vol-start').value,
                 toTime: document.getElementById('vol-end').value,
                 location: document.getElementById('vol-location').value,
-                maxPax: Number(document.getElementById('vol-pax').value) || 1,
+                serviceRadiusKm: Number(document.getElementById('vol-radius').value) || 5,
+                locationRadiusKm: Number(document.getElementById('vol-radius').value) || 5,
+                maxPax: 1,
                 contactPhone: document.getElementById('vol-phone').value,
-                notes: document.getElementById('vol-notes').value,
+                notes: '',
                 createdAt: new Date().toISOString(),
                 status: 'available',
                 patientConfirmed: false,
@@ -932,11 +935,15 @@
                 time: document.getElementById('req-start').value,
                 endTime: document.getElementById('req-end').value,
                 hospital: document.getElementById('req-hospital').value,
-                appointmentReason: document.getElementById('req-reason').value,
+                appointmentInfo: document.getElementById('req-appointment-info').value,
+                appointmentReason: document.getElementById('req-appointment-info').value,
                 age: Number(document.getElementById('req-age').value) || null,
                 contactPhone: document.getElementById('req-phone').value,
+                emergencyContactPhone: document.getElementById('req-emergency-phone').value,
+                volunteerRequirements: document.getElementById('req-volunteer-requirements').value,
                 medicalDetails: document.getElementById('req-medical').value,
-                additionalNotes: document.getElementById('req-notes').value,
+                instructions: document.getElementById('req-instructions').value,
+                additionalNotes: document.getElementById('req-instructions').value,
                 status: 'pending',
                 createdAt: new Date().toISOString()
             };

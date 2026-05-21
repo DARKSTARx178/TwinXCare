@@ -2,6 +2,8 @@ import { db } from '@/firebase/firebase';
 import { sendLocalNotification, sendPushNotification } from '@/utils/notifications';
 import { collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 
+const TIME_TOLERANCE_MINUTES = 60;
+
 // Helper to parse "HH:MM" to minutes
 const parseTime = (timeStr: string) => {
     const [hours, minutes] = timeStr.split(':').map(Number);
@@ -97,6 +99,53 @@ const getRangeMatch = (requestData: any, availData: any) => {
     };
 };
 
+const intervalsOverlapWithTolerance = (
+    reqStart: number,
+    reqEnd: number,
+    availStart: number,
+    availEnd: number,
+    toleranceMinutes: number = TIME_TOLERANCE_MINUTES
+) => reqStart < availEnd + toleranceMinutes && reqEnd > availStart - toleranceMinutes;
+
+const normalizeCert = (value?: string) => (value || '').trim().toLowerCase();
+
+const getRequiredCertification = (requestData: any) =>
+    normalizeCert(requestData?.requiredCertificationName || requestData?.volunteerRequirements);
+
+const getProviderApprovedCerts = async () => {
+    const certsByProvider = new Map<string, Set<string>>();
+    try {
+        const approvedSnap = await getDocs(
+            query(collection(db, 'escort/certifications/submissions'), where('status', '==', 'approved'))
+        );
+
+        for (const docSnap of approvedSnap.docs) {
+            const data = docSnap.data() as any;
+            const providerId = data.userId;
+            const certName = normalizeCert(data.certTypeName || data.requiredCertificationName || data.volunteerRequirements);
+            if (!providerId || !certName) continue;
+
+            if (!certsByProvider.has(providerId)) certsByProvider.set(providerId, new Set<string>());
+            certsByProvider.get(providerId)!.add(certName);
+        }
+    } catch (error) {
+        console.error('Failed to load approved certifications for matching:', error);
+    }
+    return certsByProvider;
+};
+
+const providerMeetsCertification = (
+    providerId: string | undefined,
+    requiredCertification: string,
+    certsByProvider: Map<string, Set<string>>
+) => {
+    if (!requiredCertification) return true;
+    if (!providerId) return false;
+    const certs = certsByProvider.get(providerId);
+    if (!certs || certs.size === 0) return false;
+    return certs.has(requiredCertification);
+};
+
 // Called when a Patient submits a Request
 export const checkMatchForRequest = async (requestId: string, requestData: any) => {
     console.log('🔍 Checking match for Request:', requestId);
@@ -104,6 +153,7 @@ export const checkMatchForRequest = async (requestId: string, requestData: any) 
 
     const { date, time, endTime } = requestData;
     const requestLocation = getRequestMatchLocation(requestData);
+    const requiredCertification = getRequiredCertification(requestData);
     const reqStart = parseTime(time);
     const reqEnd = endTime ? parseTime(endTime) : reqStart + 60; // Default to 1 hour if missing
 
@@ -129,6 +179,7 @@ export const checkMatchForRequest = async (requestId: string, requestData: any) 
         );
 
         const snapshot = await getDocs(q);
+        const providerCerts = await getProviderApprovedCerts();
         console.log(`Found ${snapshot.size} potential availabilities for date ${date}`);
         const candidates: Candidate[] = [];
 
@@ -150,9 +201,13 @@ export const checkMatchForRequest = async (requestId: string, requestData: any) 
 
             console.log(`   ⏰ Time check: Req(${reqStart}-${reqEnd}) vs Avail(${availStart}-${availEnd})`);
 
-            // STRICT MATCH: Request must fit entirely within Availability
-            if (reqStart >= availStart && reqEnd <= availEnd) {
+            if (intervalsOverlapWithTolerance(reqStart, reqEnd, availStart, availEnd)) {
                 console.log(`   ✅ Time match found!`);
+
+                if (!providerMeetsCertification(avail.providerId, requiredCertification, providerCerts)) {
+                    console.log(`   ❌ Certification mismatch. Required: ${requiredCertification}`);
+                    continue;
+                }
 
                 const rangeMatch = getRangeMatch(requestData, avail);
                 const locationMatch = locationsMatch(requestLocation, avail.location);
@@ -176,6 +231,10 @@ export const checkMatchForRequest = async (requestId: string, requestData: any) 
                 }
 
                 console.log(`   🏥 Location check: "${requestLocation}" vs "${avail.location || ''}"`);
+                if (!locationMatch) {
+                    console.log('   ❌ No coordinate/radius match and no textual location match.');
+                    continue;
+                }
 
                 candidates.push({
                     id: availId,
@@ -241,6 +300,8 @@ export const checkMatchForAvailability = async (availId: string, availData: any)
         );
 
         const snapshot = await getDocs(q);
+        const providerCerts = await getProviderApprovedCerts();
+        const providerId = availData.providerId;
         console.log(`Found ${snapshot.size} pending requests for date ${date}`);
         const candidates: Candidate[] = [];
 
@@ -262,8 +323,14 @@ export const checkMatchForAvailability = async (availId: string, availData: any)
 
             console.log(`   ⏰ Time check: Req(${reqStart}-${reqEnd}) vs Avail(${availStart}-${availEnd})`);
 
-            if (reqStart >= availStart && reqEnd <= availEnd) {
+            if (intervalsOverlapWithTolerance(reqStart, reqEnd, availStart, availEnd)) {
                 console.log(`   ✅ Time match found!`);
+
+                const requiredCertification = getRequiredCertification(req);
+                if (!providerMeetsCertification(providerId, requiredCertification, providerCerts)) {
+                    console.log(`   ❌ Certification mismatch. Required: ${requiredCertification}`);
+                    continue;
+                }
 
                 const rangeMatch = getRangeMatch(req, availData);
                 const locationMatch = locationsMatch(getRequestMatchLocation(req), location);
@@ -288,6 +355,10 @@ export const checkMatchForAvailability = async (availId: string, availData: any)
 
                 const requestLocation = getRequestMatchLocation(req);
                 console.log(`   🏥 Location check: "${requestLocation}" vs "${location}"`);
+                if (!locationMatch) {
+                    console.log('   ❌ No coordinate/radius match and no textual location match.');
+                    continue;
+                }
 
                 candidates.push({
                     id: reqId,
@@ -358,6 +429,8 @@ const getMatchScore = (
 
     let score = 0;
     score -= fitPenalty * 0.05;
+    score -= Math.abs(reqStart - availStart) * 0.03;
+    score -= Math.abs(reqEnd - availEnd) * 0.02;
 
     if (rangeMatch?.inRange) {
         score += 120;

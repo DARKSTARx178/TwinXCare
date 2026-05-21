@@ -23,6 +23,8 @@ export default function EscortAvailability() {
 
   const [jobData, setJobData] = useState<any>(null);
   const [matchedRequestData, setMatchedRequestData] = useState<any>(null);
+  const [matchedProviderData, setMatchedProviderData] = useState<any>(null);
+  const [matchedProviderCerts, setMatchedProviderCerts] = useState<string[]>([]);
 
   const [date, setDate] = useState(new Date());
   const [fromTime, setFromTime] = useState(new Date());
@@ -87,6 +89,31 @@ export default function EscortAvailability() {
             }
           } else {
             setMatchedRequestData(null);
+          }
+
+          // For patients viewing a matched request, show volunteer profile details before confirmation.
+          if (type === 'request' && data?.matchedProviderId) {
+            const providerDoc = await getDoc(doc(db, 'users', data.matchedProviderId));
+            setMatchedProviderData(providerDoc.exists() ? providerDoc.data() : null);
+
+            const certSnap = await getDocs(
+              query(
+                collection(db, 'escort/certifications/submissions'),
+                where('userId', '==', data.matchedProviderId),
+                where('status', '==', 'approved')
+              )
+            );
+            const certs = Array.from(
+              new Set(
+                certSnap.docs
+                  .map((d) => String((d.data() as any).certTypeName || '').trim())
+                  .filter(Boolean)
+              )
+            );
+            setMatchedProviderCerts(certs);
+          } else {
+            setMatchedProviderData(null);
+            setMatchedProviderCerts([]);
           }
         }
       } catch (err) {
@@ -446,6 +473,41 @@ export default function EscortAvailability() {
 
             {jobData?.status === 'matched' && (
               <View style={{ marginTop: 40 }}>
+                {type === 'request' && (
+                  <View style={[styles.detailBox, { marginBottom: 16 }]}>
+                    <Text style={[styles.cardHeading, { color: theme.text, fontSize: 18, marginBottom: 14 }]}>Assigned Volunteer</Text>
+                    <View style={styles.detailRow}>
+                      <Ionicons name="person-circle" size={20} color={theme.primary} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.detailLabel, { color: theme.textDim }]}>VOLUNTEER</Text>
+                        <Text style={[styles.detailValue, { color: theme.text }]}>
+                          {jobData?.matchedProviderName || matchedProviderData?.username || matchedProviderData?.email || 'N/A'}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={[styles.detailRow, { marginTop: 12 }]}>
+                      <Ionicons name="star" size={20} color={theme.primary} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.detailLabel, { color: theme.textDim }]}>RATING</Text>
+                        <Text style={[styles.detailValue, { color: theme.text }]}>
+                          {typeof matchedProviderData?.rating === 'number'
+                            ? `${matchedProviderData.rating.toFixed(1)} (${matchedProviderData?.ratingCount || 0} reviews)`
+                            : 'No ratings yet'}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={[styles.detailRow, { marginTop: 12 }]}>
+                      <Ionicons name="ribbon" size={20} color={theme.primary} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.detailLabel, { color: theme.textDim }]}>APPROVED CERTIFICATIONS</Text>
+                        <Text style={[styles.detailValue, { color: theme.text }]}>
+                          {matchedProviderCerts.length ? matchedProviderCerts.join(', ') : 'No approved certifications'}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                )}
+
                 {(type === 'request' ? jobData?.patientConfirmed : jobData?.volunteerConfirmed) ? (
                   <View style={styles.confirmedBox}>
                     <Ionicons name="time" size={32} color={theme.primary} />

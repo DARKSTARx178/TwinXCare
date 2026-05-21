@@ -236,6 +236,86 @@
                 </div>
             </div>
 
+            <div id="patient-details" style="display:none; margin-top: 18px; border-top: 1px solid var(--border); padding-top: 16px;">
+                <div style="font-size: 1rem; font-weight: 800; margin-bottom: 14px;">Patient Details</div>
+
+                <div style="display: flex; gap: 15px; margin-bottom: 12px;">
+                    <i class="mdi mdi-account-outline" style="color: var(--primary); font-size: 20px;"></i>
+                    <div>
+                        <div class="label" style="font-size: 0.6rem; margin-bottom: 2px;">Patient</div>
+                        <div style="font-size: 0.92rem; font-weight: 700;" id="patient-name">N/A</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-bottom: 12px;">
+                    <i class="mdi mdi-phone-outline" style="color: var(--primary); font-size: 20px;"></i>
+                    <div>
+                        <div class="label" style="font-size: 0.6rem; margin-bottom: 2px;">Contact Phone</div>
+                        <div style="font-size: 0.92rem; font-weight: 700;" id="patient-phone">N/A</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-bottom: 12px;">
+                    <i class="mdi mdi-alert-outline" style="color: var(--primary); font-size: 20px;"></i>
+                    <div>
+                        <div class="label" style="font-size: 0.6rem; margin-bottom: 2px;">Emergency Contact</div>
+                        <div style="font-size: 0.92rem; font-weight: 700;" id="patient-emergency">N/A</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-bottom: 12px;">
+                    <i class="mdi mdi-hospital-box-outline" style="color: var(--primary); font-size: 20px;"></i>
+                    <div>
+                        <div class="label" style="font-size: 0.6rem; margin-bottom: 2px;">Medical Details</div>
+                        <div style="font-size: 0.92rem; font-weight: 700;" id="patient-medical">N/A</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-bottom: 12px;">
+                    <i class="mdi mdi-note-text-outline" style="color: var(--primary); font-size: 20px;"></i>
+                    <div>
+                        <div class="label" style="font-size: 0.6rem; margin-bottom: 2px;">Appointment Info</div>
+                        <div style="font-size: 0.92rem; font-weight: 700;" id="patient-appointment">N/A</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-bottom: 6px;">
+                    <i class="mdi mdi-text-long" style="color: var(--primary); font-size: 20px;"></i>
+                    <div>
+                        <div class="label" style="font-size: 0.6rem; margin-bottom: 2px;">Instructions</div>
+                        <div style="font-size: 0.92rem; font-weight: 700;" id="patient-instructions">N/A</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="volunteer-details" style="display:none; margin-top: 18px; border-top: 1px solid var(--border); padding-top: 16px;">
+                <div style="font-size: 1rem; font-weight: 800; margin-bottom: 14px;">Assigned Volunteer</div>
+
+                <div style="display: flex; gap: 15px; margin-bottom: 12px;">
+                    <i class="mdi mdi-account-check-outline" style="color: var(--primary); font-size: 20px;"></i>
+                    <div>
+                        <div class="label" style="font-size: 0.6rem; margin-bottom: 2px;">Volunteer</div>
+                        <div style="font-size: 0.92rem; font-weight: 700;" id="volunteer-name">N/A</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-bottom: 12px;">
+                    <i class="mdi mdi-star-outline" style="color: var(--primary); font-size: 20px;"></i>
+                    <div>
+                        <div class="label" style="font-size: 0.6rem; margin-bottom: 2px;">Rating</div>
+                        <div style="font-size: 0.92rem; font-weight: 700;" id="volunteer-rating">No ratings yet</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-bottom: 6px;">
+                    <i class="mdi mdi-ribbon-outline" style="color: var(--primary); font-size: 20px;"></i>
+                    <div>
+                        <div class="label" style="font-size: 0.6rem; margin-bottom: 2px;">Approved Certifications</div>
+                        <div style="font-size: 0.92rem; font-weight: 700;" id="volunteer-certs">No approved certifications</div>
+                    </div>
+                </div>
+            </div>
+
             <div id="slider-container" style="display: none; text-align: center;">
                 <div class="label" style="margin-top: 20px;" id="slider-label">Slide to Agree</div>
                 <div class="slider-track" id="slider-track">
@@ -308,7 +388,7 @@
     </main>
 
     <script type="module">
-        import { auth, db, doc, getDoc, collection, addDoc, serverTimestamp } from '/app/firebase.js';
+        import { auth, db, doc, getDoc, getDocs, query, where, collection, addDoc, serverTimestamp } from '/app/firebase.js';
 
         const urlParams = new URLSearchParams(window.location.search);
         const jobId = urlParams.get('jobId');
@@ -335,6 +415,52 @@
                     if (data.status === 'confirmed') badge.style.cssText += 'background:#ecfdf5;color:#10b981;';
                     else if (data.status === 'matched') badge.style.cssText += 'background:#fffbeb;color:#f59e0b;';
                     else badge.style.cssText += 'background:#fef2f2;color:#ef4444;';
+
+                    if (type === 'availability' && data.matchedRequestId) {
+                        getDoc(doc(db, 'escort/request/entries', data.matchedRequestId)).then((reqSnap) => {
+                            if (!reqSnap.exists()) return;
+                            const req = reqSnap.data();
+                            document.getElementById('patient-details').style.display = 'block';
+                            document.getElementById('patient-name').innerText = req.caregiverName || req.patientName || req.userEmail || 'N/A';
+                            document.getElementById('patient-phone').innerText = req.contactPhone || 'N/A';
+                            document.getElementById('patient-emergency').innerText = req.emergencyContactPhone || 'N/A';
+                            document.getElementById('patient-medical').innerText = req.medicalDetails || 'N/A';
+                            document.getElementById('patient-appointment').innerText = req.appointmentInfo || req.appointmentReason || 'N/A';
+                            document.getElementById('patient-instructions').innerText = req.instructions || req.additionalNotes || 'N/A';
+                        }).catch((err) => console.error('Failed to load matched request details:', err));
+                    }
+
+                    if (type === 'request' && data.matchedProviderId) {
+                        Promise.all([
+                            getDoc(doc(db, 'users', data.matchedProviderId)),
+                            getDocs(query(
+                                collection(db, 'escort/certifications/submissions'),
+                                where('userId', '==', data.matchedProviderId),
+                                where('status', '==', 'approved')
+                            ))
+                        ]).then(([providerSnap, certSnap]) => {
+                            const provider = providerSnap.exists() ? providerSnap.data() : {};
+                            const certs = Array.from(new Set(
+                                certSnap.docs
+                                    .map((d) => String((d.data() || {}).certTypeName || '').trim())
+                                    .filter(Boolean)
+                            ));
+
+                            document.getElementById('volunteer-details').style.display = 'block';
+                            document.getElementById('volunteer-name').innerText =
+                                data.matchedProviderName || provider.username || provider.email || 'N/A';
+
+                            if (typeof provider.rating === 'number') {
+                                document.getElementById('volunteer-rating').innerText =
+                                    `${provider.rating.toFixed(1)} (${provider.ratingCount || 0} reviews)`;
+                            } else {
+                                document.getElementById('volunteer-rating').innerText = 'No ratings yet';
+                            }
+
+                            document.getElementById('volunteer-certs').innerText =
+                                certs.length ? certs.join(', ') : 'No approved certifications';
+                        }).catch((err) => console.error('Failed to load matched volunteer details:', err));
+                    }
 
                     if (data.status === 'matched') {
                         if ((type === 'request' && data.patientConfirmed) || (type === 'availability' && data.volunteerConfirmed)) {

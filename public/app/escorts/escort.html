@@ -497,6 +497,16 @@
                     return;
                 }
 
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                const userData = userDoc.exists() ? userDoc.data() : {};
+                const role = String(userData.role || 'user');
+                const userType = String(userData.userType || '');
+                const canSubmitAvailability = role === 'admin' || userType === 'escort';
+                if (!canSubmitAvailability) {
+                    alert('Only escort volunteer accounts can submit availability. Patients should submit escort requests instead.');
+                    return;
+                }
+
                 btnSubmit.disabled = true;
                 btnSubmit.innerHTML = "Registering...";
 

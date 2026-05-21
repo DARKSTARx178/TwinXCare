@@ -1,5 +1,6 @@
 import { ThemeContext } from '@/contexts/ThemeContext';
-import { db } from '@/firebase/firebase';
+import { auth, db } from '@/firebase/firebase';
+import { manualOverrideMatch } from '@/services/matchingService';
 import { sendPushNotification } from '@/utils/notifications';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -13,6 +14,7 @@ export default function AdminEscortMatch() {
     const [requests, setRequests] = useState<any[]>([]);
     const [availabilities, setAvailabilities] = useState<any[]>([]);
     const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -20,6 +22,17 @@ export default function AdminEscortMatch() {
 
     const fetchData = async () => {
         try {
+            const uid = auth.currentUser?.uid;
+            if (!uid) {
+                setIsAdmin(false);
+                return;
+            }
+            const me = (await getDoc(doc(db, 'users', uid))).data();
+            if (me?.role !== 'admin') {
+                setIsAdmin(false);
+                return;
+            }
+            setIsAdmin(true);
             const reqQ = query(collection(db, 'escort', 'request', 'entries'), where('status', '==', 'pending'));
             const reqSnap = await getDocs(reqQ);
             const reqList = reqSnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -33,6 +46,32 @@ export default function AdminEscortMatch() {
         } catch (e) {
             console.error('Error fetching match data:', e);
         }
+    };
+
+    const handleForceMatch = async (availability: any) => {
+        if (!selectedRequest) return;
+        Alert.alert(
+            'Force Match Override',
+            `Force match request at ${selectedRequest.hospital} with ${availability.providerEmail}? This overrides auto-match and locks the pair.`,
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Force Match',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await manualOverrideMatch(selectedRequest.id, availability.id, 'Admin forced manual match');
+                            Alert.alert('Matched', 'Manual override match applied successfully.');
+                            setSelectedRequest(null);
+                            await fetchData();
+                        } catch (error) {
+                            console.error('Manual override failed:', error);
+                            Alert.alert('Error', 'Failed to apply manual override.');
+                        }
+                    },
+                },
+            ]
+        );
     };
 
     const getUserPushToken = async (userId: string) => {
@@ -109,13 +148,22 @@ export default function AdminEscortMatch() {
             <Text style={[styles.locationText, { color: theme.textDim }]}>Loc: {item.location}</Text>
 
             {selectedRequest && (
-                <TouchableOpacity
-                    style={[styles.matchBtn, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}
-                    onPress={() => handleCompromise(item.providerId, item.providerEmail, selectedRequest)}
-                >
-                    <Ionicons name="hand-left" size={14} color={theme.primary} />
-                    <Text style={[styles.matchBtnText, { color: theme.primary }]}>Ask for Help</Text>
-                </TouchableOpacity>
+                <>
+                    <TouchableOpacity
+                        style={[styles.matchBtn, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}
+                        onPress={() => handleCompromise(item.providerId, item.providerEmail, selectedRequest)}
+                    >
+                        <Ionicons name="hand-left" size={14} color={theme.primary} />
+                        <Text style={[styles.matchBtnText, { color: theme.primary }]}>Ask for Help</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.matchBtn, { borderColor: '#ef4444', borderWidth: 1.5, backgroundColor: theme.surface }]}
+                        onPress={() => handleForceMatch(item)}
+                    >
+                        <Ionicons name="flash" size={14} color="#ef4444" />
+                        <Text style={[styles.matchBtnText, { color: '#ef4444' }]}>Force Match</Text>
+                    </TouchableOpacity>
+                </>
             )}
         </View>
     );
@@ -136,7 +184,12 @@ export default function AdminEscortMatch() {
                 </Text>
             </View>
 
-            <View style={styles.content}>
+            {!isAdmin ? (
+                <View style={[styles.hintBox, { backgroundColor: theme.surface }]}>
+                    <Ionicons name="alert-circle-outline" size={20} color="#ef4444" />
+                    <Text style={[styles.hintText, { color: theme.textDim }]}>Admin access is required for this page.</Text>
+                </View>
+            ) : <View style={styles.content}>
                 <View style={styles.column}>
                     <View style={styles.columnHeader}>
                         <Text style={[styles.sectionTitle, { color: theme.text }]}>Requests</Text>
@@ -164,7 +217,7 @@ export default function AdminEscortMatch() {
                         contentContainerStyle={{ paddingBottom: 20 }}
                     />
                 </View>
-            </View>
+            </View>}
 
             {!selectedRequest && (
                 <View style={[styles.hintBox, { backgroundColor: theme.surface }]}>

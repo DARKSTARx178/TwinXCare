@@ -261,7 +261,7 @@
     </main>
 
     <script type="module">
-        import { auth, db, collection, addDoc, getDocs, serverTimestamp } from '/app/firebase.js';
+        import { auth, db, collection, addDoc, doc, getDoc, getDocs, serverTimestamp } from '/app/firebase.js';
         const GEOAPIFY_API_KEY = (window.TWINXCARE_GEOAPIFY_API_KEY || '333dd9a8121f4bfe8173cae287ecf657').trim();
         const GEOAPIFY_AUTOCOMPLETE_URL = (window.TWINXCARE_GEOAPIFY_AUTOCOMPLETE_URL || '').trim();
         const CERT_CATALOG_PATH = 'escort/certifications/catalog';
@@ -451,6 +451,16 @@
             const user = auth.currentUser;
             if (!user) {
                 alert("Please login first.");
+                return;
+            }
+
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            const userData = userDoc.exists() ? userDoc.data() : {};
+            const role = String(userData.role || 'user');
+            const userType = String(userData.userType || '');
+            const canSubmitRequest = role === 'admin' || userType === 'standard' || !userType;
+            if (!canSubmitRequest) {
+                alert('Only patient accounts can submit escort requests. Escort volunteers should submit availability instead.');
                 return;
             }
 

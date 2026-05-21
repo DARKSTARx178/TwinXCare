@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
-import { addDoc, collection, getDocs, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, getDocs, serverTimestamp } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -66,6 +66,22 @@ export default function RequireEscort() {
 
 		if (!hospital.trim() || !appointmentInfo.trim()) {
 			Alert.alert('Incomplete Form', 'Please indicate the hospital/clinic and appointment information.');
+			return;
+		}
+
+		const currentUid = auth?.currentUser?.uid;
+		if (!currentUid) {
+			Alert.alert('Login Required', 'Please sign in first.');
+			return;
+		}
+
+		const userSnap = await getDoc(doc(db, 'users', currentUid));
+		const userData = userSnap.exists() ? userSnap.data() : {};
+		const role = String(userData.role || 'user');
+		const userType = String(userData.userType || '');
+		const canSubmitRequest = role === 'admin' || userType === 'standard' || !userType;
+		if (!canSubmitRequest) {
+			Alert.alert('Not Allowed', 'Only patient accounts can submit escort requests. Escort volunteers should submit availability instead.');
 			return;
 		}
 

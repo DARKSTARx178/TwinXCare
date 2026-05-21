@@ -178,6 +178,22 @@ export default function EscortAvailability() {
       return;
     }
 
+    const currentUid = auth?.currentUser?.uid;
+    if (!currentUid) {
+      Alert.alert('Login Required', 'Please sign in first.');
+      return;
+    }
+
+    const userSnap = await getDoc(doc(db, 'users', currentUid));
+    const userData = userSnap.exists() ? userSnap.data() : {};
+    const role = String(userData.role || 'user');
+    const userType = String(userData.userType || '');
+    const canSubmitAvailability = role === 'admin' || userType === 'escort';
+    if (!canSubmitAvailability) {
+      Alert.alert('Not Allowed', 'Only escort volunteer accounts can submit availability. Patients should submit escort requests instead.');
+      return;
+    }
+
     const radiusKm = Math.max(Number(serviceRadiusKm) || 5, 0.5);
 
     setSubmitting(true);

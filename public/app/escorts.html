@@ -190,17 +190,34 @@
         </div>
 
         <div class="card" style="margin-bottom: 20px; border: 1px solid var(--border);">
-            <a href="/app/escorts/certifications.html" style="display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--text);">
-                <div style="width:46px;height:46px;border-radius:14px;background:rgba(129,173,231,0.12);display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:22px;">
+            <a href="/app/escorts/certifications.html"
+                style="display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--text);">
+                <div
+                    style="width:46px;height:46px;border-radius:14px;background:rgba(129,173,231,0.12);display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:22px;">
                     <i class="mdi mdi-ribbon-outline"></i>
                 </div>
                 <div style="flex:1;">
                     <div style="font-weight:800;">My Certifications</div>
-                    <div style="font-size:0.82rem;color:var(--text-dim);font-weight:500;">Submit and track your escort certifications</div>
+                    <div style="font-size:0.82rem;color:var(--text-dim);font-weight:500;">Submit and track your escort
+                        certifications</div>
                 </div>
                 <i class="mdi mdi-chevron-right" style="color:var(--text-dim);font-size:20px;"></i>
             </a>
         </div>
+
+        <!-- Admin Tools -->
+        <div id="admin-section" style="display: none; margin-bottom: 32px;">
+            <div class="section-header">
+                <div style="font-size: 1.1rem; font-weight: 800; color: var(--text);">Admin Terminal</div>
+                <i class="mdi mdi-lock" style="color: var(--primary);"></i>
+            </div>
+            <div class="admin-card" onclick="alert('Manual matching triggered.')">
+                <i class="mdi mdi-refresh-circle" style="font-size: 24px; color: var(--primary);"></i>
+                <div style="flex: 1; color: var(--primary); font-weight: 800;">Reload Matching Engine</div>
+                <i class="mdi mdi-play" style="font-size: 18px; color: var(--primary);"></i>
+            </div>
+        </div>
+
         <!-- Patient Section -->
         <div id="patient-section" style="margin-bottom: 32px;">
             <div class="section-header">

@@ -310,24 +310,41 @@
             return { cls: 'status-slate', dot: 'status-slate-dot' };
         };
 
+        const patientSection = document.getElementById('patient-section');
+        const escortSection = document.getElementById('escort-section');
+        const patientList = document.getElementById('patient-list');
+        const escortList = document.getElementById('escort-list');
+        const adminSection = document.getElementById('admin-section');
+
+        const setRoleVisibility = ({ canSeePatient, canSeeEscort, isAdmin }) => {
+            patientSection.style.display = canSeePatient ? 'block' : 'none';
+            escortSection.style.display = canSeeEscort ? 'block' : 'none';
+            adminSection.style.display = isAdmin ? 'block' : 'none';
+        };
+
+        // Start hidden to avoid flashing both sections before role is known.
+        setRoleVisibility({ canSeePatient: false, canSeeEscort: false, isAdmin: false });
+
         onAuthStateChanged(auth, async (u) => {
             if (!u) {
-                document.getElementById('patient-list').innerHTML = `<div class="empty-box"><i class="mdi mdi-alert-circle-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">Please log in to view.</div></div>`;
-                document.getElementById('escort-list').innerHTML = `<div class="empty-box"><i class="mdi mdi-alert-circle-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">Please log in to view.</div></div>`;
+                setRoleVisibility({ canSeePatient: true, canSeeEscort: false, isAdmin: false });
+                patientList.innerHTML = `<div class="empty-box"><i class="mdi mdi-alert-circle-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">Please log in to view.</div></div>`;
+                escortList.innerHTML = `<div class="empty-box"><i class="mdi mdi-alert-circle-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">Please log in to view.</div></div>`;
                 return;
             }
 
             try {
                 const uDoc = await getDoc(doc(db, 'users', u.uid));
-                if (!uDoc.exists()) return;
+                const uData = uDoc.exists() ? uDoc.data() : {};
+                const role = String(uData.role || 'user');
+                const uType = String(uData.userType || '');
+                const isAdmin = role === 'admin';
+                const canSeePatient = isAdmin || uType === 'standard' || !uType;
+                const canSeeEscort = isAdmin || uType === 'escort';
 
-                const uData = uDoc.data();
-                const role = uData.role;
-                const uType = uData.userType;
+                setRoleVisibility({ canSeePatient, canSeeEscort, isAdmin });
 
-                if (role === 'admin') document.getElementById('admin-section').style.display = 'block';
-
-                if (uType === 'escort' || role === 'admin') {
+                if (canSeeEscort) {
                     if (uData.rating !== undefined) {
                         const rPill = document.getElementById('rating-pill');
                         document.getElementById('rating-val').innerText = Number(uData.rating).toFixed(1);
@@ -335,22 +352,15 @@
                     }
                 }
 
-                // Hide sections where not applicable
-                if (uType === 'escort' && role !== 'admin') {
-                    document.getElementById('patient-section').style.display = 'none';
-                } else if (uType === 'standard' && role !== 'admin') {
-                    document.getElementById('escort-section').style.display = 'none';
-                }
-
                 // Fetch Requests
-                if (uType === 'standard' || role === 'admin' || !uType) {
+                if (canSeePatient) {
                     const reqSnap = await getDocs(query(collection(db, 'escort/request/entries'), where('userId', '==', u.uid)));
                     const reqs = reqSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
                     if (reqs.length === 0) {
-                        document.getElementById('patient-list').innerHTML = `<div class="empty-box"><i class="mdi mdi-text-box-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">No active escort requests.</div></div>`;
+                        patientList.innerHTML = `<div class="empty-box"><i class="mdi mdi-text-box-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">No active escort requests.</div></div>`;
                     } else {
-                        document.getElementById('patient-list').innerHTML = reqs.map(r => {
+                        patientList.innerHTML = reqs.map(r => {
                             const th = getStatusTheme(r.status);
                             const mBanner = r.status === 'matched'
                                 ? `<div class="match-banner" style="background:var(--primary-glow);color:var(--primary);"><i class="mdi mdi-check-circle"></i> Volunteer Assigned</div>`
@@ -375,14 +385,14 @@
                 }
 
                 // Fetch Availabilities
-                if (uType === 'escort' || role === 'admin') {
+                if (canSeeEscort) {
                     const avSnap = await getDocs(query(collection(db, 'escort/availability/entries'), where('providerId', '==', u.uid)));
                     const avails = avSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
                     if (avails.length === 0) {
-                        document.getElementById('escort-list').innerHTML = `<div class="empty-box"><i class="mdi mdi-calendar-blank-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">No availability slots posted.</div></div>`;
+                        escortList.innerHTML = `<div class="empty-box"><i class="mdi mdi-calendar-blank-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">No availability slots posted.</div></div>`;
                     } else {
-                        document.getElementById('escort-list').innerHTML = avails.map(a => {
+                        escortList.innerHTML = avails.map(a => {
                             const th = getStatusTheme(a.status);
                             const mBanner = a.status === 'matched'
                                 ? `<div class="match-banner" style="background:var(--primary-glow);color:var(--primary);"><i class="mdi mdi-heart"></i> Matched with Patient</div>`
@@ -408,6 +418,8 @@
 
             } catch (e) {
                 console.error(e);
+                setRoleVisibility({ canSeePatient: true, canSeeEscort: false, isAdmin: false });
+                patientList.innerHTML = `<div class="empty-box"><i class="mdi mdi-alert-circle-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">Unable to load your role. Please refresh.</div></div>`;
             }
         });
     </script>

@@ -22,6 +22,7 @@ export default function EscortAvailability() {
   const { jobId, type } = useLocalSearchParams<{ jobId: string, type: 'request' | 'availability' }>();
 
   const [jobData, setJobData] = useState<any>(null);
+  const [matchedRequestData, setMatchedRequestData] = useState<any>(null);
 
   const [date, setDate] = useState(new Date());
   const [fromTime, setFromTime] = useState(new Date());
@@ -73,7 +74,20 @@ export default function EscortAvailability() {
         const path = type === 'availability' ? 'escort/availability/entries' : 'escort/request/entries';
         const jDoc = await getDoc(doc(db, path, jobId));
         if (jDoc.exists()) {
-          setJobData(jDoc.data());
+          const data = jDoc.data();
+          setJobData(data);
+
+          // For volunteers viewing an assignment, load the linked patient request details.
+          if (type === 'availability' && data?.matchedRequestId) {
+            const reqDoc = await getDoc(doc(db, 'escort', 'request', 'entries', data.matchedRequestId));
+            if (reqDoc.exists()) {
+              setMatchedRequestData(reqDoc.data());
+            } else {
+              setMatchedRequestData(null);
+            }
+          } else {
+            setMatchedRequestData(null);
+          }
         }
       } catch (err) {
         console.error('Error fetching job details:', err);
@@ -339,6 +353,96 @@ export default function EscortAvailability() {
                 </View>
               )}
             </View>
+
+            {type === 'availability' && jobData?.matchedRequestId && (
+              <View style={[styles.detailBox, { marginTop: 16 }]}>
+                <Text style={[styles.cardHeading, { color: theme.text, fontSize: 18, marginBottom: 14 }]}>Patient Details</Text>
+
+                <View style={styles.detailRow}>
+                  <Ionicons name="person" size={20} color={theme.primary} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.detailLabel, { color: theme.textDim }]}>PATIENT</Text>
+                    <Text style={[styles.detailValue, { color: theme.text }]}>
+                      {matchedRequestData?.caregiverName || matchedRequestData?.patientName || matchedRequestData?.userEmail || 'N/A'}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={[styles.detailRow, { marginTop: 12 }]}>
+                  <Ionicons name="call" size={20} color={theme.primary} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.detailLabel, { color: theme.textDim }]}>CONTACT PHONE</Text>
+                    <Text style={[styles.detailValue, { color: theme.text }]}>
+                      {matchedRequestData?.contactPhone || 'N/A'}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={[styles.detailRow, { marginTop: 12 }]}>
+                  <Ionicons name="warning" size={20} color={theme.primary} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.detailLabel, { color: theme.textDim }]}>EMERGENCY CONTACT</Text>
+                    <Text style={[styles.detailValue, { color: theme.text }]}>
+                      {matchedRequestData?.emergencyContactPhone || 'N/A'}
+                    </Text>
+                  </View>
+                </View>
+
+                {matchedRequestData?.age !== undefined && matchedRequestData?.age !== null && (
+                  <View style={[styles.detailRow, { marginTop: 12 }]}>
+                    <Ionicons name="person-outline" size={20} color={theme.primary} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.detailLabel, { color: theme.textDim }]}>AGE</Text>
+                      <Text style={[styles.detailValue, { color: theme.text }]}>
+                        {String(matchedRequestData.age)}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+
+                {matchedRequestData?.requiredCertificationName && (
+                  <View style={[styles.detailRow, { marginTop: 12 }]}>
+                    <Ionicons name="ribbon" size={20} color={theme.primary} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.detailLabel, { color: theme.textDim }]}>REQUIRED CERTIFICATION</Text>
+                      <Text style={[styles.detailValue, { color: theme.text }]}>
+                        {matchedRequestData.requiredCertificationName}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+
+                <View style={[styles.detailRow, { marginTop: 12 }]}>
+                  <Ionicons name="medkit" size={20} color={theme.primary} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.detailLabel, { color: theme.textDim }]}>MEDICAL DETAILS</Text>
+                    <Text style={[styles.detailValue, { color: theme.text }]}>
+                      {matchedRequestData?.medicalDetails || 'N/A'}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={[styles.detailRow, { marginTop: 12 }]}>
+                  <Ionicons name="chatbox-ellipses" size={20} color={theme.primary} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.detailLabel, { color: theme.textDim }]}>APPOINTMENT INFO</Text>
+                    <Text style={[styles.detailValue, { color: theme.text }]}>
+                      {matchedRequestData?.appointmentInfo || matchedRequestData?.appointmentReason || 'N/A'}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={[styles.detailRow, { marginTop: 12 }]}>
+                  <Ionicons name="document-text-outline" size={20} color={theme.primary} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.detailLabel, { color: theme.textDim }]}>INSTRUCTIONS</Text>
+                    <Text style={[styles.detailValue, { color: theme.text }]}>
+                      {matchedRequestData?.instructions || matchedRequestData?.additionalNotes || 'N/A'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
 
             {jobData?.status === 'matched' && (
               <View style={{ marginTop: 40 }}>

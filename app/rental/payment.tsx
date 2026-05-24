@@ -22,12 +22,10 @@ export default function PaymentPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submittingRef = useRef(false);
 
-  // 🔍 Debug params
   useEffect(() => {
     console.log('📦 PaymentPage params:', params);
   }, [params]);
 
-  // ✅ Detect type (fallback detection)
   let type = (params.type as string)?.toLowerCase();
   if (!type) {
     if (params.pricePerDay) type = 'equipment';
@@ -62,9 +60,9 @@ export default function PaymentPage() {
         body: JSON.stringify(message),
       });
       const result = await response.json();
-      console.log('🚀 Expo Push Result:', result);
+      console.log('Expo Push Result:', result);
     } catch (error) {
-      console.error('❌ Error sending Expo Push:', error);
+      console.error('Error sending Expo Push:', error);
     }
   };
 
@@ -75,7 +73,7 @@ export default function PaymentPage() {
 
     if (type === 'equipment' && !address.trim()) {
       Alert.alert('Error', 'Please enter your delivery address.');
-      console.log('❌ Missing address');
+      console.log('Missing address');
       return;
     }
 
@@ -86,7 +84,7 @@ export default function PaymentPage() {
       if (!params.timeSlot) missingFields.push('timeSlot');
       if (!params.docId) missingFields.push('docId');
       Alert.alert('Error', `Missing service info: ${missingFields.join(', ')}`);
-      console.log('❌ Missing service info:', missingFields);
+      console.log('Missing service info:', missingFields);
       return;
     }
 
@@ -94,9 +92,8 @@ export default function PaymentPage() {
     setIsSubmitting(true);
 
     try {
-      console.log('🟢 Confirm button pressed. Type:', type);
+      console.log('Confirm button pressed. Type:', type);
 
-      // ✅ EQUIPMENT BOOKING
       if (type === 'equipment') {
         console.log('📦 Equipment booking started for:', params.docId);
 
@@ -136,7 +133,7 @@ export default function PaymentPage() {
             }
 
             const currentStock = productSnap.data()?.stock || 0;
-            console.log('📊 Current stock:', currentStock);
+            console.log('Current stock:', currentStock);
 
             if (currentStock < quantity) {
               throw new Error('Not enough stock available.');
@@ -151,9 +148,9 @@ export default function PaymentPage() {
             return userData?.pushToken;
           });
 
-          console.log('✅ Stock updated and order saved');
+          console.log('Stock updated and order saved');
 
-          const notifTitle = 'Order Confirmed! 🎉';
+          const notifTitle = 'Order Confirmed!';
           const notifBody = `Your order for ${params.name} has been placed successfully.`;
 
           // 🔔 Send Local Notification
@@ -177,12 +174,11 @@ export default function PaymentPage() {
               },
               trigger: null,
             });
-            console.log('✅ Local Notification scheduled');
+            console.log('Local Notification scheduled');
           } catch (notifErr) {
-            console.error('❌ Local Notification failed:', notifErr);
+            console.error('Local Notification failed:', notifErr);
           }
 
-          // 🚀 Send Expo Push Notification
           if (pushToken) {
             console.log('🚀 Sending Expo Push to:', pushToken);
             await sendPushNotification(
@@ -192,17 +188,16 @@ export default function PaymentPage() {
               { transactionId: transactionId || 'unknown', screen: '/(tabs)/delivery' }
             );
           } else {
-            console.log('⚠️ No push token found for user');
+            console.log('No push token found for user');
           }
         }
 
         router.replace('/delivery');
       }
 
-      // ✅ SERVICE BOOKING
       else if (type === 'service') {
-        console.log('📆 Service booking params check...');
-        console.log('📊 Deducting pax for:', { date: params.bookingDate, slot: params.timeSlot });
+        console.log('Service booking params check...');
+        console.log('Deducting pax for:', { date: params.bookingDate, slot: params.timeSlot });
 
         const serviceRef = doc(db, 'services', params.docId as string);
         const snapshot = await getDoc(serviceRef);
@@ -211,21 +206,19 @@ export default function PaymentPage() {
           const schedule = Array.isArray(data.schedule) ? data.schedule : [];
           const updatedSchedule = schedule.map((slot: any) => {
             if (slot.date === params.bookingDate && `${slot.from} - ${slot.to}` === params.timeSlot) {
-              console.log('🔄 Updating slot:', slot);
+              console.log('Updating slot:', slot);
               return { ...slot, pax: Math.max((slot.pax || 1) - 1, 0) };
             }
             return slot;
           });
           await updateDoc(serviceRef, { schedule: updatedSchedule });
-          console.log('✅ Schedule updated');
+          console.log('Schedule updated');
         }
 
         const user = auth.currentUser;
         if (user) {
-          console.log('👤 User ID:', user.uid);
+          console.log('User ID:', user.uid);
           const userRef = doc(db, 'users', user.uid);
-
-          // Fetch user doc to get push token
           const userSnap = await getDoc(userRef);
           const userData = userSnap.data();
           const pushToken = userData?.pushToken;
@@ -240,14 +233,13 @@ export default function PaymentPage() {
             createdAt: new Date().toISOString(),
           };
 
-          console.log('📝 Saving booking data:', bookingData);
+          console.log('Saving booking data:', bookingData);
           await setDoc(userRef, { booking: arrayUnion(bookingData) }, { merge: true });
-          console.log('✅ Booking saved');
+          console.log('Booking saved');
 
-          const serviceTitle = 'Booking Confirmed! 🎉';
+          const serviceTitle = 'Booking Confirmed!';
           const serviceBody = `Your booking for ${params.name} on ${params.bookingDate} at ${params.timeSlot} has been confirmed.`;
 
-          // 🔔 Send Local Notification
           console.log('🔔 Attempting to schedule local notification...');
           Notifications.setNotificationHandler({
             handleNotification: async () => ({
@@ -267,30 +259,28 @@ export default function PaymentPage() {
               },
               trigger: null,
             });
-            console.log('✅ Local Service Notification scheduled');
+            console.log('Local Service Notification scheduled');
           } catch (notifErr) {
-            console.error('❌ Local Service Notification failed:', notifErr);
+            console.error('Local Service Notification failed:', notifErr);
           }
 
-          // 🚀 Send Expo Push Notification
           if (pushToken) {
-            console.log('🚀 Sending Expo Push to:', pushToken);
+            console.log('Sending Expo Push to:', pushToken);
             await sendPushNotification(pushToken, serviceTitle, serviceBody);
           } else {
-            console.log('⚠️ No push token found for user');
+            console.log('No push token found for user');
           }
         }
 
         router.replace('/delivery');
       }
 
-      // ❌ UNKNOWN TYPE
       else {
         Alert.alert('Error', 'Invalid booking type.');
-        console.log('❌ Invalid booking type detected:', type);
+        console.log('Invalid booking type detected:', type);
       }
     } catch (err) {
-      console.error('❌ Error confirming booking:', err);
+      console.error('Error confirming booking:', err);
       const message = err instanceof Error ? err.message : 'Failed to confirm booking.';
       Alert.alert('Error', message);
     } finally {

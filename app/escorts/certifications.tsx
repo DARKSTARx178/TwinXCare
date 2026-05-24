@@ -1,3 +1,7 @@
+//under testing not stable yet
+
+
+
 import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
 import { Ionicons } from '@expo/vector-icons';
@@ -165,12 +169,12 @@ export default function EscortCertifications() {
         <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
           <Ionicons name="ribbon-outline" size={30} color={theme.primary} />
         </View>
-        <Text style={[styles.title, { color: theme.text }]}>My Certifications</Text>
-        <Text style={[styles.subtitle, { color: theme.textDim }]}>Upload your certification links for admin approval</Text>
+        <Text style={[styles.title, { color: theme.text }]}>Certifications</Text>
+        <Text style={[styles.subtitle, { color: theme.textDim }]}>Upload your certs for approval</Text>
       </View>
 
       <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
-        <Text style={[styles.cardTitle, { color: theme.text }]}>Submit Certification</Text>
+        <Text style={[styles.cardTitle, { color: theme.text }]}>Submit</Text>
 
         <Text style={[styles.label, { color: theme.textDim }]}>Certification Type</Text>
         <View style={[styles.pickerWrap, { borderColor: theme.border, backgroundColor: '#F1F5F9' }]}>
@@ -233,7 +237,7 @@ export default function EscortCertifications() {
         {loading ? (
           <Text style={{ color: theme.textDim }}>Loading submissions...</Text>
         ) : submissions.length === 0 ? (
-          <Text style={{ color: theme.textDim }}>No certification submissions yet.</Text>
+          <Text style={{ color: theme.textDim }}>No certification submissions.</Text>
         ) : (
           submissions.map((item) => {
             const status = statusColor(item.status);

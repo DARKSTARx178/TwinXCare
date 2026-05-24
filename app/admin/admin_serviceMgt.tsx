@@ -165,7 +165,7 @@ export default function AdminServiceMgt() {
                 </View>
                 <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>Service Catalog</Text>
                 <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>
-                    Management of Professional Healthcare Services
+                    Manage Services
                 </Text>
             </View>
 
@@ -173,7 +173,7 @@ export default function AdminServiceMgt() {
                 <Text style={[styles.cardHeading, { color: theme.text }]}>Add New Service</Text>
 
                 <View style={styles.inputWrapper}>
-                    <Text style={[styles.label, { color: theme.textDim }]}>Service Name</Text>
+                    <Text style={[styles.label, { color: theme.textDim }]}>Name</Text>
                     <TextInput
                         style={[styles.input, { color: theme.text }]}
                         placeholder="e.g. Elderly Home Visit"
@@ -208,7 +208,7 @@ export default function AdminServiceMgt() {
                 </View>
 
                 <View style={styles.inputWrapper}>
-                    <Text style={[styles.label, { color: theme.textDim }]}>Providing Company</Text>
+                    <Text style={[styles.label, { color: theme.textDim }]}>Company</Text>
                     <TextInput
                         style={[styles.input, { color: theme.text }]}
                         placeholder="e.g. CarePro Inc."
@@ -246,14 +246,14 @@ export default function AdminServiceMgt() {
                     onPress={handleAddService}
                     activeOpacity={0.8}
                 >
-                    <Text style={[styles.addButtonText, { color: theme.primary }]}>Create Service Listing</Text>
+                    <Text style={[styles.addButtonText, { color: theme.primary }]}>Create Service</Text>
                     <Ionicons name="checkmark-circle-outline" size={20} color={theme.primary} style={{ marginLeft: 8 }} />
                 </TouchableOpacity>
             </View>
 
             <View style={styles.sectionHeader}>
-                <Text style={[styles.sectionTitle, { color: theme.text }]}>Service Registry</Text>
-                <Text style={[styles.sectionSubtitle, { color: theme.textDim }]}>Manage availability and details</Text>
+                <Text style={[styles.sectionTitle, { color: theme.text }]}>Service catalog</Text>
+                <Text style={[styles.sectionSubtitle, { color: theme.textDim }]}>Manage availability</Text>
             </View>
 
             <View style={styles.listContainer}>
@@ -359,7 +359,7 @@ export default function AdminServiceMgt() {
                                         onPress={() => handleDeleteService(service.id)}
                                     >
                                         <Ionicons name="trash-outline" size={16} color="#ef4444" />
-                                        <Text style={styles.deleteServiceText}>Remove Service Entirely</Text>
+                                        <Text style={styles.deleteServiceText}>Remove Service</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>

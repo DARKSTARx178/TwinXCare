@@ -32,7 +32,7 @@ export default function Admin() {
                 </View>
                 <Text style={[styles.heading, { color: theme.text, fontSize: textSize + 10 }]}>Control Center</Text>
                 <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>
-                    Administrative Oversight & Management
+                    Admin page
                 </Text>
             </View>
 
@@ -57,8 +57,8 @@ export default function Admin() {
 
             <View style={[styles.infoBox, { backgroundColor: 'rgba(129, 173, 231, 0.05)' }]}>
                 <Ionicons name="information-circle-outline" size={20} color={theme.primary} />
-                <Text style={[styles.infoText, { color: theme.textDim }]}>
-                    System updates and logs are tracked in real-time. Please ensure all modifications are documented.
+                <Text style={[styles.infoText, { color: 'red' }]}>
+                    Danger zone, proceed with caution.
                 </Text>
             </View>
         </ScrollView>
@@ -95,7 +95,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
-        // damping: 0, // This property is not valid for StyleSheet.create
     },
     card: {
         width: '48%',

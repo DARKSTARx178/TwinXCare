@@ -79,19 +79,19 @@ export default function Services() {
   };
 
   const renderStatusBadge = (status: string) => {
-    let color = '#94a3b8'; // Default Slate (Completed/Unknown)
+    let color = '#94a3b8'; 
     let bgColor = '#f8fafc';
 
     const s = status.toLowerCase();
 
     if (s === 'pending' || s === 'available') {
-      color = '#ef4444'; bgColor = '#fef2f2'; // Red
+      color = '#ef4444'; bgColor = '#fef2f2'; 
     } else if (s === 'matched') {
-      color = '#f59e0b'; bgColor = '#fffbeb'; // Orange
+      color = '#f59e0b'; bgColor = '#fffbeb'; 
     } else if (s === 'confirmed') {
-      color = '#10b981'; bgColor = '#ecfdf5'; // Green
+      color = '#10b981'; bgColor = '#ecfdf5'; 
     } else if (s === 'completed') {
-      color = '#94a3b8'; bgColor = '#f8fafc'; // Gray
+      color = '#94a3b8'; bgColor = '#f8fafc'; 
     }
 
     return (
@@ -112,42 +112,40 @@ export default function Services() {
         <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
           <Ionicons name="shield-outline" size={32} color={theme.primary} />
         </View>
-        <Text style={[styles.title, { color: theme.text }]}>Care Dashboard</Text>
+        <Text style={[styles.title, { color: theme.text }]}>Escort Dashboard</Text>
         <Text style={[styles.subtitle, { color: theme.textDim }]}>
           {(userRole === 'admin' || userType === 'escort')
-            ? 'Volunteer and escort patients'
-            : 'Monitor the status of your escort requests'}
+            ? 'Volunteer to escort patients'
+            : 'Make an escort request'}
         </Text>
       </View>
 
-      {/* ADMIN SECTION */}
       {userRole === 'admin' && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Admin Terminal</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Admin only</Text>
             <Ionicons name="lock-closed-outline" size={16} color={theme.primary} />
           </View>
           <TouchableOpacity
             style={[styles.adminCard, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
             onPress={async () => {
               const count = await triggerManualMatching();
-              Alert.alert('Matching Complete', `Engine re-evaluated ${count} pending requests.`);
+              Alert.alert('Matching Complete', `Re evaluated ${count} requests.`);
               onRefresh();
             }}
             activeOpacity={0.8}
           >
             <Ionicons name="refresh-circle-outline" size={24} color={theme.primary} />
-            <Text style={[styles.adminCardText, { color: theme.primary }]}>Reload Matching Engine</Text>
+            <Text style={[styles.adminCardText, { color: theme.primary }]}>Reload</Text>
             <Ionicons name="play" size={18} color={theme.primary} />
           </TouchableOpacity>
         </View>
       )}
 
-      {/* PATIENT SECTION */}
       {((userType === 'standard') || (userRole === 'admin') || (!userType && !userRole)) && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Patient Requests</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Requests</Text>
             <TouchableOpacity onPress={() => router.push('/escorts/require-escort')}>
               <View style={[styles.addButton, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}>
                 <Ionicons name="add" size={20} color={theme.primary} />
@@ -158,7 +156,7 @@ export default function Services() {
           {myRequests.length === 0 ? (
             <View style={[styles.emptyCard, { backgroundColor: theme.surface }]}>
               <Ionicons name="document-text-outline" size={40} color={theme.textDim} style={{ opacity: 0.3 }} />
-              <Text style={[styles.emptyText, { color: theme.textDim }]}>No active escort requests found.</Text>
+              <Text style={[styles.emptyText, { color: theme.textDim }]}>No active requests found.</Text>
             </View>
           ) : (
             myRequests.map((req) => (
@@ -201,7 +199,7 @@ export default function Services() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Volunteer Slots</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Volunteering Slots</Text>
               {userRating !== null && (
                 <View style={styles.inlineRating}>
                   <Ionicons name="star" size={12} color="#f59e0b" />
@@ -219,7 +217,7 @@ export default function Services() {
           {myAvailabilities.length === 0 ? (
             <View style={[styles.emptyCard, { backgroundColor: theme.surface }]}>
               <Ionicons name="calendar-clear-outline" size={40} color={theme.textDim} style={{ opacity: 0.3 }} />
-              <Text style={[styles.emptyText, { color: theme.textDim }]}>No availability slots posted.</Text>
+              <Text style={[styles.emptyText, { color: theme.textDim }]}>No slots specified.</Text>
             </View>
           ) : (
             myAvailabilities.map((avail) => (
@@ -240,7 +238,7 @@ export default function Services() {
                 {avail.status === 'matched' && (
                   <View style={[styles.matchInfo, { backgroundColor: theme.primaryGlow }]}>
                     <Ionicons name="heart" size={16} color={theme.primary} />
-                    <Text style={[styles.matchText, { color: theme.primary }]}>Matched with Patient</Text>
+                    <Text style={[styles.matchText, { color: theme.primary }]}>Patient assigned</Text>
                   </View>
                 )}
                 {avail.status === 'confirmed' && (

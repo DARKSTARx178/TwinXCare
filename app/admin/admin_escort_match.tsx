@@ -180,7 +180,7 @@ export default function AdminEscortMatch() {
                 </View>
                 <Text style={[styles.title, { color: theme.text }]}>Escort Matcher</Text>
                 <Text style={[styles.subtitle, { color: theme.textDim }]}>
-                    Connect volunteers with medical requests
+                    Match escorts with patients
                 </Text>
             </View>
 

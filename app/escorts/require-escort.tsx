@@ -171,12 +171,12 @@ export default function RequireEscort() {
 				</View>
 				<Text style={[styles.title, { color: theme.text }]}>Request Escort</Text>
 				<Text style={[styles.subtitle, { color: theme.textDim }]}>
-					Professional assistance for your medical appointments
+					Request a volunteer to assist you for your medical appointments
 				</Text>
 			</View>
 
 			<View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
-				<Text style={[styles.cardHeading, { color: theme.text }]}>Timing & Schedule</Text>
+				<Text style={[styles.cardHeading, { color: theme.text }]}>Time & Schedule</Text>
 
 				<View style={styles.inputWrapper}>
 					<Text style={[styles.label, { color: theme.textDim }]}>Appointment Date</Text>

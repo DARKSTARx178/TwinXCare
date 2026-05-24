@@ -225,7 +225,7 @@ export default function AdminSupport() {
           <Ionicons name="mail-open-outline" size={30} color={theme.primary} />
         </View>
         <Text style={[styles.title, { color: theme.text }]}>Inbox</Text>
-        <Text style={[styles.subtitle, { color: theme.textDim }]}>Feedback and assistance requests from users</Text>
+        <Text style={[styles.subtitle, { color: theme.textDim }]}>Feedback and assistance requests</Text>
       </View>
 
       <TextInput

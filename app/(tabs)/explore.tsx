@@ -183,7 +183,7 @@ export default function Explore() {
           <View style={styles.headerArea}>
             <Text style={[styles.screenTitle, { color: theme.text }]}>Discover</Text>
             <Text style={[styles.screenSubtitle, { color: theme.textDim }]}>
-              Explore advanced medical equipment and professional services
+              Explore medical equipment and professional services
             </Text>
 
             <View style={[styles.searchBox, { backgroundColor: theme.unselectedTab }]}>
@@ -259,8 +259,8 @@ export default function Explore() {
         ListEmptyComponent={
           <View style={styles.emptyWrap}>
             <Ionicons name="search-outline" size={64} color={theme.textDim} style={{ opacity: 0.2 }} />
-            <Text style={[styles.emptyTitle, { color: theme.text }]}>No items matches your search</Text>
-            <Text style={[styles.emptySubtitle, { color: theme.textDim }]}>Try checking your spelling or use more general terms.</Text>
+            <Text style={[styles.emptyTitle, { color: theme.text }]}>No items match your search</Text>
+            <Text style={[styles.emptySubtitle, { color: theme.textDim }]}>Try more general terms.</Text>
           </View>
         }
       />

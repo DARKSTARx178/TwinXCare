@@ -216,7 +216,6 @@ const SettingsScreen = () => {
         </View>
       </View>
 
-      {/* Developer / Advanced */}
       <View style={styles.section}>
         <TouchableOpacity
           style={styles.advancedToggle}
@@ -229,7 +228,7 @@ const SettingsScreen = () => {
         {showAdvanced && (
           <View style={[styles.advancedPanel, { backgroundColor: colors.unselectedTab }]}>
             <Text style={[styles.devNote, { color: colors.text + '70' }]}>
-              Modify individual design tokens. Changes here bypass standard presets. Not stable.
+              Modify theme individually.
             </Text>
             {COLOR_KEYS.map((key) => (
               <View key={key} style={styles.tokenRow}>
@@ -249,7 +248,7 @@ const SettingsScreen = () => {
               style={[styles.resetBtn, { borderColor: colors.primary, borderWidth: 2, backgroundColor: colors.surface }]}
               onPress={() => setTheme(getDefaultTheme())}
             >
-              <Text style={[styles.resetBtnText, { color: colors.primary }]}>Restore Default Tokens</Text>
+              <Text style={[styles.resetBtnText, { color: colors.primary }]}>Restore Defaults</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -260,7 +259,7 @@ const SettingsScreen = () => {
           TwinXCare alpha-{version} build
         </Text>
         <Text style={[styles.footerText, { color: colors.text + '30' }]}>
-          © 2026 DeepMind Agency Core
+          © 2026 MASSIVE Productions
         </Text>
       </View>
     </ScrollView>

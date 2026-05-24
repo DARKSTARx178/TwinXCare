@@ -15,7 +15,6 @@ Notifications.setNotificationHandler({
   }),
 });
 
-// ... imports
 
 export default function NotificationsSetup() {
   const router = useRouter();

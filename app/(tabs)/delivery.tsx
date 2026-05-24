@@ -194,7 +194,6 @@ export default function DeliveryPage() {
         </View>
       </View>
 
-      {/* Hero section: Latest Activity */}
       {latest ? (
         <View style={[styles.heroCard, { backgroundColor: theme.surface, borderWidth: 2, borderColor: theme.primary }]}>
           <View style={styles.heroHeader}>
@@ -235,11 +234,10 @@ export default function DeliveryPage() {
       ) : (
         <View style={[styles.heroCard, { backgroundColor: theme.surface, padding: 40, alignItems: 'center', borderWidth: 2, borderColor: theme.border }]}>
           <Ionicons name="basket-outline" size={48} color={theme.textDim} style={{ opacity: 0.2 }} />
-          <Text style={[styles.emptyHeroText, { color: theme.textDim }]}>No active deliveries found.</Text>
+          <Text style={[styles.emptyHeroText, { color: theme.textDim }]}>No active deliveries.</Text>
         </View>
       )}
 
-      {/* Timeline section */}
       <View style={styles.historySection}>
         <View style={styles.historyHeader}>
           <Text style={[styles.historyTitle, { color: theme.text }]}>Timeline</Text>
@@ -315,7 +313,7 @@ export default function DeliveryPage() {
         {visibleHistory.length === 0 && (
           <View style={[styles.timelineCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border, alignItems: 'center' }]}>
             <Ionicons name="hourglass-outline" size={32} color={theme.textDim} style={{ opacity: 0.4 }} />
-            <Text style={[styles.emptyHeroText, { color: theme.textDim, marginTop: 8 }]}>No active results for current search/filter.</Text>
+            <Text style={[styles.emptyHeroText, { color: theme.textDim, marginTop: 8 }]}>No active deliveries.</Text>
           </View>
         )}
       </View>

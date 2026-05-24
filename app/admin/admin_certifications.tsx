@@ -1,3 +1,6 @@
+//testing, unstable version
+
+
 import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
 import { Ionicons } from '@expo/vector-icons';
@@ -228,8 +231,8 @@ export default function AdminCertifications() {
         <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}> 
           <Ionicons name="ribbon" size={30} color={theme.primary} />
         </View>
-        <Text style={[styles.title, { color: theme.text }]}>Escort Certifications</Text>
-        <Text style={[styles.subtitle, { color: theme.textDim }]}>Manage catalog items and review submissions</Text>
+        <Text style={[styles.title, { color: theme.text }]}>Escort Certs</Text>
+        <Text style={[styles.subtitle, { color: theme.textDim }]}>Manage certifications and review submissions</Text>
       </View>
 
       <View style={styles.statsRow}>
@@ -248,7 +251,7 @@ export default function AdminCertifications() {
       </View>
 
       <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
-        <Text style={[styles.cardTitle, { color: theme.text }]}>Certification Catalog</Text>
+        <Text style={[styles.cardTitle, { color: theme.text }]}>Certification catalog list</Text>
 
         <TextInput
           style={[styles.input, { color: theme.text }]}
@@ -304,7 +307,7 @@ export default function AdminCertifications() {
       <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
         <Text style={[styles.cardTitle, { color: theme.text }]}>Review Submissions</Text>
         {submissions.length === 0 ? (
-          <Text style={{ color: theme.textDim }}>No submissions found.</Text>
+          <Text style={{ color: theme.textDim }}>No submissions.</Text>
         ) : (
           submissions.map((item) => {
             const statusColor =

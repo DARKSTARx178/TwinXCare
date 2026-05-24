@@ -61,7 +61,6 @@ export default function EscortAvailability() {
             setRatingCount(data.ratingCount ?? 0);
           }
 
-          // Also fetch my slots
           await refreshMySlots();
         } catch (err) {
           console.error("Error fetching volunteer data:", err);
@@ -79,7 +78,6 @@ export default function EscortAvailability() {
           const data = jDoc.data();
           setJobData(data);
 
-          // For volunteers viewing an assignment, load the linked patient request details.
           if (type === 'availability' && data?.matchedRequestId) {
             const reqDoc = await getDoc(doc(db, 'escort', 'request', 'entries', data.matchedRequestId));
             if (reqDoc.exists()) {
@@ -91,7 +89,6 @@ export default function EscortAvailability() {
             setMatchedRequestData(null);
           }
 
-          // For patients viewing a matched request, show volunteer profile details before confirmation.
           if (type === 'request' && data?.matchedProviderId) {
             const providerDoc = await getDoc(doc(db, 'users', data.matchedProviderId));
             setMatchedProviderData(providerDoc.exists() ? providerDoc.data() : null);
@@ -123,7 +120,6 @@ export default function EscortAvailability() {
     fetchJob();
   }, [jobId, type]);
 
-  // Reanimated Slider State
   const translateX = useSharedValue(0);
 
   const [selectedRating, setSelectedRating] = useState(0);
@@ -140,7 +136,6 @@ export default function EscortAvailability() {
       return;
     }
 
-    // Optimistic Update
     setJobData((prev: any) => ({ ...prev, [myRole === 'patient' ? 'patientConfirmed' : 'volunteerConfirmed']: true }));
 
     const success = await lockInJob(reqId, availId, myRole);
@@ -169,7 +164,6 @@ export default function EscortAvailability() {
       return;
     }
 
-    // Optimistic Update
     setJobData((prev: any) => ({ ...prev, [myRole === 'patient' ? 'patientCompleted' : 'volunteerCompleted']: true }));
 
     const success = await finalizeEscortJob(reqId, availId, myRole, selectedRating);
@@ -318,12 +312,11 @@ export default function EscortAvailability() {
           </View>
         )}
         <Text style={[styles.subtitle, { color: theme.textDim }]}>
-          Offer your assistance to patients in need
+          Offer escort services to patients
         </Text>
       </View>
 
       {jobId ? (
-        // JOB DETAILS VIEW
         <View style={{ paddingHorizontal: 20 }}>
           <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -587,7 +580,6 @@ export default function EscortAvailability() {
           </View>
         </View>
       ) : (
-        // STANDARD FORM VIEW
         <>
           <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
             <Text style={[styles.cardHeading, { color: theme.text }]}>Service Schedule</Text>
@@ -685,7 +677,7 @@ export default function EscortAvailability() {
 
             <View style={styles.formRow}>
               <View style={[styles.inputWrapper, { flex: 1, marginRight: 12 }]}>
-                <Text style={[styles.label, { color: theme.textDim }]}>Location Radius Furthest Travelled (KM)</Text>
+                <Text style={[styles.label, { color: theme.textDim }]}>Max location radius travelled (KM)</Text>
                 <TextInput
                   style={[styles.input, { color: theme.text }]}
                   placeholder="5"
@@ -724,12 +716,11 @@ export default function EscortAvailability() {
             </TouchableOpacity>
           </View>
 
-          {/* MY SLOTS SECTION */}
           <View style={{ paddingHorizontal: 20, marginTop: 10 }}>
-            <Text style={[styles.cardHeading, { color: theme.text, marginLeft: 10 }]}>My Recent Slots</Text>
+            <Text style={[styles.cardHeading, { color: theme.text, marginLeft: 10 }]}>Recent Slots</Text>
             {mySlots.length === 0 ? (
               <View style={[styles.emptyInline, { backgroundColor: theme.surface }]}>
-                <Text style={{ color: theme.textDim }}>No slots posted yet.</Text>
+                <Text style={{ color: theme.textDim }}>No slots yet.</Text>
               </View>
             ) : (
               mySlots.map(slot => (

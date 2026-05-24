@@ -169,14 +169,14 @@ export default function AdminEquipmentMgt() {
                 <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
                     <Ionicons name="construct-outline" size={32} color={theme.primary} />
                 </View>
-                <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>Equipment Inventory</Text>
+                <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>Inventory</Text>
                 <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>
-                    Management & Stock Control Center
+                    Manage
                 </Text>
             </View>
 
             <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
-                <Text style={[styles.cardHeading, { color: theme.text }]}>Add New Item</Text>
+                <Text style={[styles.cardHeading, { color: theme.text }]}>Add Item</Text>
 
                 <View style={styles.formRow}>
                     <View style={styles.inputWrapper}>
@@ -254,7 +254,7 @@ export default function AdminEquipmentMgt() {
                     onPress={handleAddEquipment}
                     activeOpacity={0.8}
                 >
-                    <Text style={[styles.addButtonText, { color: theme.primary }]}>Register New Equipment</Text>
+                    <Text style={[styles.addButtonText, { color: theme.primary }]}>Register</Text>
                     <Ionicons name="add-circle-outline" size={20} color={theme.primary} style={{ marginLeft: 8 }} />
                 </TouchableOpacity>
             </View>

@@ -99,7 +99,7 @@ export default function AdminDeliveryPage() {
     const toggleStatus = async (order: Order) => {
         Alert.alert(
             'Confirm Status Change',
-            `Are you sure you want to mark this order as ${order.status === 'Incomplete' ? 'Completed' : 'Incomplete'
+            `Mark this order as ${order.status === 'Incomplete' ? 'Completed' : 'Incomplete'
             }?`,
             [
                 { text: 'Cancel', style: 'cancel' },
@@ -148,9 +148,9 @@ export default function AdminDeliveryPage() {
                 <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
                     <Ionicons name="car-outline" size={32} color={theme.primary} />
                 </View>
-                <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>Dispatch Center</Text>
+                <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>Delivery status</Text>
                 <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>
-                    Equipment Delivery & Order Fulfillment
+                    Equipment Delivery management
                 </Text>
             </View>
 

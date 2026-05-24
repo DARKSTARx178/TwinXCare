@@ -40,7 +40,6 @@ export default function Assistance() {
     try {
       setSubmitting(true);
 
-      // 1️⃣ Save to Firebase Firestore (requests collection)
       await addDoc(collection(db, "requests"), {
         username,
         message,
@@ -48,7 +47,6 @@ export default function Assistance() {
       });
 
       /*
-      // 2️⃣ Temporarily disabled: Send request email via Vercel API
       const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.replace(/\/$/, '') || '';
       if (apiBaseUrl) {
         await fetch(`${apiBaseUrl}/api/send-email`, {
@@ -85,7 +83,7 @@ export default function Assistance() {
 
         <Text style={[styles.title, { color: theme.text }]}>Request Assistance</Text>
         <Text style={[styles.subtitle, { color: theme.textDim }]}>
-          Tell us what you need and our team will get back to you as soon as possible.
+          Tell us what you need.
         </Text>
 
         <View style={styles.inputWrapper}>
@@ -117,7 +115,7 @@ export default function Assistance() {
         <View style={styles.infoBox}>
           <Ionicons name="information-circle-outline" size={18} color={theme.primary} />
           <Text style={[styles.infoText, { color: theme.textDim }]}>
-            Your request will be sent directly to our support coordinators.
+            Your request will be sent directly to our support team.
           </Text>
         </View>
       </View>

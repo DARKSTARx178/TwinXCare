@@ -42,7 +42,7 @@ export default function Splash() {
           />
         </View>
         <Text style={[styles.title, { color: theme.text }]}>TwinXCare</Text>
-        <Text style={[styles.subtitle, { color: theme.textDim }]}>Advanced Care Intelligence</Text>
+        <Text style={[styles.subtitle, { color: theme.textDim }]}>Advanced Care</Text>
       </Animated.View>
 
       <View style={styles.footer}>
@@ -58,7 +58,7 @@ export default function Splash() {
             }
           ]} />
         </View>
-        <Text style={[styles.version, { color: theme.textDim }]}>Version 2.0.4 • Alpha</Text>
+        <Text style={[styles.version, { color: theme.textDim }]}>Version 1.1.10 • Alpha</Text>
       </View>
     </View>
   );

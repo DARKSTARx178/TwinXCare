@@ -26,7 +26,6 @@ const Login: React.FC = () => {
     }
 
     try {
-      // ✅ Login with Firebase
       await signInWithEmailAndPassword(auth, email, password);
       await markSessionStarted();
       router.replace("/profile");

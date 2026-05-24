@@ -54,7 +54,6 @@ export default function Feedback() {
       });
 
       /*
-      // 2️⃣ Temporarily disabled: Send email via Vercel function
       const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.replace(/\/$/, '') || '';
       if (apiBaseUrl) {
         await fetch(`${apiBaseUrl}/api/send-email`, {
@@ -96,7 +95,7 @@ export default function Feedback() {
 
         <Text style={[styles.title, { color: theme.text }]}>Share Your Feedback</Text>
         <Text style={[styles.subtitle, { color: theme.textDim }]}>
-          Your experience matters. Tell us how we're doing and help us improve our care.
+          Tell us how we're doing.
         </Text>
 
         <View style={styles.ratingSection}>

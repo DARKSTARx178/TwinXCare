@@ -38,11 +38,9 @@ export default function ChangePassword() {
     setLoading(true);
 
     try {
-      // ✅ Reauthenticate first
       const credential = EmailAuthProvider.credential(user.email!, currentPw);
       await reauthenticateWithCredential(user, credential);
 
-      // ✅ Update password
       await updatePassword(user, newPw);
       Alert.alert('Success', 'Password changed successfully.');
       setCurrentPw('');
@@ -74,7 +72,7 @@ export default function ChangePassword() {
 
         <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>Change Password</Text>
         <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>
-          Update your security credentials for TwinXCare
+          Update your password
         </Text>
 
         <View style={styles.inputWrapper}>

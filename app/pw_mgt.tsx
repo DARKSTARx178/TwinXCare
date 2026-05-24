@@ -47,7 +47,7 @@ const PwMgt: React.FC = () => {
 
             const data = await res.json();
             if (res.ok) {
-                setUsers(data.users); // ← Already an array like ["admin", "john"]
+                setUsers(data.users);
             } else {
                 setUsers([]);
                 setError(data.error || 'Failed to fetch users.');
@@ -146,7 +146,7 @@ const PwMgt: React.FC = () => {
                 </View>
                 <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>Account Security</Text>
                 <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>
-                    Administrative User & Password Management
+                    User & Password Management
                 </Text>
             </View>
 
@@ -278,7 +278,7 @@ const PwMgt: React.FC = () => {
                         </View>
                     ) : (
                         <View style={styles.emptyState}>
-                            <Text style={[styles.emptyStateText, { color: theme.textDim }]}>Select a user from the directory to manage their account</Text>
+                            <Text style={[styles.emptyStateText, { color: theme.textDim }]}>Select a user to manage their account</Text>
                         </View>
                     )}
                 </View>

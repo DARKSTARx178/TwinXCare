@@ -35,11 +35,9 @@ export default function Register() {
     }
 
     try {
-      // ✅ Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // ✅ Add Firestore document. Role stays 'user' by default; admins must change role server-side.
       await setDoc(doc(db, 'users', user.uid), {
         username,
         email,
@@ -51,7 +49,6 @@ export default function Register() {
         theme: getThemeColors()
       });
 
-      // ✅ Firebase Auth persists session automatically
       router.replace('/profile');
     } catch (e: any) {
       console.error('Registration error:', e);

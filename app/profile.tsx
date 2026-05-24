@@ -21,13 +21,11 @@ export default function Profile() {
   const [role, setRole] = useState<string>("user");
   const [firestoreId, setFirestoreId] = useState<string | null>(null);
 
-  // ✅ Listen to Firebase Auth state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
 
-        // Try to fetch the Firestore document by UID (common case)
         try {
           const directDoc = await getDoc(doc(db, 'users', currentUser.uid));
           if (directDoc.exists()) {
@@ -36,7 +34,6 @@ export default function Profile() {
             setRole(data.role || 'user');
             setFirestoreId(directDoc.id);
           } else {
-            // Fallback: some projects store user records with random doc IDs and include an `uid` field
             const usersCol = collection(db, 'users');
             const q = query(usersCol, where('uid', '==', currentUser.uid));
             const snap = await getDocs(q);
@@ -47,7 +44,6 @@ export default function Profile() {
               setRole(data.role || 'user');
               setFirestoreId(first.id);
             } else {
-              // Also try `authUid` field just in case
               const q2 = query(usersCol, where('authUid', '==', currentUser.uid));
               const snap2 = await getDocs(q2);
               if (!snap2.empty) {
@@ -57,7 +53,6 @@ export default function Profile() {
                 setRole(data.role || 'user');
                 setFirestoreId(first.id);
               } else {
-                // No Firestore user doc found
                 setUsername(currentUser.displayName || currentUser.email);
                 setFirestoreId(null);
               }

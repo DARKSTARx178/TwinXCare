@@ -29,13 +29,11 @@ function RootLayoutContent() {
         if (!mounted) return;
         if (snap.exists()) {
           const data = snap.data();
-          // Prefer a `version` field, otherwise pick the first key (handles cases where the version is stored as a key)
           let remote: string | undefined = undefined;
           if (typeof data.version === 'string') remote = data.version;
           else {
             const keys = Object.keys(data || {});
             if (keys.length > 0) {
-              // If key itself looks like a semver (e.g. '1.1.8'), use that; else check values
               if (/^\d+\.\d+\.\d+/.test(keys[0])) remote = keys[0];
               else if (typeof data[keys[0]] === 'string') remote = data[keys[0]] as string;
             }
@@ -49,7 +47,6 @@ function RootLayoutContent() {
           }
         }
       } catch (e) {
-        // On error, do not block — allow app to run
         console.warn('Version check failed', e);
       } finally {
         if (mounted) setChecking(false);
@@ -70,7 +67,6 @@ function RootLayoutContent() {
     return unsubscribe;
   }, []);
 
-  // After checking completes, show a short transition splash before revealing the app
   useEffect(() => {
     if (!checking) {
       const t = setTimeout(() => setShowSplash(false), 750);
@@ -95,7 +91,6 @@ function RootLayoutContent() {
     );
   }
 
-  // Show a short welcome splash after the check completes, then render the app
   if (showSplash) {
     return <SplashScreen message={"Done"} />;
   }

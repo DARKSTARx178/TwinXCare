@@ -3,10 +3,9 @@
     "name": "TwinXCare",
     "slug": "TwinXCare",
     "owner": "darkstarx178",
-    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "carelink",
+    "scheme": "twinxcare",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -50,6 +49,8 @@
         "projectId": "eadca27e-841e-4ef7-b9ce-773fd06ed084"
       }
     },
-    "runtimeVersion": "1.0.0"
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }

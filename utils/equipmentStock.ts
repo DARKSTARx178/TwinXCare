@@ -78,6 +78,38 @@ export const normalizeEquipmentLocations = (data: any): EquipmentStockLocation[]
 export const getTotalEquipmentStock = (locations: EquipmentStockLocation[]) =>
   locations.reduce((total, location) => total + Number(location.stock || 0), 0);
 
+export const getDistanceKm = (
+  first: { latitude: number; longitude: number },
+  second: { latitude: number; longitude: number }
+) => {
+  const toRad = (value: number) => (value * Math.PI) / 180;
+  const earthRadiusKm = 6371;
+  const latDistance = toRad(second.latitude - first.latitude);
+  const lonDistance = toRad(second.longitude - first.longitude);
+  const a =
+    Math.sin(latDistance / 2) * Math.sin(latDistance / 2) +
+    Math.cos(toRad(first.latitude)) *
+    Math.cos(toRad(second.latitude)) *
+    Math.sin(lonDistance / 2) *
+    Math.sin(lonDistance / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadiusKm * c;
+};
+
+export const getNearestStockLocation = (
+  locations: EquipmentStockLocation[],
+  userLocation?: { latitude: number; longitude: number } | null
+) => {
+  if (!locations.length) return null;
+  if (!userLocation) return locations[0];
+
+  return locations.reduce((nearest, location) => {
+    const nearestDistance = getDistanceKm(userLocation, nearest);
+    const locationDistance = getDistanceKm(userLocation, location);
+    return locationDistance < nearestDistance ? location : nearest;
+  }, locations[0]);
+};
+
 export const updateLocationStock = (
   data: any,
   locationId: string,

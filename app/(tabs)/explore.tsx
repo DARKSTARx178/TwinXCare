@@ -1,10 +1,11 @@
 import { ThemeContext } from '@/contexts/ThemeContext';
 import app from '@/firebase/firebase';
-import { EquipmentStockLocation, getTotalEquipmentStock, normalizeEquipmentLocations } from '@/utils/equipmentStock';
+import { EquipmentStockLocation, getNearestStockLocation, getTotalEquipmentStock, normalizeEquipmentLocations } from '@/utils/equipmentStock';
 import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { collection, getDocs, getFirestore } from 'firebase/firestore';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Dimensions, FlatList, Image, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface EquipmentItem {
@@ -17,6 +18,11 @@ interface EquipmentItem {
   image: string;
   description?: string;
 }
+
+type UserLocation = {
+  latitude: number;
+  longitude: number;
+};
 
 export interface ServiceItem {
   id: string;
@@ -36,10 +42,11 @@ export default function Explore() {
   const [itemAvailability, setItemAvailability] = useState<EquipmentItem[]>([]);
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [viewMode, setViewMode] = useState<'equipment' | 'services'>('equipment');
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [locationLabel, setLocationLabel] = useState('Showing nearest warehouse stock');
 
   const { theme } = useContext(ThemeContext);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'brand' | 'item' | 'price' | 'availability' | 'company' | null>(null);
   const [filterValue, setFilterValue] = useState<string>('all');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
 
@@ -50,12 +57,14 @@ export default function Explore() {
 
   const db = getFirestore(app);
 
-  useEffect(() => {
-    if (viewMode === 'equipment') fetchEquipment();
-    else fetchServices();
-  }, [reloadKey, viewMode]);
+  const convertGoogleDriveLink = useCallback((link: string) => {
+    if (!link) return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200';
+    const match = link.match(/\/d\/(.*?)\//);
+    if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    return link;
+  }, []);
 
-  const fetchEquipment = async () => {
+  const fetchEquipment = useCallback(async () => {
     try {
       const colRef = collection(db, 'equipment');
       const snapshot = await getDocs(colRef);
@@ -75,9 +84,9 @@ export default function Explore() {
       });
       setItemAvailability(items);
     } catch (err) { console.error(err); }
-  };
+  }, [convertGoogleDriveLink, db]);
 
-  const fetchServices = async () => {
+  const fetchServices = useCallback(async () => {
     try {
       const snapshot = await getDocs(collection(db, 'services'));
       const items: ServiceItem[] = snapshot.docs.map(doc => {
@@ -96,19 +105,59 @@ export default function Explore() {
       });
       setServices(items);
     } catch (err) { console.error(err); }
-  };
+  }, [convertGoogleDriveLink, db]);
 
-  const convertGoogleDriveLink = (link: string) => {
-    if (!link) return 'https://images.unsplash.com/photo-1576091160550-217359f49f4c?auto=format&fit=crop&q=80&w=200';
-    const match = link.match(/\/d\/(.*?)\//);
-    if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
-    return link;
-  };
+  useEffect(() => {
+    if (viewMode === 'equipment') fetchEquipment();
+    else fetchServices();
+  }, [fetchEquipment, fetchServices, reloadKey, viewMode]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadUserLocation = async () => {
+      try {
+        const permission = await Location.requestForegroundPermissionsAsync();
+        if (permission.status !== 'granted') {
+          if (mounted) setLocationLabel('Showing total stock');
+          return;
+        }
+
+        const currentLocation = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        if (!mounted) return;
+        setUserLocation({
+          latitude: currentLocation.coords.latitude,
+          longitude: currentLocation.coords.longitude,
+        });
+        setLocationLabel('Showing stock at your nearest warehouse');
+      } catch (error) {
+        console.warn('Location lookup failed', error);
+        if (mounted) setLocationLabel('Showing total stock');
+      }
+    };
+
+    loadUserLocation();
+
+    return () => { mounted = false; };
+  }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
     setReloadKey(k => k + 1);
     setTimeout(() => setRefreshing(false), 800);
+  };
+
+  const getDisplayedEquipmentStock = (item: EquipmentItem) => {
+    const nearestLocation = getNearestStockLocation(item.stockLocations, userLocation);
+    return userLocation && nearestLocation ? Number(nearestLocation.stock || 0) : Number(item.stock || 0);
+  };
+
+  const getDisplayedWarehouseName = (item: EquipmentItem) => {
+    if (!userLocation) return 'All warehouses';
+    return getNearestStockLocation(item.stockLocations, userLocation)?.name || 'Nearest warehouse';
   };
 
   let filteredItems: any[] = viewMode === 'equipment' ? itemAvailability : services;
@@ -118,8 +167,9 @@ export default function Explore() {
 
   filteredItems = filteredItems.filter((item) => {
     if (viewMode === 'equipment') {
-      if (filterValue === 'in-stock') return Number(item.stock || 0) > 0;
-      if (filterValue === 'out-of-stock') return Number(item.stock || 0) <= 0;
+      const displayedStock = getDisplayedEquipmentStock(item);
+      if (filterValue === 'in-stock') return displayedStock > 0;
+      if (filterValue === 'out-of-stock') return displayedStock <= 0;
       return true;
     }
     if (filterValue === 'has-schedule') return Array.isArray(item.schedule) && item.schedule.length > 0;
@@ -134,6 +184,8 @@ export default function Explore() {
 
   const renderItem = ({ item }: { item: any }) => {
     const isEquipment = viewMode === 'equipment';
+    const displayedStock = isEquipment ? getDisplayedEquipmentStock(item) : 0;
+    const displayedWarehouseName = isEquipment ? getDisplayedWarehouseName(item) : '';
     return (
       <TouchableOpacity
         onPress={() => {
@@ -171,9 +223,14 @@ export default function Explore() {
           <View style={styles.cardFooter}>
             <Ionicons name={isEquipment ? "cube-outline" : "time-outline"} size={12} color={theme.primary} />
             <Text style={[styles.footerText, { color: theme.primary }]}>
-              {isEquipment ? `${item.stock} in stock` : item.duration}
+              {isEquipment ? `${displayedStock} in stock` : item.duration}
             </Text>
           </View>
+          {isEquipment && (
+            <Text style={[styles.locationStockText, { color: theme.textDim }]} numberOfLines={1}>
+              {displayedWarehouseName}
+            </Text>
+          )}
         </View>
       </TouchableOpacity>
     );
@@ -224,9 +281,14 @@ export default function Explore() {
             </View>
 
             <View style={styles.sectionHeader}>
-              <Text style={[styles.resultsCount, { color: theme.text }]}>
-                {filteredItems.length} {viewMode} available
-              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.resultsCount, { color: theme.text }]}>
+                  {filteredItems.length} {viewMode} available
+                </Text>
+                {viewMode === 'equipment' && (
+                  <Text style={[styles.locationHint, { color: theme.textDim }]}>{locationLabel}</Text>
+                )}
+              </View>
               <TouchableOpacity
                 style={[styles.filterBtn, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}
                 onPress={() => setShowFilterMenu((v) => !v)}
@@ -315,6 +377,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   resultsCount: { fontSize: 13, fontWeight: '800' },
+  locationHint: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 3,
+  },
   filterBtn: {
     padding: 8,
     borderRadius: 12,
@@ -355,6 +422,11 @@ const styles = StyleSheet.create({
   itemBrand: { fontSize: 11, fontWeight: '600', marginBottom: 12 },
   cardFooter: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   footerText: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
+  locationStockText: {
+    fontSize: 10,
+    fontWeight: '700',
+    marginTop: 4,
+  },
   emptyWrap: {
     padding: 60,
     alignItems: 'center',

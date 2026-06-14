@@ -1,5 +1,6 @@
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
+import { EquipmentStockLocation, PICKUP_LOCATIONS } from '@/utils/equipmentStock';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -7,8 +8,8 @@ import { Picker } from '@react-native-picker/picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useContext, useMemo, useState } from 'react';
 import {
-  Animated,
   Alert,
+  Animated,
   Dimensions,
   Image,
   PanResponder,
@@ -20,7 +21,6 @@ import {
   View
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import { EquipmentStockLocation, PICKUP_LOCATIONS } from '@/utils/equipmentStock';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 

@@ -3,6 +3,7 @@ import { ThemeContext } from '@/contexts/ThemeContext';
 import LocationAutocomplete, { SelectedLocation } from '@/components/LocationAutocomplete';
 import { auth, db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
+import { updateLocationStock } from '@/utils/equipmentStock';
 import { Ionicons } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -37,6 +38,13 @@ export default function PaymentPage() {
   const quantity = Number(params.quantity || 1);
   const rentalDays = Number(params.rentalDays || 1);
   const totalPrice = pricePerDay * quantity * rentalDays;
+  const warehouseLocation = {
+    id: String(params.pickupLocationId || ''),
+    name: String(params.pickupLocationName || ''),
+    address: String(params.pickupLocationAddress || ''),
+    latitude: Number(params.pickupLocationLatitude || 0),
+    longitude: Number(params.pickupLocationLongitude || 0),
+  };
 
   console.log('💰 Price breakdown:', { pricePerDay, quantity, rentalDays, totalPrice });
 
@@ -74,6 +82,11 @@ export default function PaymentPage() {
     if (type === 'equipment' && !address.trim()) {
       Alert.alert('Error', 'Please enter your delivery address.');
       console.log('Missing address');
+      return;
+    }
+
+    if (type === 'equipment' && !warehouseLocation.id) {
+      Alert.alert('Error', 'Please select a pickup warehouse before payment.');
       return;
     }
 
@@ -120,6 +133,10 @@ export default function PaymentPage() {
               latitude: deliveryLocation.latitude,
               longitude: deliveryLocation.longitude,
             } : null,
+            warehouseLocation,
+            warehouseLocationId: warehouseLocation.id,
+            warehouseLocationName: warehouseLocation.name,
+            warehouseLocationAddress: warehouseLocation.address,
             orderTime,
             transactionId,
             status: 'Incomplete',
@@ -132,17 +149,19 @@ export default function PaymentPage() {
               throw new Error('Product not found.');
             }
 
-            const currentStock = productSnap.data()?.stock || 0;
+            const productData = productSnap.data();
+            const stockUpdate = updateLocationStock(productData, warehouseLocation.id, quantity);
+            const currentStock = productData?.stock || 0;
             console.log('Current stock:', currentStock);
 
-            if (currentStock < quantity) {
+            if (Number(stockUpdate.stock) < 0) {
               throw new Error('Not enough stock available.');
             }
 
             const userSnap = await transaction.get(userRef);
             const userData = userSnap.data();
 
-            transaction.update(productRef, { stock: currentStock - quantity });
+            transaction.update(productRef, stockUpdate);
             transaction.set(userRef, { history: arrayUnion(orderData) }, { merge: true });
 
             return userData?.pushToken;
@@ -326,6 +345,13 @@ export default function PaymentPage() {
             <Text style={[styles.summaryLabel, { color: theme.textDim }]}>Duration</Text>
             <Text style={[styles.summaryValue, { color: theme.text }]}>{rentalDays} Day{rentalDays > 1 ? 's' : ''}</Text>
           </View>
+
+          {type === 'equipment' && warehouseLocation.name && (
+            <View style={styles.summaryRow}>
+              <Text style={[styles.summaryLabel, { color: theme.textDim }]}>Pickup Warehouse</Text>
+              <Text style={[styles.summaryValue, { color: theme.text, textAlign: 'right', flex: 1 }]}>{warehouseLocation.name}</Text>
+            </View>
+          )}
 
           <View style={styles.divider} />
 

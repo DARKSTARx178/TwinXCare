@@ -301,6 +301,46 @@
             box-shadow: 0 0 0 4px var(--primary-glow);
         }
 
+        .location-suggestions {
+            display: none;
+            margin-top: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: #FFFFFF;
+        }
+
+        .location-suggestion {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-main);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.75rem 0.9rem;
+            text-align: left;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .location-suggestion:last-child {
+            border-bottom: none;
+        }
+
+        .location-suggestion:hover {
+            background: var(--surface-hover);
+        }
+
+        .location-helper {
+            margin-top: 8px;
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
         .time-range {
             display: flex;
             align-items: center;
@@ -676,6 +716,8 @@
                                     <label>Location</label>
                                     <input type="text" class="input-dark" id="vol-location"
                                         placeholder="Hospital, area, or facility" required>
+                                    <div class="location-helper" id="vol-location-helper">Start typing to search and autofill the location.</div>
+                                    <div class="location-suggestions" id="vol-location-suggestions"></div>
                                 </div>
                                 <div class="form-group"
                                     style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
@@ -718,6 +760,8 @@
                                     <label>Hospital / Clinic</label>
                                     <input type="text" class="input-dark" id="req-hospital"
                                         placeholder="Name of health facility" required>
+                                    <div class="location-helper" id="req-hospital-helper">Start typing to search and autofill the hospital or clinic.</div>
+                                    <div class="location-suggestions" id="req-hospital-suggestions"></div>
                                 </div>
                                 <div class="form-group">
                                     <label>Appointment Info</label>
@@ -858,6 +902,8 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const GEOAPIFY_API_KEY = (window.TWINXCARE_GEOAPIFY_API_KEY || '333dd9a8121f4bfe8173cae287ecf657').trim();
+        const GEOAPIFY_AUTOCOMPLETE_URL = (window.TWINXCARE_GEOAPIFY_AUTOCOMPLETE_URL || '').trim();
 
         // SYSTEM STATE
         let volunteers = [];
@@ -866,16 +912,158 @@
         let activeRatingRequest = null;
         let selectedRating = 0;
         let certificationCatalog = [];
+        let volLocationCoordinates = null;
+        let reqHospitalCoordinates = null;
 
         const CERT_CATALOG_PATH = 'escort/certifications/catalog';
         const reqCertSelect = document.getElementById('req-volunteer-certification');
         const reqCertHelper = document.getElementById('req-certification-helper');
+        const volLocationInput = document.getElementById('vol-location');
+        const reqHospitalInput = document.getElementById('req-hospital');
 
         const loader = document.getElementById('loader');
         const dashboardView = document.getElementById('dashboard-view');
 
         // INITIALIZATION
         dashboardView.style.display = 'block';
+
+        function getApiKeyFromUrl() {
+            const match = GEOAPIFY_AUTOCOMPLETE_URL.match(/[?&]apiKey=([^&]+)/);
+            return match ? decodeURIComponent(match[1]) : '';
+        }
+
+        const effectiveGeoApiKey = GEOAPIFY_API_KEY || getApiKeyFromUrl();
+        const hasGeoConfig = Boolean(GEOAPIFY_AUTOCOMPLETE_URL || GEOAPIFY_API_KEY);
+
+        function appendParam(url, key, value) {
+            if (new RegExp(`[?&]${key}=`).test(url)) return url;
+            return `${url}${url.includes('?') ? '&' : '?'}${key}=${encodeURIComponent(value)}`;
+        }
+
+        function buildAutocompleteUrl(text) {
+            const encodedText = encodeURIComponent(text);
+            if (GEOAPIFY_AUTOCOMPLETE_URL) {
+                let url = GEOAPIFY_AUTOCOMPLETE_URL
+                    .replace('{text}', encodedText)
+                    .replace('ADDRESS_TEXT', encodedText)
+                    .replace(/([?&]text=)[^&]*/, `$1${encodedText}`);
+                if (!/[?&]text=/.test(url)) {
+                    url = `${url}${url.includes('?') ? '&' : '?'}text=${encodedText}`;
+                }
+                url = appendParam(url, 'format', 'json');
+                url = appendParam(url, 'limit', '5');
+                return url;
+            }
+            if (!GEOAPIFY_API_KEY) return '';
+            return `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodedText}&filter=countrycode:sg&format=json&limit=5&apiKey=${encodeURIComponent(GEOAPIFY_API_KEY)}`;
+        }
+
+        function getAddress(result) {
+            const data = result.properties || result;
+            return data.formatted || [data.address_line1, data.address_line2].filter(Boolean).join(', ');
+        }
+
+        function getCoordinates(result) {
+            const data = result.properties || result;
+            const longitude = data.lon ?? result.geometry?.coordinates?.[0];
+            const latitude = data.lat ?? result.geometry?.coordinates?.[1];
+            if (typeof latitude !== 'number' || typeof longitude !== 'number') return null;
+            return { latitude, longitude };
+        }
+
+        function setupLocationAutocomplete({ input, suggestionsBox, helper, onSelect, onClear }) {
+            if (!input || !suggestionsBox) return;
+
+            if (!hasGeoConfig && helper) {
+                helper.textContent = 'Location suggestions are unavailable.';
+            }
+
+            const clearSuggestions = () => {
+                suggestionsBox.innerHTML = '';
+                suggestionsBox.style.display = 'none';
+            };
+
+            let autocompleteTimer;
+            let autocompleteController;
+            input.addEventListener('input', () => {
+                onClear();
+                const text = input.value.trim();
+                if (!hasGeoConfig || text.length < 3) {
+                    clearSuggestions();
+                    return;
+                }
+
+                clearTimeout(autocompleteTimer);
+                if (autocompleteController) autocompleteController.abort();
+                autocompleteTimer = setTimeout(async () => {
+                    try {
+                        autocompleteController = new AbortController();
+                        const response = await fetch(buildAutocompleteUrl(text), { signal: autocompleteController.signal });
+                        const data = await response.json();
+                        const results = data.results || data.features || [];
+                        suggestionsBox.innerHTML = '';
+
+                        if (!results.length) {
+                            clearSuggestions();
+                            return;
+                        }
+
+                        results.forEach((item) => {
+                            const address = getAddress(item);
+                            const coords = getCoordinates(item);
+                            if (!address || !coords) return;
+
+                            const row = document.createElement('button');
+                            row.type = 'button';
+                            row.className = 'location-suggestion';
+                            row.innerHTML = `<i class="fas fa-location-dot" style="color: var(--primary);"></i><span>${address}</span>`;
+                            row.addEventListener('click', () => {
+                                input.value = address;
+                                onSelect({ address, ...coords });
+                                clearSuggestions();
+                                if (helper) helper.textContent = 'Location selected and coordinates saved.';
+                            });
+                            suggestionsBox.appendChild(row);
+                        });
+
+                        suggestionsBox.style.display = suggestionsBox.children.length ? 'block' : 'none';
+                    } catch (error) {
+                        if (error?.name !== 'AbortError') {
+                            clearSuggestions();
+                        }
+                    }
+                }, 450);
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!suggestionsBox.contains(event.target) && event.target !== input) {
+                    clearSuggestions();
+                }
+            });
+        }
+
+        setupLocationAutocomplete({
+            input: volLocationInput,
+            suggestionsBox: document.getElementById('vol-location-suggestions'),
+            helper: document.getElementById('vol-location-helper'),
+            onSelect: (selectedLocation) => {
+                volLocationCoordinates = selectedLocation;
+            },
+            onClear: () => {
+                volLocationCoordinates = null;
+            },
+        });
+        setupLocationAutocomplete({
+            input: reqHospitalInput,
+            suggestionsBox: document.getElementById('req-hospital-suggestions'),
+            helper: document.getElementById('req-hospital-helper'),
+            onSelect: (selectedLocation) => {
+                reqHospitalCoordinates = selectedLocation;
+            },
+            onClear: () => {
+                reqHospitalCoordinates = null;
+            },
+        });
         await loadCertificationCatalog();
         syncData();
         hideLoader();
@@ -937,6 +1125,10 @@
                 fromTime: document.getElementById('vol-start').value,
                 toTime: document.getElementById('vol-end').value,
                 location: document.getElementById('vol-location').value,
+                locationCoordinates: volLocationCoordinates ? {
+                    latitude: volLocationCoordinates.latitude,
+                    longitude: volLocationCoordinates.longitude,
+                } : null,
                 serviceRadiusKm: Number(document.getElementById('vol-radius').value) || 5,
                 locationRadiusKm: Number(document.getElementById('vol-radius').value) || 5,
                 maxPax: 1,
@@ -951,6 +1143,8 @@
             };
             await addDoc(collection(db, 'escort', 'availability', 'entries'), data);
             e.target.reset();
+            volLocationCoordinates = null;
+            document.getElementById('vol-location-helper').textContent = 'Start typing to search and autofill the location.';
         };
 
         document.getElementById('req-form').onsubmit = async (e) => {
@@ -963,6 +1157,11 @@
                 time: document.getElementById('req-start').value,
                 endTime: document.getElementById('req-end').value,
                 hospital: document.getElementById('req-hospital').value,
+                location: document.getElementById('req-hospital').value,
+                locationCoordinates: reqHospitalCoordinates ? {
+                    latitude: reqHospitalCoordinates.latitude,
+                    longitude: reqHospitalCoordinates.longitude,
+                } : null,
                 appointmentInfo: document.getElementById('req-appointment-info').value,
                 appointmentReason: document.getElementById('req-appointment-info').value,
                 age: Number(document.getElementById('req-age').value) || null,
@@ -979,6 +1178,8 @@
             };
             await addDoc(collection(db, 'escort', 'request', 'entries'), data);
             e.target.reset();
+            reqHospitalCoordinates = null;
+            document.getElementById('req-hospital-helper').textContent = 'Start typing to search and autofill the hospital or clinic.';
             updateCertHelper();
         };
 

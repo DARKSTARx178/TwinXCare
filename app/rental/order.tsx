@@ -3,10 +3,12 @@ import { ThemeContext } from '@/contexts/ThemeContext';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import {
   Animated,
+  Alert,
   Dimensions,
   Image,
   PanResponder,
@@ -17,6 +19,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
+import { EquipmentStockLocation, PICKUP_LOCATIONS } from '@/utils/equipmentStock';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -36,8 +40,27 @@ export default function OrderPage() {
   const [showEnd, setShowEnd] = useState(false);
 
   const pricePerDay = Number(params.price) || 0;
-  const stock = Number(params.stock) || 0;
-  const maxQty = Math.max(1, stock);
+  const stockLocations = useMemo<EquipmentStockLocation[]>(() => {
+    try {
+      if (typeof params.stockLocations === 'string') {
+        return JSON.parse(params.stockLocations);
+      }
+    } catch (error) {
+      console.warn('Failed to parse stock locations:', error);
+    }
+    const fallback = PICKUP_LOCATIONS[0];
+    return [{ ...fallback, stock: Number(params.stock || 0) }];
+  }, [params.stock, params.stockLocations]);
+  const fallbackStock = Number(params.stock) || 0;
+  const totalStock = stockLocations.length
+    ? stockLocations.reduce((sum, location) => sum + Number(location.stock || 0), 0)
+    : fallbackStock;
+  const inStockLocations = stockLocations.filter((location) => Number(location.stock || 0) > 0);
+  const [selectedPickupId, setSelectedPickupId] = useState<string | null>(inStockLocations[0]?.id || null);
+  const selectedPickup = stockLocations.find((location) => location.id === selectedPickupId) || null;
+  const selectedStock = selectedPickup ? Number(selectedPickup.stock || 0) : fallbackStock;
+  const maxQty = Math.max(1, selectedStock);
+  const canRent = totalStock > 0 && !!selectedPickup && selectedStock >= quantity;
 
   const getRentalDays = () => {
     const msPerDay = 24 * 60 * 60 * 1000;
@@ -59,13 +82,13 @@ export default function OrderPage() {
     onPanResponderMove: (_, gestureState) => {
       const dx = Math.max(0, Math.min(gestureState.moveX - startX, 260 - 64));
       swipeX.setValue(dx);
-      if (dx >= 260 - 64 - 2 && stock > 0 && !swiped) handleSwipe();
+      if (dx >= 260 - 64 - 2 && canRent && !swiped) handleSwipe();
     },
     onPanResponderRelease: (_, gestureState) => {
       if (!swiped) {
         const swipeDistance = gestureState.moveX - startX;
         const threshold = 260 - 64 - 10;
-        if (swipeDistance >= threshold && stock > 0) handleSwipe();
+        if (swipeDistance >= threshold && canRent) handleSwipe();
         else Animated.spring(swipeX, { toValue: 0, useNativeDriver: false }).start();
       }
     },
@@ -87,6 +110,11 @@ export default function OrderPage() {
           rentalEnd: rentalEnd.toISOString(),
           image: String(params.image),
           description: String(params.description || ''),
+          pickupLocationId: selectedPickup?.id || '',
+          pickupLocationName: selectedPickup?.name || '',
+          pickupLocationAddress: selectedPickup?.address || '',
+          pickupLocationLatitude: selectedPickup ? String(selectedPickup.latitude) : '',
+          pickupLocationLongitude: selectedPickup ? String(selectedPickup.longitude) : '',
         },
       });
 
@@ -112,10 +140,10 @@ export default function OrderPage() {
             <Text style={[styles.title, { color: theme.text, fontSize: responsiveText(textSize + 12) }]}>{params.name}</Text>
             <Text style={[styles.brand, { color: theme.textDim, fontSize: responsiveText(textSize) }]}>{params.brand}</Text>
 
-            <View style={[styles.stockBadge, { backgroundColor: stock > 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)' }]}>
-              <View style={[styles.stockDot, { backgroundColor: stock > 0 ? '#10b981' : '#ef4444' }]} />
-              <Text style={[styles.stockText, { color: stock > 0 ? '#10b981' : '#ef4444' }]}>
-                {stock > 0 ? `${stock} units available` : 'Out of stock'}
+            <View style={[styles.stockBadge, { backgroundColor: totalStock > 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)' }]}>
+              <View style={[styles.stockDot, { backgroundColor: totalStock > 0 ? '#10b981' : '#ef4444' }]} />
+              <Text style={[styles.stockText, { color: totalStock > 0 ? '#10b981' : '#ef4444' }]}>
+                {totalStock > 0 ? `${totalStock} total units available` : 'Out of stock'}
               </Text>
             </View>
           </View>
@@ -135,22 +163,96 @@ export default function OrderPage() {
               </View>
               <View style={styles.qtyControls}>
                 <TouchableOpacity
-                  style={[styles.qtyBtn, { backgroundColor: theme.surface, borderWidth: 1.5, borderColor: theme.border }, (quantity === 1 || stock === 0) && { opacity: 0.5 }]}
+                  style={[styles.qtyBtn, { backgroundColor: theme.surface, borderWidth: 1.5, borderColor: theme.border }, (quantity === 1 || totalStock === 0) && { opacity: 0.5 }]}
                   onPress={() => setQuantity((q) => Math.max(1, q - 1))}
-                  disabled={quantity === 1 || stock === 0}
+                  disabled={quantity === 1 || totalStock === 0}
                 >
                   <Ionicons name="remove" size={22} color={theme.text} />
                 </TouchableOpacity>
                 <Text style={[styles.qtyValue, { color: theme.text }]}>{quantity}</Text>
                 <TouchableOpacity
-                  style={[styles.qtyBtn, { backgroundColor: theme.surface, borderWidth: 1.5, borderColor: theme.border }, (quantity === maxQty || stock === 0) && { opacity: 0.5 }]}
+                  style={[styles.qtyBtn, { backgroundColor: theme.surface, borderWidth: 1.5, borderColor: theme.border }, (quantity === maxQty || !canRent) && { opacity: 0.5 }]}
                   onPress={() => setQuantity((q) => Math.min(maxQty, q + 1))}
-                  disabled={quantity === maxQty || stock === 0}
+                  disabled={quantity === maxQty || !canRent}
                 >
                   <Ionicons name="add" size={22} color={theme.text} />
                 </TouchableOpacity>
               </View>
             </View>
+          </View>
+
+          <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Pickup Point</Text>
+            <Text style={[styles.sectionSubtitle, { color: theme.textDim, marginBottom: 16 }]}>
+              Choose where this equipment should be reserved from.
+            </Text>
+
+            {stockLocations.length > 0 && (
+              <MapView
+                style={styles.pickupMap}
+                initialRegion={{
+                  latitude: selectedPickup?.latitude || stockLocations[0].latitude,
+                  longitude: selectedPickup?.longitude || stockLocations[0].longitude,
+                  latitudeDelta: 0.08,
+                  longitudeDelta: 0.08,
+                }}
+              >
+                {stockLocations.map((location) => {
+                  const available = Number(location.stock || 0) > 0;
+                  const active = location.id === selectedPickupId;
+                  return (
+                    <Marker
+                      key={location.id}
+                      coordinate={{ latitude: location.latitude, longitude: location.longitude }}
+                      title={location.name}
+                      description={`${location.stock} in stock`}
+                      pinColor={!available ? '#ef4444' : active ? theme.primary : '#10b981'}
+                      onPress={() => {
+                        if (!available) {
+                          Alert.alert('Out of Stock', `${location.name} has no units available.`);
+                          return;
+                        }
+                        setSelectedPickupId(location.id);
+                        setQuantity((q) => Math.min(q, Number(location.stock || 1)));
+                      }}
+                    />
+                  );
+                })}
+              </MapView>
+            )}
+
+            <View style={[styles.pickerWrap, { borderColor: theme.border, backgroundColor: '#F1F5F9' }]}>
+              <Picker
+                selectedValue={selectedPickupId}
+                onValueChange={(value) => {
+                  const next = stockLocations.find((location) => location.id === value);
+                  if (!next || Number(next.stock || 0) <= 0) return;
+                  setSelectedPickupId(value);
+                  setQuantity((q) => Math.min(q, Number(next.stock || 1)));
+                }}
+                style={{ color: theme.text }}
+              >
+                {inStockLocations.length === 0 ? (
+                  <Picker.Item label="No pickup points with stock" value="" />
+                ) : (
+                  inStockLocations.map((location) => (
+                    <Picker.Item
+                      key={location.id}
+                      label={`${location.name} (${location.stock} available)`}
+                      value={location.id}
+                    />
+                  ))
+                )}
+              </Picker>
+            </View>
+
+            {selectedPickup && (
+              <View style={[styles.pickupSummary, { backgroundColor: '#f8fafc' }]}>
+                <Text style={[styles.pickupName, { color: theme.text }]}>{selectedPickup.name}</Text>
+                <Text style={[styles.pickupAddress, { color: theme.textDim }]}>{selectedPickup.address}</Text>
+                <Text style={[styles.pickupStock, { color: theme.primary }]}>{selectedStock} units at this pickup point</Text>
+              </View>
+            )}
           </View>
 
           <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
@@ -218,13 +320,13 @@ export default function OrderPage() {
         </View>
 
         <View style={styles.swipeArea}>
-          <View style={[styles.swipeTrack, { backgroundColor: '#F1F5F9' }]} {...(stock > 0 ? panResponder.panHandlers : {})}>
+          <View style={[styles.swipeTrack, { backgroundColor: '#F1F5F9' }]} {...(canRent ? panResponder.panHandlers : {})}>
             <Text style={[styles.swipeActionText, { color: theme.textDim }]}>
-              {swiped ? 'ORDER PLACED' : 'SWIPE TO RENT'}
+              {swiped ? 'ORDER PLACED' : canRent ? 'SWIPE TO RENT' : 'SELECT AVAILABLE PICKUP'}
             </Text>
             <Animated.View style={[
               styles.swipeThumb,
-              { backgroundColor: stock === 0 ? '#CBD5E1' : theme.primary },
+              { backgroundColor: !canRent ? '#CBD5E1' : theme.primary },
               { transform: [{ translateX: swipeX }] },
               swiped && { backgroundColor: '#10b981' },
               { borderWidth: 2, borderColor: '#fff' }
@@ -291,6 +393,36 @@ const styles = StyleSheet.create({
   qtyControls: { flexDirection: 'row', alignItems: 'center' },
   qtyBtn: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
   qtyValue: { fontSize: 18, fontWeight: '800', marginHorizontal: 16, minWidth: 20, textAlign: 'center' },
+  pickupMap: {
+    height: 220,
+    borderRadius: 18,
+    marginBottom: 14,
+  },
+  pickerWrap: {
+    borderWidth: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  pickupSummary: {
+    borderRadius: 16,
+    padding: 14,
+  },
+  pickupName: {
+    fontSize: 15,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  pickupAddress: {
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 18,
+  },
+  pickupStock: {
+    fontSize: 12,
+    fontWeight: '800',
+    marginTop: 8,
+  },
   calendarContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   datePicker: { flex: 1, padding: 12, borderRadius: 16, flexDirection: 'row', alignItems: 'center' },
   dateLabel: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', marginBottom: 2 },

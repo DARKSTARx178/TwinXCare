@@ -20,6 +20,8 @@ interface Order {
     rentalEnd: string;
     totalPrice: string;
     deliveryAddress: string;
+    warehouseLocationName?: string;
+    warehouseLocationAddress?: string;
     deliveryEta?: string;
     status: 'Incomplete' | 'Completed';
     userId: string;
@@ -213,6 +215,14 @@ export default function AdminDeliveryPage() {
                                     <Ionicons name="location-outline" size={14} color={theme.textDim} />
                                     <Text style={[styles.detailText, { color: theme.textDim }]} numberOfLines={1}>{order.deliveryAddress}</Text>
                                 </View>
+                                {order.warehouseLocationName && (
+                                    <View style={styles.detailRow}>
+                                        <Ionicons name="business-outline" size={14} color={theme.textDim} />
+                                        <Text style={[styles.detailText, { color: theme.textDim }]} numberOfLines={1}>
+                                            From: {order.warehouseLocationName}{order.warehouseLocationAddress ? ` • ${order.warehouseLocationAddress}` : ''}
+                                        </Text>
+                                    </View>
+                                )}
                             </View>
 
                             <View style={styles.divider} />

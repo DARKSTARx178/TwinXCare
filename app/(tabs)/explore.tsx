@@ -1,5 +1,6 @@
 import { ThemeContext } from '@/contexts/ThemeContext';
 import app from '@/firebase/firebase';
+import { EquipmentStockLocation, getTotalEquipmentStock, normalizeEquipmentLocations } from '@/utils/equipmentStock';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { collection, getDocs, getFirestore } from 'firebase/firestore';
@@ -11,6 +12,7 @@ interface EquipmentItem {
   name: string;
   brand: string;
   stock: number;
+  stockLocations: EquipmentStockLocation[];
   price: number;
   image: string;
   description?: string;
@@ -59,12 +61,14 @@ export default function Explore() {
       const snapshot = await getDocs(colRef);
       const items: EquipmentItem[] = snapshot.docs.map(doc => {
         const data = doc.data();
+        const stockLocations = normalizeEquipmentLocations(data);
         return {
           docId: doc.id,
           name: data.name || 'Unnamed Gear',
           brand: data.brand || 'Premium',
           price: data.price || 0,
-          stock: data.stock || 0,
+          stock: getTotalEquipmentStock(stockLocations),
+          stockLocations,
           description: data.description || '',
           image: convertGoogleDriveLink(data.image),
         };
@@ -136,7 +140,12 @@ export default function Explore() {
           if (isEquipment) {
             router.push({
               pathname: '/rental/order',
-              params: { ...item, price: String(item.price), stock: String(item.stock) }
+              params: {
+                ...item,
+                price: String(item.price),
+                stock: String(item.stock),
+                stockLocations: JSON.stringify(item.stockLocations),
+              }
             });
           } else {
             router.push({

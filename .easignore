@@ -1,0 +1,43 @@
+# Dependencies and caches
+node_modules/
+.expo/
+.gradle/
+.metro-health-check*
+
+# Local build output
+dist/
+web-build/
+build/
+coverage/
+*.tsbuildinfo
+
+# Web-only static site files
+public/
+
+# Local env and secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+*.p8
+*.p12
+*.jks
+*.keystore
+*.mobileprovision
+certs/
+
+# Local/editor files
+.DS_Store
+.idea/
+.vscode/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Project backups and scratch files
+android.backup.*/
+temp/
+app-example/
+*.orig.*

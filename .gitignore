@@ -17,6 +17,7 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+.idea/
 
 # Metro
 .metro-health-check*
@@ -30,6 +31,11 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# android
+.gradle/
+build/
+out/
+
 # local env files
 .env
 .env.local
@@ -40,3 +46,4 @@ yarn-error.*
 
 app-example
 certs/
+.vscode/

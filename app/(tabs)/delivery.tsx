@@ -114,7 +114,7 @@ export default function DeliveryPage() {
       const ref = String(entry.transactionId || '');
       const name = entry.type === 'order' ? String(entry.name || '') : String(entry.title || '');
       const details = entry.type === 'order'
-        ? String(entry.deliveryAddress || '')
+        ? `${entry.deliveryAddress || ''} ${entry.warehouseLocationName || ''} ${entry.warehouseLocationAddress || ''}`
         : `${entry.timeSlot || ''} ${entry.description || ''}`;
       return `${name} ${ref} ${details}`.toLowerCase().includes(q);
     });
@@ -230,6 +230,15 @@ export default function DeliveryPage() {
               </Text>
             </View>
           )}
+
+          {latest.type === 'order' && latest.warehouseLocationName && (
+            <View style={[styles.etaBanner, { backgroundColor: '#f8fafc' }]}>
+              <Ionicons name="business-outline" size={18} color={theme.primary} />
+              <Text style={[styles.etaText, { color: theme.text }]}>
+                From: {latest.warehouseLocationName}
+              </Text>
+            </View>
+          )}
         </View>
       ) : (
         <View style={[styles.heroCard, { backgroundColor: theme.surface, padding: 40, alignItems: 'center', borderWidth: 2, borderColor: theme.border }]}>
@@ -298,6 +307,15 @@ export default function DeliveryPage() {
                       {isOrder ? entry.deliveryAddress : `${entry.timeSlot || 'Anytime'} • ${entry.description || 'No notes'}`}
                     </Text>
                   </View>
+
+                  {isOrder && entry.warehouseLocationName && (
+                    <View style={styles.descriptionBox}>
+                      <Text style={[styles.detailLabel, { color: theme.textDim }]}>Warehouse Location</Text>
+                      <Text style={[styles.detailValue, { color: theme.text }]}>
+                        {entry.warehouseLocationName}{entry.warehouseLocationAddress ? ` • ${entry.warehouseLocationAddress}` : ''}
+                      </Text>
+                    </View>
+                  )}
 
                   <View style={[styles.statusRow, { backgroundColor: '#f8fafc' }]}>
                     <Text style={[styles.statusLabel, { color: theme.textDim }]}>Final Status</Text>

@@ -24,8 +24,6 @@ Delete the account from Firestore users document, then delete the Firebase Authe
 NPM VERSION UPDATE CHEAT SHEET
 ================================================================================
 
-Current Version: 1.0.0-alpha.1
-
 SEMANTIC VERSIONING FORMAT:
   MAJOR.MINOR.PATCH-PRERELEASE+BUILD
   Example: 1.2.3-beta.1+build.123

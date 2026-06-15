@@ -24,18 +24,16 @@ export default function OrderHistoryWidget() {
 
     useFocusEffect(
         useCallback(() => {
-            console.log('🔄 OrderHistoryWidget: Focus effect triggered');
             let unsubscribeAuth: (() => void) | undefined;
 
             const fetchHistory = async (currentUser: any) => {
                 if (!currentUser) {
-                    console.log('❌ OrderHistoryWidget: No user, clearing history');
+                    console.log('OrderHistoryWidget: No user, clearing history');
                     setUser(null);
                     setOrderHistory([]);
                     return;
                 }
 
-                console.log('👤 OrderHistoryWidget: User found:', currentUser.uid);
                 setUser(currentUser);
 
                 try {
@@ -44,15 +42,14 @@ export default function OrderHistoryWidget() {
 
                     if (userSnap.exists()) {
                         const data = userSnap.data();
-                        console.log('📄 OrderHistoryWidget: History count:', data.history?.length || 0);
                         const history = data.history || [];
                         setOrderHistory([...history].reverse());
                     } else {
-                        console.log('⚠️ OrderHistoryWidget: User doc not found');
+                        console.log('OrderHistoryWidget: User doc not found');
                         setOrderHistory([]);
                     }
                 } catch (err) {
-                    console.error('❌ OrderHistoryWidget: Fetch error:', err);
+                    console.error('OrderHistoryWidget: Fetch error:', err);
                     setOrderHistory([]);
                 }
             };

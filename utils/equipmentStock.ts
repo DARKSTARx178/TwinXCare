@@ -33,6 +33,11 @@ export const PICKUP_LOCATIONS: Omit<EquipmentStockLocation, 'stock'>[] = [
 
 const getKnownPickup = (id: string) => PICKUP_LOCATIONS.find((location) => location.id === id);
 
+const toFiniteNumber = (value: any, fallback: number) => {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : fallback;
+};
+
 export const normalizeEquipmentLocations = (data: any): EquipmentStockLocation[] => {
   const rawLocations = Array.isArray(data?.stockByLocation)
     ? data.stockByLocation
@@ -47,9 +52,9 @@ export const normalizeEquipmentLocations = (data: any): EquipmentStockLocation[]
         id: String(entry.id || entry.locationId || known?.id || entry.name || 'warehouse'),
         name: String(entry.name || known?.name || 'Pickup Point'),
         address: String(entry.address || known?.address || entry.name || 'Pickup Point'),
-        latitude: Number(entry.latitude ?? entry.lat ?? known?.latitude ?? 1.3521),
-        longitude: Number(entry.longitude ?? entry.lon ?? known?.longitude ?? 103.8198),
-        stock: Number(entry.stock || 0),
+        latitude: toFiniteNumber(entry.latitude ?? entry.lat, known?.latitude ?? 1.3521),
+        longitude: toFiniteNumber(entry.longitude ?? entry.lon, known?.longitude ?? 103.8198),
+        stock: toFiniteNumber(entry.stock, 0),
       };
     });
   }
@@ -63,7 +68,7 @@ export const normalizeEquipmentLocations = (data: any): EquipmentStockLocation[]
         address: known?.address || id,
         latitude: known?.latitude ?? 1.3521,
         longitude: known?.longitude ?? 103.8198,
-        stock: Number(stock || 0),
+        stock: toFiniteNumber(stock, 0),
       };
     });
   }
@@ -71,7 +76,7 @@ export const normalizeEquipmentLocations = (data: any): EquipmentStockLocation[]
   const fallback = PICKUP_LOCATIONS[0];
   return [{
     ...fallback,
-    stock: Number(data?.stock || 0),
+    stock: toFiniteNumber(data?.stock, 0),
   }];
 };
 

@@ -20,14 +20,18 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+// Avoid registering native Google Maps on Android builds without a Maps API key.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const NativeMaps = Platform.OS === 'android' ? null : require('react-native-maps');
+const MapView = NativeMaps?.default;
+const Marker = NativeMaps?.Marker;
 
 export default function OrderPage() {
   const params = useLocalSearchParams();
   const router = useRouter();
-  const { scheme, fontSize } = useAccessibility();
+  const { fontSize } = useAccessibility();
   const { theme } = useContext(ThemeContext);
   const textSize = getFontSizeValue(fontSize);
 
@@ -56,6 +60,9 @@ export default function OrderPage() {
     ? stockLocations.reduce((sum, location) => sum + Number(location.stock || 0), 0)
     : fallbackStock;
   const inStockLocations = stockLocations.filter((location) => Number(location.stock || 0) > 0);
+  const canRenderNativePickupMap = Platform.OS !== 'android' && stockLocations.every((location) =>
+    Number.isFinite(Number(location.latitude)) && Number.isFinite(Number(location.longitude))
+  );
   const [selectedPickupId, setSelectedPickupId] = useState<string | null>(inStockLocations[0]?.id || null);
   const selectedPickup = stockLocations.find((location) => location.id === selectedPickupId) || null;
   const selectedStock = selectedPickup ? Number(selectedPickup.stock || 0) : fallbackStock;
@@ -69,8 +76,6 @@ export default function OrderPage() {
   };
 
   const responsiveText = (base: number) => Math.max(base * (SCREEN_WIDTH / 400), base * 0.85);
-  const boxBackground = theme.unselectedTab === '#fff' ? '#f0f0f0' : '#e0e0e0';
-
   let startX = 0;
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (_, gestureState) =>
@@ -187,7 +192,7 @@ export default function OrderPage() {
               Choose where this equipment should be reserved from.
             </Text>
 
-            {stockLocations.length > 0 && (
+            {stockLocations.length > 0 && canRenderNativePickupMap && MapView && Marker && (
               <MapView
                 style={styles.pickupMap}
                 initialRegion={{
@@ -220,6 +225,43 @@ export default function OrderPage() {
                 })}
               </MapView>
             )}
+
+            <View style={styles.pickupCardList}>
+              {stockLocations.map((location) => {
+                const available = Number(location.stock || 0) > 0;
+                const active = location.id === selectedPickupId;
+                return (
+                  <TouchableOpacity
+                    key={location.id}
+                    style={[
+                      styles.pickupOption,
+                      {
+                        borderColor: active ? theme.primary : theme.border,
+                        backgroundColor: active ? theme.primaryGlow : theme.surface,
+                        opacity: available ? 1 : 0.5,
+                      },
+                    ]}
+                    disabled={!available}
+                    onPress={() => {
+                      setSelectedPickupId(location.id);
+                      setQuantity((q) => Math.min(q, Number(location.stock || 1)));
+                    }}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.pickupOptionName, { color: active ? theme.primary : theme.text }]}>
+                        {location.name}
+                      </Text>
+                      <Text style={[styles.pickupOptionAddress, { color: theme.textDim }]} numberOfLines={2}>
+                        {location.address}
+                      </Text>
+                    </View>
+                    <Text style={[styles.pickupOptionStock, { color: available ? theme.primary : '#ef4444' }]}>
+                      {available ? `${location.stock}` : '0'}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
 
             <View style={[styles.pickerWrap, { borderColor: theme.border, backgroundColor: '#F1F5F9' }]}>
               <Picker
@@ -397,6 +439,32 @@ const styles = StyleSheet.create({
     height: 220,
     borderRadius: 18,
     marginBottom: 14,
+  },
+  pickupCardList: {
+    gap: 10,
+    marginBottom: 14,
+  },
+  pickupOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderRadius: 16,
+    padding: 12,
+  },
+  pickupOptionName: {
+    fontSize: 13,
+    fontWeight: '800',
+    marginBottom: 3,
+  },
+  pickupOptionAddress: {
+    fontSize: 11,
+    fontWeight: '600',
+    lineHeight: 16,
+  },
+  pickupOptionStock: {
+    fontSize: 18,
+    fontWeight: '900',
+    marginLeft: 12,
   },
   pickerWrap: {
     borderWidth: 1,

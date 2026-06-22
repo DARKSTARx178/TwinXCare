@@ -1,4 +1,5 @@
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -8,9 +9,11 @@ import { doc, getDoc } from 'firebase/firestore';
 import React, { useCallback, useContext, useState } from 'react';
 import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { translateText } from '@/utils/translations';
 
 function TabLayout({ onHeaderSwipe }: { onHeaderSwipe?: () => void }) {
   const { theme } = useContext(ThemeContext);
+  const { lang } = useLanguage();
   const router = useRouter();
   const [profileUser, setProfileUser] = useState<string | null>(null);
 
@@ -96,11 +99,11 @@ function TabLayout({ onHeaderSwipe }: { onHeaderSwipe?: () => void }) {
         },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({ color }) => <IconSymbol name="house.fill" size={32} color={color} />, tabBarLabel: ({ color }) => <Text style={{ color, fontSize: 12 }}>Home</Text> }} />
-      <Tabs.Screen name="explore" options={{ title: 'Equipment', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="hospital-box" size={32} color={color} />, tabBarLabel: ({ color }) => <Text style={{ color, fontSize: 12 }}>Equipment</Text> }} />
-      <Tabs.Screen name="services" options={{ title: 'Escort', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="car-side" size={32} color={color} />, tabBarLabel: ({ color }) => <Text style={{ color, fontSize: 12 }}>Escort</Text> }} />
-      <Tabs.Screen name="delivery" options={{ title: 'Delivery', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="car" size={32} color={color} />, tabBarLabel: ({ color }) => <Text style={{ color, fontSize: 12 }}>Delivery</Text> }} />
-      <Tabs.Screen name="settings" options={{ title: 'Settings', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="cog" size={32} color={color} />, tabBarLabel: ({ color }) => <Text style={{ color, fontSize: 12 }}>Settings</Text> }} />
+      <Tabs.Screen name="index" options={{ title: translateText('Home', lang), tabBarIcon: ({ color }) => <IconSymbol name="house.fill" size={32} color={color} />, tabBarLabel: ({ color }) => <Text style={{ color, fontSize: 12 }}>Home</Text> }} />
+      <Tabs.Screen name="explore" options={{ title: translateText('Equipment', lang), tabBarIcon: ({ color }) => <MaterialCommunityIcons name="hospital-box" size={32} color={color} />, tabBarLabel: ({ color }) => <Text style={{ color, fontSize: 12 }}>Equipment</Text> }} />
+      <Tabs.Screen name="services" options={{ title: translateText('Escort', lang), tabBarIcon: ({ color }) => <MaterialCommunityIcons name="car-side" size={32} color={color} />, tabBarLabel: ({ color }) => <Text style={{ color, fontSize: 12 }}>Escort</Text> }} />
+      <Tabs.Screen name="delivery" options={{ title: translateText('Delivery', lang), tabBarIcon: ({ color }) => <MaterialCommunityIcons name="car" size={32} color={color} />, tabBarLabel: ({ color }) => <Text style={{ color, fontSize: 12 }}>Delivery</Text> }} />
+      <Tabs.Screen name="settings" options={{ title: translateText('Settings', lang), tabBarIcon: ({ color }) => <MaterialCommunityIcons name="cog" size={32} color={color} />, tabBarLabel: ({ color }) => <Text style={{ color, fontSize: 12 }}>Settings</Text> }} />
     </Tabs>
   );
 }

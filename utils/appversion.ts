@@ -1,6 +1,6 @@
 // Application version used for update checks
 //DO NOT CHANGE UNTIL READY FOR NEXT RELEASE
 //REMEMBER TO UPDATE FIREBASE VERSION
-export const APP_VERSION = '1.1.14';
+export const APP_VERSION = '1.1.15';
 
 export default APP_VERSION;

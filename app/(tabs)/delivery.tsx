@@ -1,6 +1,8 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
+import { homeTranslations } from '@/utils/translations';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
@@ -25,6 +27,8 @@ if (Platform.OS === 'android') {
 }
 
 export default function DeliveryPage() {
+  const { lang } = useLanguage();
+  const t = homeTranslations[lang];
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
   const textSize = getFontSizeValue('medium');
@@ -137,9 +141,9 @@ export default function DeliveryPage() {
         <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
           <Ionicons name="receipt-outline" size={32} color={theme.primary} />
         </View>
-        <Text style={[styles.title, { color: theme.text }]}>Delivery</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t.delivery}</Text>
         <Text style={[styles.subtitle, { color: theme.textDim }]}>
-          Equipments delivery status
+          {t.equipmentDeliveryStatus}
         </Text>
       </View>
 
@@ -148,7 +152,7 @@ export default function DeliveryPage() {
           <Ionicons name="search" size={18} color={theme.textDim} />
           <TextInput
             style={[styles.searchInput, { color: theme.text }]}
-            placeholder="Search orders, bookings, reference..."
+            placeholder={t.searchOrdersBookingsReference}
             placeholderTextColor={theme.textDim}
             value={search}
             onChangeText={setSearch}

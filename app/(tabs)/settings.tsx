@@ -8,6 +8,10 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { db } from '@/firebase/firebase';
 import { getThemeColors as getDefaultTheme } from '@/utils/theme';
 import { doc, getDoc } from 'firebase/firestore';
+import { homeTranslations } from '@/utils/translations';
+
+const { lang } = useLanguage();
+const t = homeTranslations[lang];
 
 const COLOR_OPTIONS = [
   '#ffffff', '#000000', '#4a90e2', '#f5f5f5', '#ff5252', '#00c853', '#ffd54f', '#9e9e9e', '#2196f3', '#e0e0e0'
@@ -169,7 +173,7 @@ const SettingsScreen = () => {
 
       {/* Core Settings */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferences</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.preferences}</Text>
 
         <View style={[styles.controlCard, { backgroundColor: colors.unselectedTab }]}>
           <View style={styles.controlRow}>

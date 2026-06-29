@@ -48,7 +48,7 @@ export default function Explore() {
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [viewMode, setViewMode] = useState<'equipment' | 'services'>('equipment');
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
-  const [locationLabel, setLocationLabel] = useState('Showing nearest warehouse stock');
+  const [locationLabel, setLocationLabel] = useState(t.showingTotalStock);
 
   const { theme } = useContext(ThemeContext);
   const [search, setSearch] = useState('');
@@ -124,7 +124,7 @@ export default function Explore() {
       try {
         const permission = await Location.requestForegroundPermissionsAsync();
         if (permission.status !== 'granted') {
-          if (mounted) setLocationLabel('Showing total stock');
+          if (mounted) setLocationLabel(t.showingTotalStock);
           return;
         }
 
@@ -137,10 +137,10 @@ export default function Explore() {
           latitude: currentLocation.coords.latitude,
           longitude: currentLocation.coords.longitude,
         });
-        setLocationLabel('Showing stock at your nearest warehouse');
+        setLocationLabel(t.showingStockNearestWarehouse);
       } catch (error) {
-        console.warn('Location lookup failed', error);
-        if (mounted) setLocationLabel('Showing total stock');
+        console.warn(t.locationLookupFailed, error);
+        if (mounted) setLocationLabel(t.showingTotalStock);
       }
     };
 
@@ -161,8 +161,8 @@ export default function Explore() {
   };
 
   const getDisplayedWarehouseName = (item: EquipmentItem) => {
-    if (!userLocation) return 'All warehouses';
-    return getNearestStockLocation(item.stockLocations, userLocation)?.name || 'Nearest warehouse';
+    if (!userLocation) return t.allWarehouses;
+    return getNearestStockLocation(item.stockLocations, userLocation)?.name || t.nearestWarehouse;
   };
 
   let filteredItems: any[] = viewMode === 'equipment' ? itemAvailability : services;
@@ -261,7 +261,7 @@ export default function Explore() {
               <Ionicons name="search" size={20} color={theme.textDim} />
               <TextInput
                 style={[styles.searchInput, { color: theme.text }]}
-                placeholder={`Find ${viewMode}...`}
+                placeholder={t.searchPlaceholder}
                 placeholderTextColor={theme.textDim + '80'}
                 value={search}
                 onChangeText={setSearch}
@@ -288,7 +288,7 @@ export default function Explore() {
             <View style={styles.sectionHeader}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.resultsCount, { color: theme.text }]}>
-                  {filteredItems.length} {viewMode} available
+                  {filteredItems.length} {viewMode} 
                 </Text>
                 {viewMode === 'equipment' && (
                   <Text style={[styles.locationHint, { color: theme.textDim }]}>{locationLabel}</Text>
@@ -335,8 +335,8 @@ export default function Explore() {
         ListEmptyComponent={
           <View style={styles.emptyWrap}>
             <Ionicons name="search-outline" size={64} color={theme.textDim} style={{ opacity: 0.2 }} />
-            <Text style={[styles.emptyTitle, { color: theme.text }]}>No items match your search</Text>
-            <Text style={[styles.emptySubtitle, { color: theme.textDim }]}>Try more general terms.</Text>
+            <Text style={[styles.emptyTitle, { color: theme.text }]}>{t.noItemsMatch}</Text>
+            <Text style={[styles.emptySubtitle, { color: theme.textDim }]}>{t.tryGeneralTerms}</Text>
           </View>
         }
       />

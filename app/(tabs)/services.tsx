@@ -9,8 +9,12 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
 import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { homeTranslations } from '@/utils/translations';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Services() {
+  const { lang } = useLanguage();
+  const t = homeTranslations[lang];
   const { theme } = useContext(ThemeContext);
   const { fontSize } = useAccessibility();
   const textSize = getFontSizeValue(fontSize);
@@ -112,18 +116,18 @@ export default function Services() {
         <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
           <Ionicons name="shield-outline" size={32} color={theme.primary} />
         </View>
-        <Text style={[styles.title, { color: theme.text }]}>Escort Dashboard</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t.escort}</Text>
         <Text style={[styles.subtitle, { color: theme.textDim }]}>
           {(userRole === 'admin' || userType === 'escort')
-            ? 'Volunteer to escort patients'
-            : 'Make an escort request'}
+            ? t.escort
+            : t.requestEscort}
         </Text>
       </View>
 
       {userRole === 'admin' && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Admin only</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t.adminOnly}</Text>
             <Ionicons name="lock-closed-outline" size={16} color={theme.primary} />
           </View>
           <TouchableOpacity
@@ -136,7 +140,7 @@ export default function Services() {
             activeOpacity={0.8}
           >
             <Ionicons name="refresh-circle-outline" size={24} color={theme.primary} />
-            <Text style={[styles.adminCardText, { color: theme.primary }]}>Reload</Text>
+            <Text style={[styles.adminCardText, { color: theme.primary }]}>{t.reload}</Text>
             <Ionicons name="play" size={18} color={theme.primary} />
           </TouchableOpacity>
         </View>
@@ -145,7 +149,7 @@ export default function Services() {
       {((userType === 'standard') || (userRole === 'admin') || (!userType && !userRole)) && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Requests</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t.requests}</Text>
             <TouchableOpacity onPress={() => router.push('/escorts/require-escort')}>
               <View style={[styles.addButton, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}>
                 <Ionicons name="add" size={20} color={theme.primary} />

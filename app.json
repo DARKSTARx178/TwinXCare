@@ -4,7 +4,7 @@
     "slug": "TwinXCare",
     "owner": "darkstarx178",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/logo_transparent.png",
     "scheme": "twinxcare",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,7 +14,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/logo_transparent.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,

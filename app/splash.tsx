@@ -37,7 +37,7 @@ export default function Splash() {
       ]}>
         <View style={[styles.logoCircle, { backgroundColor: theme.primaryGlow, borderWidth: 1, borderColor: theme.border }]}>
           <Image
-            source={require('@/assets/images/logo_all-white.png')}
+            source={require('@/assets/images/logo_transparent.png')}
             style={[styles.logo, { tintColor: theme.primary }]}
           />
         </View>

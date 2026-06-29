@@ -37,7 +37,7 @@ export default function HomeScreen() {
 
       <View style={styles.headerContainer}>
         <Text style={[styles.title, { fontSize: responsiveText(textSize + 14), color: theme.text }]}>{t.home}</Text>
-        <Text style={[styles.subtitle, { fontSize: responsiveText(textSize - 2), color: theme.textDim }]}>Welcome</Text>
+        <Text style={[styles.subtitle, { fontSize: responsiveText(textSize - 2), color: theme.textDim }]}>{t.welcome}</Text>
       </View>
 
       <View style={styles.row}>
@@ -61,7 +61,7 @@ export default function HomeScreen() {
           <View style={[styles.iconContainer, { backgroundColor: theme.primaryGlow, marginRight: 20 }]}>
             <MaterialCommunityIcons name="hand-heart" size={32} color={theme.primary} />
           </View>
-          <Text style={[styles.cardText, { fontSize: responsiveText(textSize), color: theme.text, fontWeight: '600', marginTop: 0 }]}>Assistance</Text>
+          <Text style={[styles.cardText, { fontSize: responsiveText(textSize), color: theme.text, fontWeight: '600', marginTop: 0 }]}>{t.assistance}</Text>
           <MaterialCommunityIcons name="chevron-right" size={24} color={theme.textDim} style={{ marginLeft: 'auto' }} />
         </TouchableOpacity>
       </View>

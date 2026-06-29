@@ -1,6 +1,8 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
 import app from '@/firebase/firebase';
 import { EquipmentStockLocation, getNearestStockLocation, getTotalEquipmentStock, normalizeEquipmentLocations } from '@/utils/equipmentStock';
+import { homeTranslations } from '@/utils/translations';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
@@ -37,6 +39,9 @@ export interface ServiceItem {
 }
 
 export default function Explore() {
+  const { lang } = useLanguage();
+  const t = homeTranslations[lang];
+
   const [refreshing, setRefreshing] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [itemAvailability, setItemAvailability] = useState<EquipmentItem[]>([]);
@@ -247,9 +252,9 @@ export default function Explore() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
         ListHeaderComponent={
           <View style={styles.headerArea}>
-            <Text style={[styles.screenTitle, { color: theme.text }]}>Discover</Text>
+            <Text style={[styles.screenTitle, { color: theme.text }]}>{t.equipment}</Text>
             <Text style={[styles.screenSubtitle, { color: theme.textDim }]}>
-              Explore medical equipment and professional services
+              {t.exploreDesc}
             </Text>
 
             <View style={[styles.searchBox, { backgroundColor: theme.unselectedTab }]}>
@@ -269,14 +274,14 @@ export default function Explore() {
                 onPress={() => { setViewMode('equipment'); setFilterValue('all'); setShowFilterMenu(false); }}
               >
                 <Ionicons name="medkit-outline" size={18} color={viewMode === 'equipment' ? theme.primary : theme.text} />
-                <Text style={[styles.tabText, { color: viewMode === 'equipment' ? theme.primary : theme.text }]}>Equipment</Text>
+                <Text style={[styles.tabText, { color: viewMode === 'equipment' ? theme.primary : theme.text }]}>{t.equipment}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.tab, viewMode === 'services' && { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
                 onPress={() => { setViewMode('services'); setFilterValue('all'); setShowFilterMenu(false); }}
               >
                 <Ionicons name="sparkles-outline" size={18} color={viewMode === 'services' ? theme.primary : theme.text} />
-                <Text style={[styles.tabText, { color: viewMode === 'services' ? theme.primary : theme.text }]}>Services</Text>
+                <Text style={[styles.tabText, { color: viewMode === 'services' ? theme.primary : theme.text }]}>{t.services}</Text>
               </TouchableOpacity>
             </View>
 

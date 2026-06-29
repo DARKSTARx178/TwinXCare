@@ -33,7 +33,7 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ alignItems: 'center', justifyContent: 'flex-start', paddingBottom: 40, paddingHorizontal: 20 }}>
-      <Image source={require('@/assets/images/logo_all-white.png')} style={{ height: 120, marginTop: 40, marginBottom: 10, width: 140 }} resizeMode='contain' />
+      <Image source={require('@/assets/images/logo_transparent.png')} style={{ height: 120, marginTop: 40, marginBottom: 10, width: 140 }} resizeMode='contain' />
 
       <View style={styles.headerContainer}>
         <Text style={[styles.title, { fontSize: responsiveText(textSize + 14), color: theme.text }]}>{t.home}</Text>

@@ -1,6 +1,6 @@
 //testing, unstable version
-
-
+import { homeTranslations } from '@/utils/translations';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
 import { Ionicons } from '@expo/vector-icons';
@@ -50,6 +50,9 @@ const toDateLabel = (value: any) => {
 export default function AdminCertifications() {
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
+
+  const { lang } = useLanguage();
+  const t = homeTranslations[lang];
 
   const [authorized, setAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -200,7 +203,7 @@ export default function AdminCertifications() {
   if (loading) {
     return (
       <View style={[styles.center, { backgroundColor: theme.background }]}>
-        <Text style={{ color: theme.textDim }}>Loading...</Text>
+        <Text style={{ color: theme.textDim }}>{t.loading}</Text>
       </View>
     );
   }
@@ -208,8 +211,8 @@ export default function AdminCertifications() {
   if (!authorized) {
     return (
       <View style={[styles.center, { backgroundColor: theme.background, paddingHorizontal: 24 }]}> 
-        <Text style={[styles.deniedTitle, { color: theme.text }]}>Admin access required</Text>
-        <Text style={[styles.deniedText, { color: theme.textDim }]}>This page is only available to admin accounts.</Text>
+        <Text style={[styles.deniedTitle, { color: theme.text }]}>{t.adminAccessRequired}</Text>
+        <Text style={[styles.deniedText, { color: theme.textDim }]}>{t.onlyAvailableAdmin}</Text>
         <TouchableOpacity onPress={() => router.back()} style={[styles.backOnlyBtn, { borderColor: theme.primary }]}>
           <Text style={{ color: theme.primary, fontWeight: '800' }}>Go Back</Text>
         </TouchableOpacity>
@@ -231,14 +234,14 @@ export default function AdminCertifications() {
         <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}> 
           <Ionicons name="ribbon" size={30} color={theme.primary} />
         </View>
-        <Text style={[styles.title, { color: theme.text }]}>Escort Certs</Text>
-        <Text style={[styles.subtitle, { color: theme.textDim }]}>Manage certifications and review submissions</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t.escortCerts}</Text>
+        <Text style={[styles.subtitle, { color: theme.textDim }]}>{t.manageCerts}</Text>
       </View>
 
       <View style={styles.statsRow}>
         <View style={[styles.statCard, { backgroundColor: '#fff7ed' }]}>
           <Text style={styles.statNumber}>{counts.pending}</Text>
-          <Text style={styles.statLabel}>Pending</Text>
+          <Text style={styles.statLabel}>{t.pending}</Text>
         </View>
         <View style={[styles.statCard, { backgroundColor: '#ecfdf5' }]}>
           <Text style={styles.statNumber}>{counts.approved}</Text>

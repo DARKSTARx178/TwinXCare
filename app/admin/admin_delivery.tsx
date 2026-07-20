@@ -7,6 +7,8 @@ import { useRouter } from 'expo-router';
 import { collection, doc, getDocs, updateDoc } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
 import { Alert, Dimensions, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, UIManager, View } from 'react-native';
+import { homeTranslations } from '@/utils/translations';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 if (Platform.OS === 'android') {
     UIManager.setLayoutAnimationEnabledExperimental?.(true);
@@ -35,6 +37,8 @@ export default function AdminDeliveryPage() {
     const screenWidth = Dimensions.get('window').width;
     const { fontSize } = useAccessibility();
     const router = useRouter();
+    const { lang } = useLanguage();
+    const t = homeTranslations[lang];
 
     const [allOrders, setAllOrders] = useState<Order[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -150,9 +154,9 @@ export default function AdminDeliveryPage() {
                 <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
                     <Ionicons name="car-outline" size={32} color={theme.primary} />
                 </View>
-                <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>Delivery status</Text>
+                <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>{t.deliveryStatus}</Text>
                 <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>
-                    Equipment Delivery management
+                    {t.equipmentDeliveryManagement}
                 </Text>
             </View>
 
@@ -173,7 +177,7 @@ export default function AdminDeliveryPage() {
                 {filteredOrders.length === 0 ? (
                     <View style={styles.emptyState}>
                         <Ionicons name="document-text-outline" size={48} color={theme.textDim} />
-                        <Text style={[styles.emptyText, { color: theme.textDim }]}>No orders match your search.</Text>
+                        <Text style={[styles.emptyText, { color: theme.textDim }]}>{t.noItemsMatch}</Text>
                     </View>
                 ) : (
                     filteredOrders.map((order, idx) => (
@@ -219,7 +223,7 @@ export default function AdminDeliveryPage() {
                                     <View style={styles.detailRow}>
                                         <Ionicons name="business-outline" size={14} color={theme.textDim} />
                                         <Text style={[styles.detailText, { color: theme.textDim }]} numberOfLines={1}>
-                                            From: {order.warehouseLocationName}{order.warehouseLocationAddress ? ` • ${order.warehouseLocationAddress}` : ''}
+                                            {t.from}: {order.warehouseLocationName}{order.warehouseLocationAddress ? ` • ${order.warehouseLocationAddress}` : ''}
                                         </Text>
                                     </View>
                                 )}
@@ -228,7 +232,7 @@ export default function AdminDeliveryPage() {
                             <View style={styles.divider} />
 
                             <View style={styles.deliverySection}>
-                                <Text style={[styles.sectionLabel, { color: theme.textDim }]}>ESTIMATED DELIVERY</Text>
+                                <Text style={[styles.sectionLabel, { color: theme.textDim }]}>{t.estimatedDelivery}</Text>
                                 <View style={styles.etaRow}>
                                     <View style={styles.etaInputWrapper}>
                                         <Ionicons name="time-outline" size={18} color={theme.primary} style={styles.etaIcon} />
@@ -244,7 +248,7 @@ export default function AdminDeliveryPage() {
                                         style={[styles.confirmBtn, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
                                         onPress={() => updateEta(order, etaInputs[order.transactionId] ?? '')}
                                     >
-                                        <Text style={[styles.confirmBtnText, { color: theme.primary }]}>Update</Text>
+                                        <Text style={[styles.confirmBtnText, { color: theme.primary }]}>{t.update}</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>

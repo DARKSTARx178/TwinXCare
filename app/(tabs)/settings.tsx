@@ -260,7 +260,7 @@ const SettingsScreen = () => {
 
       <View style={styles.footer}>
         <Text style={[styles.footerText, { color: colors.text + '50' }]}>
-          TwinXCare alpha-{version} build
+          TwinXCare alpha-{version}
         </Text>
         <Text style={[styles.footerText, { color: colors.text + '30' }]}>
           © 2026 MASSIVE Productions

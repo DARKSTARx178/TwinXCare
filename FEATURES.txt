@@ -1,157 +1,56 @@
-TwinXCare Feature Summary
-=========================
+Feature Summary
+==============================
 
-Core App
---------
-- Cross-platform app shell: Runs as an Expo React Native app with mobile and web route support.
-- Splash and startup flow: Shows a branded splash screen while checking setup and app version state.
-- Remote version gate: Compares the installed app version with Firestore production version data and blocks outdated builds with an update prompt.
-- Session expiry handling: Checks signed-in users for session expiry and clears expired sessions.
-- Push notification setup: Requests notification permission, stores Expo push tokens on the user profile, and routes notification taps when a target screen is included.
-- Theme system: Provides app-wide color themes through a shared theme context.
-- Accessibility presets: Offers Standard, High Contrast, and Eye Comfort color presets.
-- Language support: Supports English and Simplified Chinese strings across translated screens.
-- Responsive typography support: Uses configurable font-size helpers across many screens.
-- Tab navigation: Provides Home, Explore, Services, Delivery, and Settings as the main app areas.
+Main App Pages
+--------------
+- Home page: Main landing dashboard with shortcuts to equipment rental, escort services, assistance, bookings, feedback, login, and registration.
+- Explore / Equipment page: Lets users browse equipment and care services, search listings, filter by stock or schedule, sort by price, and open item details.
+- Services / Escort dashboard page: Shows escort requests and volunteer availability slots based on the user's role, with status tracking for pending, matched, confirmed, and completed jobs.
+- Delivery page: Shows active equipment orders and service bookings in a searchable, filterable timeline with latest order or booking details.
+- Settings page: Lets users change language, accessibility theme presets, font size controls, advanced theme colors, and view app version information.
+- Profile page: Shows the signed-in user's account details, role, admin entry button, settings/help links, certifications, password change, and logout.
 
-Home and Navigation
--------------------
-- Home dashboard: Presents quick access to equipment rental, escort services, assistance, bookings, feedback, login, and registration.
-- Order history widget: Shows recent user activity from saved rental and booking history.
-- Guest-aware actions: Shows login and registration prompts when no Firebase user is signed in.
-- Authenticated feedback access: Shows feedback submission access after login.
-
-Authentication and Account
---------------------------
-- User registration: Creates Firebase Auth users and Firestore profiles with username, email, role, user type, history, bookings, and default theme.
-- User type selection: Lets new users register as Senior/standard users or Escort volunteers.
-- Login: Signs users in with Firebase email/password and records a session start timestamp.
-- Logout: Signs users out and clears local session state.
-- Profile page: Displays user identity, role badge, user reference, and account menu actions.
-- Guest profile mode: Lets unauthenticated users sign in or register from the profile screen.
-- Admin entry point: Shows an admin dashboard button for users with the admin role.
-- Change password: Reauthenticates the current user and updates their Firebase Auth password.
-- Account security management screen: Provides a legacy/admin-oriented password reset and deletion UI against a configured local server endpoint.
-
-Equipment Rental
-----------------
-- Equipment catalog: Loads equipment from Firestore and displays product cards with image, brand, price, and stock.
-- Equipment search: Filters equipment by name, brand, or company-like metadata.
-- Equipment filters: Filters by stock state and sorts by price low-to-high or high-to-low.
-- Location-aware stock display: Requests location permission and shows stock for the nearest warehouse when available.
-- Warehouse fallback stock: Falls back to total stock when user location is unavailable.
-- Equipment detail page: Shows item image, price, brand, description, stock state, and rental controls.
-- Pickup point selection: Lets users choose a warehouse/pickup point with available stock.
-- Pickup map support: Shows pickup locations on native maps where supported.
-- Quantity controls: Limits rental quantity to available stock at the selected pickup point.
-- Rental period selection: Lets users choose start and end dates and calculates rental duration.
-- Swipe-to-rent action: Uses a swipe interaction to proceed from equipment detail to payment.
-- Payment summary: Displays quantity, duration, pickup warehouse, and total amount before confirmation.
-- Delivery address autocomplete: Captures delivery location and coordinates for equipment orders.
-- Stock deduction transaction: Deducts stock from the selected warehouse inside a Firestore transaction.
-- Rental order history: Saves equipment orders into the user's Firestore history array with transaction ID and status.
-- Order confirmation notifications: Sends local and push notifications after a successful equipment order.
-
-Service Booking
----------------
-- Service catalog: Loads non-equipment care services from Firestore with image, company, price, duration, and description.
-- Service search and filters: Filters services by search term, schedule presence, and price ordering.
-- Service booking detail page: Shows selected service information and booking controls.
-- Date selection from schedule: Lets users choose from configured service schedule dates.
-- Time slot selection: Shows available time slots and disables full slots.
-- Contact and notes capture: Collects phone number and optional instructions for service bookings.
-- Booking payment flow: Routes service bookings through the same payment confirmation screen.
-- Slot capacity deduction: Reduces the selected service slot's pax count after booking.
-- User booking history: Saves service bookings into the user's Firestore booking array.
-- Booking confirmation notifications: Sends local and push notifications for confirmed service bookings.
-- My Bookings page: Lists active and upcoming service bookings with date, time, description, and confirmed status.
-
-Delivery and History
+Authentication Pages
 --------------------
-- Delivery status page: Combines equipment orders and service bookings into one timeline.
-- Latest active item highlight: Shows the latest active order or booking in a summary card.
-- Delivery search: Searches orders and bookings by name, reference, address, warehouse, time slot, or description.
-- Delivery filtering: Filters history by type or by status such as processing, pending, or confirmed.
-- Completed item hiding: Hides completed or delivered entries from the active delivery view.
-- Expandable timeline cards: Expands each history item to show reference, total, address or slot details, warehouse, and final status.
-- Pull-to-refresh history: Refreshes current user history and bookings from Firestore.
+- Register page: Creates a new account and lets users choose whether they are signing up as a Senior or Escort volunteer.
+- Login page: Signs existing users into their TwinXCare account.
+- Change Password page: Lets signed-in users securely update their password.
+- Logout page: Handles sign-out behavior.
 
-Escort Requests and Volunteering
---------------------------------
-- Escort dashboard: Shows patient requests and volunteer availability slots based on user type and role.
-- Role-based escort views: Standard users can submit patient requests, escort users can submit availability, and admins can see both.
-- Request status badges: Displays pending, available, matched, confirmed, and completed state badges.
-- Patient escort request form: Captures appointment date, start/end time, hospital, pickup location, appointment info, age, phone, emergency contact, medical notes, required certification, and instructions.
-- Request location autocomplete: Stores pickup coordinates when a location is selected.
-- Certification requirement selection: Pulls active certification types from the admin-managed escort certification catalog.
-- Escort availability form: Lets volunteers provide date, availability window, location, service radius, and contact phone.
-- Volunteer location radius: Uses coordinates and radius distance matching when available.
-- Volunteer slot history: Shows recent slots for the current volunteer.
-- Automatic escort matching: Matches pending requests and available volunteers by date, time overlap with tolerance, location/radius, and certification fit.
-- Match scoring: Scores candidates by schedule fit, location/radius quality, and volunteer rating.
-- Match notifications: Notifies both patient and volunteer when a match is created.
-- Matched assignment details: Shows linked patient or volunteer information, location, schedule, reference ID, notes, medical details, appointment info, instructions, ratings, and approved certifications.
-- Dual confirmation lock-in: Both patient and volunteer must slide to confirm before a match becomes confirmed.
-- Job completion workflow: Both sides must slide to end a confirmed escort job before it becomes completed.
-- Patient rating of volunteer: Requires patient rating before ending a confirmed escort job and updates the volunteer's profile average.
-- Volunteer ratings display: Shows volunteer rating and review count in escort-related screens.
+Equipment Rental Pages
+----------------------
+- Equipment detail / Order page: Shows the selected equipment item, price, description, stock, pickup warehouse options, rental quantity, rental dates, and swipe-to-rent action.
+- Payment page: Confirms equipment rentals or service bookings, shows the total cost, collects delivery address for equipment orders, updates stock or service capacity, saves the transaction, and sends notifications.
+- My Bookings page: Shows confirmed service bookings with service name, date, time, and details.
 
-Escort Certifications
----------------------
-- Volunteer certification submission: Lets escorts submit a certification type, certificate URL, and optional notes for admin review.
-- Certification submission history: Shows submitted certifications with pending, approved, or revoked status and review metadata.
-- Approved certification matching: Automatic matching only accepts volunteers with the required approved certification when one is required.
+Escort Pages
+------------
+- Request Escort page: Lets senior/patient users request medical escort help by entering appointment time, hospital, pickup location, contact details, medical notes, and required certification.
+- Volunteer Availability page: Lets escort volunteers post availability with date, time range, location, travel radius, and contact phone.
+- Escort Assignment page: Shows matched escort job details, patient or volunteer information, confirmation controls, completion controls, and rating flow.
+- Certifications page: Lets escort volunteers submit certification links for admin review and view submission status.
 
-Support and Feedback
---------------------
-- Assistance request form: Lets users submit support or help requests into Firestore with username and timestamp.
-- Feedback form: Collects a 1-5 star rating plus comments and saves the feedback to Firestore.
-- Help center: Provides in-app guidance for getting started, navigation, password changes, support contact, and escort mode.
-- Support inbox backend data: Assistance and feedback submissions are stored in separate Firestore collections for admin review.
+Support Pages
+-------------
+- Assistance page: Lets users submit help requests to the support team.
+- Feedback page: Lets users submit comments and a star rating.
+- Help Docs page: Provides basic guidance for using the app, navigation, password changes, support, and escort mode.
 
-Settings
---------
-- Language setting: Switches between English and Simplified Chinese.
-- Accessibility theme presets: Applies Standard, High Contrast, or Eye Comfort themes.
-- Typography selector: Provides small, medium, and large typography controls in the settings UI.
-- Advanced theme configuration: Lets users change individual theme color tokens with color swatches.
-- Restore default theme: Resets custom theme colors to default values.
-- App version display: Shows the production version read from Firestore.
+Admin Pages
+-----------
+- Admin Control Center page: Main admin menu linking to inventory, services, deliveries, users, escort matching, certifications, and inbox tools.
+- Admin Equipment Management page: Lets admins add, edit, search, and delete equipment, manage warehouse pickup points, and control stock per warehouse.
+- Admin Service Management page: Lets admins add and remove care services, manage service details, and create or delete service schedule slots.
+- Admin Delivery Management page: Lets admins view user orders, search by transaction ID, update delivery ETA, and mark orders complete or incomplete.
+- Admin User Management page: Lets admins view registered users, change roles, and delete non-admin accounts through the backend.
+- Admin Escort Matching page: Lets admins view pending escort requests and available volunteers, send compromise notifications, or force a manual match.
+- Admin Certifications page: Lets admins manage certification types and approve or revoke volunteer certification submissions.
+- Admin Support Inbox page: Lets admins review feedback and assistance requests, search/filter entries, archive/unarchive, and delete entries.
 
-Admin
------
-- Admin control center: Provides admin navigation for equipment, services, deliveries, users, escort matching, certifications, and support inbox.
-- Equipment management: Creates, updates, searches, expands, and deletes equipment records.
-- Warehouse management: Adds, edits, and deletes pickup warehouses using location autocomplete.
-- Location-based stock management: Tracks equipment stock per warehouse and keeps total stock synchronized.
-- Service management: Creates and deletes care services with name, description, price, duration, company, image URL, and schedules.
-- Service schedule management: Adds and deletes date/time/pax slots for each service.
-- Delivery management: Lists all users' equipment orders, searches by transaction ID, updates delivery ETA, and toggles completion status.
-- User management: Lists registered users, changes roles between user/admin, and deletes non-admin users through a backend endpoint.
-- Admin delete guard: Prevents deleting admin users until their role is changed.
-- Manual matching dashboard: Lets admins select pending escort requests and available volunteers.
-- Manual force match: Lets admins override the matching engine and lock a request/availability pair.
-- Compromise request notification: Lets admins ask a volunteer by push notification whether they can help with a selected patient request.
-- Certification catalog management: Lets admins create, enable/disable, and delete escort certification types.
-- Certification review: Lets admins approve or revoke volunteer certification submissions.
-- Certification stats: Shows pending, approved, and revoked submission counts.
-- Admin support inbox: Displays feedback and assistance requests in one inbox.
-- Inbox search and filters: Filters support inbox by status, type, username, and message text.
-- Inbox archiving: Archives or unarchives support entries and auto-archives entries older than 30 days.
-- Inbox deletion: Permanently deletes selected feedback or assistance entries.
-
-API and Backend Helpers
------------------------
-- Firebase configuration: Provides shared Firebase Auth and Firestore setup.
-- Email API endpoint: Includes a SendGrid-backed support email endpoint.
-- App version API endpoint: Exposes app version information for deployment contexts.
-- User deletion API endpoint: Deletes a user's own account data when configured.
-- Admin user deletion API endpoint: Allows authenticated admin deletion of Firebase Auth and Firestore user data.
-- Logs API endpoint: Provides a serverless logging-related endpoint.
-- Push script: Includes a script for sending Expo push notifications.
-
-Static Web Pages
-----------------
-- Public marketing site: Includes static web pages for the main site, contact, services, and escort form.
-- Static app previews: Includes browser-accessible app screen mockups under public/app.
-- Web assets: Provides logos, screenshots, app store badges, and CSS/JS used by the public pages.
+System and Backend Features
+---------------------------
+- Automatic escort matching: Matches patient requests with volunteer availability using schedule, location/radius, certification, and scoring rules.
+- Notifications: Uses local and Expo push notifications for orders, bookings, escort matches, confirmations, completions, and admin requests.
+- Remote version check: Blocks outdated app versions until users update.
+- Firebase backend: Uses Firebase Auth and Firestore for accounts, equipment, services, bookings, escort workflows, feedback, assistance requests, and admin data.
+- Static web pages: Includes public web pages and app preview pages under the public folder.

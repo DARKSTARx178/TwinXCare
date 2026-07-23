@@ -194,6 +194,8 @@ const SettingsScreen = () => {
               >
                 <Picker.Item label="English" value="en" />
                 <Picker.Item label="简体中文" value="zh" />
+                <Picker.Item label="Bahasa Melayu" value="ms" />
+                <Picker.Item label="தமிழ்" value="ta" />
               </Picker>
             </View>
           </View>
@@ -267,7 +269,7 @@ const SettingsScreen = () => {
           TwinXCare alpha-{version}
         </Text>
         <Text style={[styles.footerText, { color: colors.text + '30', fontSize: textSize - 5 }]}>
-          © 2026 MASSIVE Productions
+          © 2025, 2026 MASSIVE Productions
         </Text>
       </View>
     </ScrollView>

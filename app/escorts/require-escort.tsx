@@ -1,6 +1,6 @@
+import LocationAutocomplete, { SelectedLocation } from '@/components/LocationAutocomplete';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
-import LocationAutocomplete, { SelectedLocation } from '@/components/LocationAutocomplete';
 import { auth, db } from '@/firebase/firebase';
 import { checkMatchForRequest } from '@/services/matchingService';
 import { getFontSizeValue } from '@/utils/fontSizes';
@@ -10,9 +10,40 @@ import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import { addDoc, collection, doc, getDoc, getDocs, serverTimestamp } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 const CERT_CATALOG_PATH = 'escort/certifications/catalog';
+const HOSPITAL_CATALOG_PATH = 'escort/hospitals/catalog';
+
+const DEFAULT_HOSPITALS = [
+	{ id: 'singapore-general-hospital', name: "Singapore General Hospital" },
+	{ id: 'national-university-hospital', name: 'National University Hospital' },
+	{ id: 'tan-tock-seng-hospital', name: 'Tan Tock Seng Hospital' },
+	{ id: 'changi-general-hospital', name: 'Changi General Hospital' },
+	{ id: 'khoo-teck-puat-hospital', name: 'Khoo Teck Puat Hospital' },
+	{ id: 'nanyang-polyclinic', name: 'Nanyang Polyclinic' },
+	{ id: 'alexandra-hospital', name: 'Alexandra Hospital' },
+	{ id: 'kkwomens-hospital', name: "KK Women's and Children's Hospital" },
+	{ id: 'sengkang-general-hospital', name: 'Sengkang General Hospital' },
+	{ id: 'ng-teng-fong-general-hospital', name: 'Ng Teng Fong General Hospital' },
+];
+
+type HospitalItem = {
+	id: string;
+	name: string;
+	address?: string;
+	active?: boolean;
+};
 
 export default function RequireEscort() {
 	const router = useRouter();
@@ -27,7 +58,8 @@ export default function RequireEscort() {
 	const [showTimePicker, setShowTimePicker] = useState(false);
 	const [showEndTimePicker, setShowEndTimePicker] = useState(false);
 
-	const [hospital, setHospital] = useState('');
+	const [hospitalCatalog, setHospitalCatalog] = useState<HospitalItem[]>([]);
+	const [selectedHospitalId, setSelectedHospitalId] = useState('');
 	const [pickupLocation, setPickupLocation] = useState('');
 	const [pickupCoordinates, setPickupCoordinates] = useState<SelectedLocation | null>(null);
 	const [appointmentInfo, setAppointmentInfo] = useState('');
@@ -56,20 +88,43 @@ export default function RequireEscort() {
 				console.error('Failed to load escort certification catalog:', error);
 			}
 		};
+
+		const loadHospitals = async () => {
+			try {
+				const snap = await getDocs(collection(db, HOSPITAL_CATALOG_PATH));
+				const items = snap.docs
+					.map((d) => ({ id: d.id, ...(d.data() as any) }))
+					.filter((item) => item.active !== false)
+					.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+				const catalog = items.length ? items : DEFAULT_HOSPITALS;
+				setHospitalCatalog(catalog);
+				if (catalog.length) {
+					setSelectedHospitalId(catalog[0].id);
+				}
+			} catch (error) {
+				console.error('Failed to load hospital catalog:', error);
+				setHospitalCatalog(DEFAULT_HOSPITALS);
+				setSelectedHospitalId(DEFAULT_HOSPITALS[0].id);
+			}
+		};
+
 		loadCatalog();
+		loadHospitals();
 	}, []);
 
 	// Helpers
 	const formatDate = (d: Date) => d.toISOString().split('T')[0];
 	const formatTime = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
+	const selectedHospital = hospitalCatalog.find((item) => item.id === selectedHospitalId);
+
 	const handleSubmit = async () => {
 		const dateStr = formatDate(date);
 		const timeStr = formatTime(time);
 		const endTimeStr = formatTime(endTime);
 
-		if (!hospital.trim() || !appointmentInfo.trim()) {
-			Alert.alert('Incomplete Form', 'Please indicate the hospital/clinic and appointment information.');
+		if (!selectedHospital?.name || !appointmentInfo.trim()) {
+			Alert.alert('Incomplete Form', 'Please select a hospital/clinic and provide appointment information.');
 			return;
 		}
 
@@ -91,6 +146,7 @@ export default function RequireEscort() {
 
 		const selectedCert = certCatalog.find((item) => item.id === selectedCertId);
 		const certName = selectedCert?.name || '';
+		const hospitalName = selectedHospital?.name || '';
 
 		setSubmitting(true);
 		try {
@@ -100,7 +156,7 @@ export default function RequireEscort() {
 				date: dateStr,
 				time: timeStr,
 				endTime: endTimeStr,
-				hospital,
+				hospital: hospitalName,
 				location: pickupLocation.trim(),
 				locationCoordinates: pickupCoordinates ? {
 					latitude: pickupCoordinates.latitude,
@@ -127,7 +183,7 @@ export default function RequireEscort() {
 				date: dateStr,
 				time: timeStr,
 				endTime: endTimeStr,
-				hospital,
+				hospital: hospitalName,
 				location: pickupLocation.trim(),
 				locationCoordinates: pickupCoordinates ? {
 					latitude: pickupCoordinates.latitude,
@@ -160,11 +216,17 @@ export default function RequireEscort() {
 	};
 
 	return (
-		<ScrollView
+		<KeyboardAvoidingView
 			style={{ flex: 1, backgroundColor: theme.background }}
-			contentContainerStyle={{ paddingBottom: 60 }}
-			showsVerticalScrollIndicator={false}
+			behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+			keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
 		>
+			<ScrollView
+				style={{ flex: 1, backgroundColor: theme.background }}
+				contentContainerStyle={{ paddingBottom: 60 }}
+				showsVerticalScrollIndicator={false}
+				keyboardShouldPersistTaps="handled"
+			>
 			<TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
 				<Ionicons name="arrow-back" size={28} color={theme.text} />
 			</TouchableOpacity>
@@ -261,15 +323,22 @@ export default function RequireEscort() {
 
 				<View style={styles.inputWrapper}>
 					<Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Hospital / Clinic</Text>
-					<TextInput
-						style={[styles.input, { color: theme.text, fontSize: textSize - 1 }]}
-						placeholder="Name of health facility"
-						placeholderTextColor="#94a3b8"
-						value={hospital}
-						onChangeText={setHospital}
-					/>
+			<View style={[styles.pickerWrap, { borderColor: theme.border }]}> 
+				<Picker
+					selectedValue={selectedHospitalId}
+					onValueChange={(value) => setSelectedHospitalId(String(value))}
+					style={{ color: theme.text, fontSize: textSize - 1 }}
+				>
+					{hospitalCatalog.length === 0 ? (
+						<Picker.Item label="Loading hospitals..." value="" />
+					) : (
+						hospitalCatalog.map((item) => (
+							<Picker.Item key={item.id} label={item.name} value={item.id} />
+						))
+					)}
+				</Picker>
+			</View>
 				</View>
-
 				<View style={styles.inputWrapper}>
 					<LocationAutocomplete
 						label="Pickup / Preferred Location"
@@ -395,6 +464,7 @@ export default function RequireEscort() {
 				</TouchableOpacity>
 			</View>
 		</ScrollView>
+	</KeyboardAvoidingView>
 	);
 }
 

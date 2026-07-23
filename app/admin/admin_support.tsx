@@ -6,7 +6,7 @@ import React, { useCallback, useContext, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { db } from '../../firebase/firebase';
 
-type SupportType = 'feedback' | 'request';
+type SupportType = 'feedback' | 'request' | 'rejection';
 type StatusFilter = 'all' | 'active' | 'archived';
 type TypeFilter = 'all' | SupportType;
 
@@ -82,9 +82,10 @@ export default function AdminSupport() {
 
       const requestItems = requestSnap.docs.map((d) => {
         const data = d.data() as any;
+        const type = data.type === 'rejection' ? 'rejection' : 'request';
         return {
           id: d.id,
-          type: 'request' as SupportType,
+          type: type as SupportType,
           username: data.username || 'Anonymous',
           message: data.message || '-',
           archived: !!data.archived || isOlderThan30Days(data.createdAt),
@@ -178,8 +179,8 @@ export default function AdminSupport() {
       </View>
 
       <View style={styles.typeRow}>
-        <Text style={[styles.typeBadge, { color: item.type === 'feedback' ? theme.primary : '#10b981' }]}>
-          {item.type === 'feedback' ? 'Feedback' : 'Assistance'}
+        <Text style={[styles.typeBadge, { color: item.type === 'feedback' ? theme.primary : item.type === 'request' ? '#10b981' : '#ef4444' }]}> 
+          {item.type === 'feedback' ? 'Feedback' : item.type === 'request' ? 'Assistance' : 'Rejection'}
         </Text>
         {item.archived && <Text style={[styles.archivedBadge, { color: theme.textDim }]}>Archived</Text>}
       </View>
@@ -254,7 +255,7 @@ export default function AdminSupport() {
       </View>
 
       <View style={styles.filterWrap}>
-        {(['all', 'feedback', 'request'] as TypeFilter[]).map((value) => (
+        {(['all', 'feedback', 'request', 'rejection'] as TypeFilter[]).map((value) => (
           <TouchableOpacity
             key={value}
             onPress={() => setTypeFilter(value)}
@@ -264,7 +265,13 @@ export default function AdminSupport() {
             ]}
           >
             <Text style={[styles.filterText, { color: theme.text }]}>
-              {value === 'all' ? 'All Types' : value === 'feedback' ? 'Feedback' : 'Assistance'}
+              {value === 'all'
+                ? 'All Types'
+                : value === 'feedback'
+                ? 'Feedback'
+                : value === 'request'
+                ? 'Assistance'
+                : 'Rejections'}
             </Text>
           </TouchableOpacity>
         ))}

@@ -1,8 +1,8 @@
+import LocationAutocomplete, { SelectedLocation } from '@/components/LocationAutocomplete';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
-import LocationAutocomplete, { SelectedLocation } from '@/components/LocationAutocomplete';
 import { auth, db } from '@/firebase/firebase';
-import { checkMatchForAvailability, finalizeEscortJob, lockInJob } from '@/services/matchingService';
+import { checkMatchForAvailability, finalizeEscortJob, lockInJob, rejectMatch } from '@/services/matchingService';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -127,6 +127,17 @@ export default function EscortAvailability() {
   const translateX = useSharedValue(0);
 
   const [selectedRating, setSelectedRating] = useState(0);
+  const [rejectionReason, setRejectionReason] = useState<string>('');
+  const [rejectionDetails, setRejectionDetails] = useState<string>('');
+  const rejectTranslateX = useSharedValue(0);
+  const [rejectionSubmitting, setRejectionSubmitting] = useState(false);
+
+  const rejectionOptions = [
+    'Not certified',
+    'Location too far',
+    'Timing conflict',
+    'Other',
+  ];
 
   const onConfirm = async () => {
     if (!jobId || !jobData) return;
@@ -199,30 +210,115 @@ export default function EscortAvailability() {
       }
     });
 
-  const animatedKnobStyle = useAnimatedStyle(() => ({ transform: [{ translateX: translateX.value }] }));
+  const rejectPanGesture = Gesture.Pan()
+    .onUpdate((event) => {
+      const nextX = -event.translationX;
+      if (nextX >= 0 && nextX <= HITTING_POINT) {
+        rejectTranslateX.value = nextX;
+      }
+    })
+    .onEnd(() => {
+      if (rejectTranslateX.value > HITTING_POINT * 0.8) {
+        rejectTranslateX.value = HITTING_POINT;
+        runOnJS(onReject)();
+      } else {
+        rejectTranslateX.value = 0;
+      }
+    });
+
   const animatedTrackStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(translateX.value, [0, HITTING_POINT], [theme.primaryGlow, '#10b981'])
+    width: SLIDER_WIDTH,
+    backgroundColor: interpolateColor(
+      translateX.value,
+      [0, HITTING_POINT],
+      ['#e2e8f0', theme.primaryGlow]
+    ),
   }));
 
-  const formatDate = (d: Date) => d.toISOString().split('T')[0];
-  const formatTime = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  const animatedKnobStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+    backgroundColor: '#ffffff',
+  }));
 
-  const handleSubmit = async () => {
-    const dateStr = formatDate(date);
-    const fromStr = formatTime(fromTime);
-    const toStr = formatTime(toTime);
+  const rejectTrackStyle = useAnimatedStyle(() => ({
+    width: SLIDER_WIDTH,
+    backgroundColor: interpolateColor(
+      rejectTranslateX.value,
+      [0, HITTING_POINT],
+      ['#fde2e2', '#fecaca']
+    ),
+  }));
 
-    if (!location.trim()) {
-      Alert.alert('Please fill required fields', 'Location is required.');
+  const rejectKnobStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: rejectTranslateX.value }],
+    backgroundColor: '#ffffff',
+  }));
+
+  const getCurrentUserDisplayName = async (): Promise<string> => {
+    if (!auth.currentUser) return 'Unknown';
+    try {
+      const userSnap = await getDoc(doc(db, 'users', auth.currentUser.uid));
+      const userData = userSnap.exists() ? userSnap.data() : {};
+      return String(userData?.username || userData?.displayName || auth.currentUser.email || 'Unknown');
+    } catch (error) {
+      console.error('Error fetching current user name:', error);
+      return auth.currentUser.email || 'Unknown';
+    }
+  };
+
+  const onReject = async () => {
+    if (!jobId || !jobData) return;
+    if (!rejectionReason) {
+      Alert.alert('Select Reason', 'Please select a reason for rejecting the match.');
+      rejectTranslateX.value = 0;
       return;
     }
 
-    const currentUid = auth?.currentUser?.uid;
-    if (!currentUid) {
+    const reqId = type === 'request' ? jobId : jobData.matchedRequestId;
+    const availId = type === 'availability' ? jobId : jobData.matchedAvailabilityId;
+    const myRole = type === 'request' ? 'patient' : 'volunteer';
+
+    if (!reqId || !availId) {
+      Alert.alert('Error', 'Could not find linked companion for this job.');
+      rejectTranslateX.value = 0;
+      return;
+    }
+
+    setRejectionSubmitting(true);
+    try {
+      const initiatorName = await getCurrentUserDisplayName();
+      const details = rejectionReason === 'Other' ? rejectionDetails.trim() || 'No details provided' : null;
+      const success = await rejectMatch(reqId, availId, myRole, rejectionReason, details, initiatorName);
+      if (success) {
+        Alert.alert('Match Rejected', 'Thank you. The match has been rejected and will be reprocessed.');
+        const path = type === 'availability' ? 'escort/availability/entries' : 'escort/request/entries';
+        const jSnap = await getDoc(doc(db, path, jobId));
+        if (jSnap.exists()) setJobData(jSnap.data());
+        await refreshMySlots();
+        setRejectionReason('');
+        setRejectionDetails('');
+      } else {
+        Alert.alert('Error', 'Failed to reject match. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error rejecting match:', error);
+      Alert.alert('Error', 'Failed to reject match. Please try again later.');
+    } finally {
+      setRejectionSubmitting(false);
+      rejectTranslateX.value = 0;
+    }
+  };
+
+  const formatDate = (value: Date) => value.toISOString().split('T')[0];
+  const formatTime = (value: Date) => value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+  const handleSubmit = async () => {
+    if (!auth.currentUser) {
       Alert.alert('Login Required', 'Please sign in first.');
       return;
     }
 
+    const currentUid = auth.currentUser.uid;
     const userSnap = await getDoc(doc(db, 'users', currentUid));
     const userData = userSnap.exists() ? userSnap.data() : {};
     const role = String(userData.role || 'user');
@@ -233,13 +329,21 @@ export default function EscortAvailability() {
       return;
     }
 
+    if (!location) {
+      Alert.alert('Location Required', 'Please select a location.');
+      return;
+    }
+
     const radiusKm = Math.max(Number(serviceRadiusKm) || 5, 0.5);
+    const dateStr = formatDate(date);
+    const fromStr = formatTime(fromTime);
+    const toStr = formatTime(toTime);
 
     setSubmitting(true);
     try {
       const docRef = await addDoc(collection(db, 'escort', 'availability', 'entries'), {
-        providerId: auth?.currentUser?.uid ?? 'guest',
-        providerEmail: auth?.currentUser?.email ?? 'guest',
+        providerId: auth.currentUser.uid,
+        providerEmail: auth.currentUser.email ?? 'guest',
         date: dateStr,
         fromTime: fromStr,
         toTime: toStr,
@@ -258,12 +362,12 @@ export default function EscortAvailability() {
         patientConfirmed: false,
         volunteerConfirmed: false,
         patientCompleted: false,
-        volunteerCompleted: false
+        volunteerCompleted: false,
       });
 
       const availData = {
-        providerId: auth?.currentUser?.uid ?? 'guest',
-        providerEmail: auth?.currentUser?.email ?? 'guest',
+        providerId: auth.currentUser.uid,
+        providerEmail: auth.currentUser.email ?? 'guest',
         date: dateStr,
         fromTime: fromStr,
         toTime: toStr,
@@ -277,11 +381,10 @@ export default function EscortAvailability() {
         maxPax: 1,
         contactPhone,
         notes: '',
-        status: 'available'
+        status: 'available',
       };
 
       checkMatchForAvailability(docRef.id, availData);
-
       Alert.alert('Availability submitted', 'Thank you — your availability has been posted.');
       router.back();
     } catch (error) {
@@ -525,6 +628,46 @@ export default function EscortAvailability() {
                           <Ionicons name="arrow-forward" size={24} color="#000" />
                         </Animated.View>
                       </GestureDetector>
+                    </View>
+
+                    <View style={{ marginTop: 24, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: theme.surface, borderRadius: 18, borderWidth: 1, borderColor: theme.border }}>
+                      <Text style={[styles.label, { color: theme.text, fontSize: textSize - 3, marginBottom: 10 }]}>Reject Match</Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+                        {rejectionOptions.map((option) => (
+                          <TouchableOpacity
+                            key={option}
+                            onPress={() => setRejectionReason(option)}
+                            style={[
+                              styles.reasonChip,
+                              { backgroundColor: rejectionReason === option ? theme.primaryGlow : theme.unselectedTab, borderColor: rejectionReason === option ? theme.primary : theme.border },
+                            ]}
+                          >
+                            <Text style={{ color: theme.text, fontSize: textSize - 4 }}>{option}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                      {rejectionReason === 'Other' && (
+                        <TextInput
+                          value={rejectionDetails}
+                          onChangeText={setRejectionDetails}
+                          placeholder="Enter rejection details"
+                          placeholderTextColor={theme.textDim}
+                          style={[styles.textArea, { color: theme.text, borderColor: theme.border, backgroundColor: theme.unselectedTab }]}
+                          multiline
+                          numberOfLines={3}
+                        />
+                      )}
+                      <Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5, textAlign: 'center', marginTop: 12, marginBottom: 8 }]}>Slide to Reject Match</Text>
+                      <View style={styles.sliderContainer}> 
+                        <Animated.View style={[styles.sliderTrack, rejectTrackStyle]}>
+                          <Text style={[styles.sliderHint, { color: theme.textDim, fontSize: textSize - 2 }]}>Rejecting...</Text>
+                        </Animated.View>
+                        <GestureDetector gesture={rejectPanGesture}>
+                          <Animated.View style={[styles.sliderKnob, rejectKnobStyle]}>
+                            <Ionicons name="arrow-back" size={24} color="#000" />
+                          </Animated.View>
+                        </GestureDetector>
+                      </View>
                     </View>
                   </>
                 )}
@@ -958,5 +1101,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
+  },
+  reasonChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  textArea: {
+    minHeight: 110,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    textAlignVertical: 'top',
+    borderWidth: 1,
   },
 });

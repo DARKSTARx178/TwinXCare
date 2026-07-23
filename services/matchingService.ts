@@ -1,8 +1,13 @@
 import { db } from '@/firebase/firebase';
 import { sendLocalNotification, sendPushNotification } from '@/utils/notifications';
-import { collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, getDocs, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
 
-const TIME_TOLERANCE_MINUTES = 60;
+const TIME_TOLERANCE_MINUTES = 30;
+const CERTIFICATION_BONUS = 80;
+const CERTIFICATION_PENALTY = 40;
+const LOCATION_BONUS = 60;
+const LOCATION_PENALTY = 20;
+const DISTANCE_BONUS_PER_KM = 1.2;
 
 // Helper to parse "HH:MM" to minutes
 const parseTime = (timeStr: string) => {
@@ -85,7 +90,7 @@ const getDistanceKm = (
 const getRangeMatch = (requestData: any, availData: any) => {
     const requestCoords = getCoordinates(requestData);
     const availabilityCoords = getCoordinates(availData);
-    const radiusKm = Number(availData.serviceRadiusKm || availData.radiusKm || 0);
+    const radiusKm = Number(availData.serviceRadiusKm || availData.locationRadiusKm || availData.radiusKm || 0);
 
     if (!requestCoords || !availabilityCoords || radiusKm <= 0) {
         return null;
@@ -146,6 +151,30 @@ const providerMeetsCertification = (
     return certs.has(requiredCertification);
 };
 
+const logEscortRejection = async (
+    reqId: string,
+    availId: string,
+    role: 'patient' | 'volunteer',
+    reason: string,
+    details: string | null,
+    initiatorName: string
+) => {
+    try {
+        await addDoc(collection(db, 'requests'), {
+            username: initiatorName || 'Unknown',
+            type: 'rejection',
+            message: `${reason}${details ? `: ${details}` : ''}`,
+            createdAt: serverTimestamp(),
+            archived: false,
+            relatedRequestId: reqId,
+            relatedAvailabilityId: availId,
+            rejectedByRole: role,
+        });
+    } catch (error) {
+        console.error('Error logging escort rejection for admins:', error);
+    }
+};
+
 // Called when a Patient submits a Request
 export const checkMatchForRequest = async (requestId: string, requestData: any) => {
     console.log('🔍 Checking match for Request:', requestId);
@@ -204,45 +233,31 @@ export const checkMatchForRequest = async (requestId: string, requestData: any) 
             if (intervalsOverlapWithTolerance(reqStart, reqEnd, availStart, availEnd)) {
                 console.log(`   ✅ Time match found!`);
 
-                if (!providerMeetsCertification(avail.providerId, requiredCertification, providerCerts)) {
-                    console.log(`   ❌ Certification mismatch. Required: ${requiredCertification}`);
-                    continue;
+                const certMatched = providerMeetsCertification(avail.providerId, requiredCertification, providerCerts);
+                if (!certMatched) {
+                    console.log(`   ⚠️ Certification mismatch. Required: ${requiredCertification}. Will still consider candidate.`);
                 }
 
                 const rangeMatch = getRangeMatch(requestData, avail);
                 const locationMatch = locationsMatch(requestLocation, avail.location);
                 if (rangeMatch) {
                     console.log(`   📍 Distance check: ${rangeMatch.distanceKm.toFixed(2)}km within ${rangeMatch.radiusKm}km`);
-
-                    if (rangeMatch.inRange) {
-                        candidates.push({
-                            id: availId,
-                            data: avail,
-                            score: getMatchScore(requestData, avail, rangeMatch, locationMatch),
-                            matchedByLocation: true,
-                            matchDistanceKm: rangeMatch.distanceKm,
-                            matchRadiusKm: rangeMatch.radiusKm,
-                        });
-                        continue;
-                    }
-
-                    console.log(`   ❌ Outside volunteer radius.`);
-                    continue;
+                } else {
+                    console.log(`   📍 No radius/coordinate match available for this availability.`);
                 }
 
-                console.log(`   🏥 Location check: "${requestLocation}" vs "${avail.location || ''}"`);
-                if (!locationMatch) {
-                    console.log('   ❌ No coordinate/radius match and no textual location match.');
-                    continue;
+                if (!rangeMatch && !locationMatch) {
+                    console.log(`   ⚠️ No direct location match, but still considering due to time overlap.`);
                 }
 
                 candidates.push({
                     id: availId,
                     data: avail,
-                    score: getMatchScore(requestData, avail, null, locationMatch),
-                    matchedByLocation: locationMatch,
-                    matchDistanceKm: null,
-                    matchRadiusKm: null,
+                    score: getMatchScore(requestData, avail, rangeMatch, locationMatch, certMatched),
+                    matchedByLocation: Boolean(locationMatch || (rangeMatch && rangeMatch.inRange)),
+                    matchDistanceKm: rangeMatch?.distanceKm ?? null,
+                    matchRadiusKm: rangeMatch?.radiusKm ?? null,
+                    certificationMatched: certMatched,
                 });
             } else {
                 console.log(`   ❌ Time mismatch.`);
@@ -257,6 +272,9 @@ export const checkMatchForRequest = async (requestId: string, requestData: any) 
                 matchedByLocation: best.matchedByLocation,
                 matchDistanceKm: best.matchDistanceKm ?? undefined,
                 matchRadiusKm: best.matchRadiusKm ?? undefined,
+                certificationMatched: best.certificationMatched ?? null,
+                locationMatched: best.matchedByLocation,
+                matchScore: best.score,
                 matchMode: 'auto',
             });
             return;
@@ -327,46 +345,31 @@ export const checkMatchForAvailability = async (availId: string, availData: any)
                 console.log(`   ✅ Time match found!`);
 
                 const requiredCertification = getRequiredCertification(req);
-                if (!providerMeetsCertification(providerId, requiredCertification, providerCerts)) {
-                    console.log(`   ❌ Certification mismatch. Required: ${requiredCertification}`);
-                    continue;
+                const certMatched = providerMeetsCertification(providerId, requiredCertification, providerCerts);
+                if (!certMatched) {
+                    console.log(`   ⚠️ Certification mismatch. Required: ${requiredCertification}. Will still consider candidate.`);
                 }
 
                 const rangeMatch = getRangeMatch(req, availData);
                 const locationMatch = locationsMatch(getRequestMatchLocation(req), location);
                 if (rangeMatch) {
                     console.log(`   📍 Distance check: ${rangeMatch.distanceKm.toFixed(2)}km within ${rangeMatch.radiusKm}km`);
-
-                    if (rangeMatch.inRange) {
-                        candidates.push({
-                            id: reqId,
-                            data: req,
-                            score: getMatchScore(req, availData, rangeMatch, locationMatch),
-                            matchedByLocation: true,
-                            matchDistanceKm: rangeMatch.distanceKm,
-                            matchRadiusKm: rangeMatch.radiusKm,
-                        });
-                        continue;
-                    }
-
-                    console.log(`   ❌ Outside volunteer radius.`);
-                    continue;
+                } else {
+                    console.log(`   📍 No radius/coordinate match available for this request.`);
                 }
 
-                const requestLocation = getRequestMatchLocation(req);
-                console.log(`   🏥 Location check: "${requestLocation}" vs "${location}"`);
-                if (!locationMatch) {
-                    console.log('   ❌ No coordinate/radius match and no textual location match.');
-                    continue;
+                if (!rangeMatch && !locationMatch) {
+                    console.log(`   ⚠️ No direct location match, but still considering due to time overlap.`);
                 }
 
                 candidates.push({
                     id: reqId,
                     data: req,
-                    score: getMatchScore(req, availData, null, locationMatch),
-                    matchedByLocation: locationMatch,
-                    matchDistanceKm: null,
-                    matchRadiusKm: null,
+                    score: getMatchScore(req, availData, rangeMatch, locationMatch, certMatched),
+                    matchedByLocation: Boolean(locationMatch || (rangeMatch && rangeMatch.inRange)),
+                    matchDistanceKm: rangeMatch?.distanceKm ?? null,
+                    matchRadiusKm: rangeMatch?.radiusKm ?? null,
+                    certificationMatched: certMatched,
                 });
             } else {
                 console.log(`   ❌ Time mismatch.`);
@@ -381,6 +384,9 @@ export const checkMatchForAvailability = async (availId: string, availData: any)
                 matchedByLocation: best.matchedByLocation,
                 matchDistanceKm: best.matchDistanceKm ?? undefined,
                 matchRadiusKm: best.matchRadiusKm ?? undefined,
+                certificationMatched: best.certificationMatched ?? null,
+                locationMatched: best.matchedByLocation,
+                matchScore: best.score,
                 matchMode: 'auto',
             });
             return;
@@ -397,6 +403,9 @@ type MatchMeta = {
     matchedByLocation?: boolean;
     matchDistanceKm?: number;
     matchRadiusKm?: number;
+    certificationMatched?: boolean | null;
+    locationMatched?: boolean | null;
+    matchScore?: number | null;
     matchMode?: 'auto' | 'manual';
     manualOverride?: boolean;
     manualReason?: string | null;
@@ -409,6 +418,7 @@ type Candidate = {
     matchedByLocation: boolean;
     matchDistanceKm: number | null;
     matchRadiusKm: number | null;
+    certificationMatched?: boolean | null;
 };
 
 const isLockedForManual = (data: any) => Boolean(data?.manualLock || data?.manualOverride);
@@ -417,7 +427,8 @@ const getMatchScore = (
     requestData: any,
     availData: any,
     rangeMatch: ReturnType<typeof getRangeMatch> | null,
-    locationMatch: boolean
+    locationMatch: boolean,
+    certificationMatched: boolean
 ) => {
     const reqStart = parseTime(requestData.time);
     const reqEnd = requestData.endTime ? parseTime(requestData.endTime) : reqStart + 60;
@@ -426,23 +437,35 @@ const getMatchScore = (
     const reqDuration = Math.max(0, reqEnd - reqStart);
     const availDuration = Math.max(1, availEnd - availStart);
     const fitPenalty = Math.max(0, availDuration - reqDuration);
+    const startGap = Math.abs(reqStart - availStart);
+    const endGap = Math.abs(reqEnd - availEnd);
 
     let score = 0;
-    score -= fitPenalty * 0.05;
-    score -= Math.abs(reqStart - availStart) * 0.03;
-    score -= Math.abs(reqEnd - availEnd) * 0.02;
+    score -= fitPenalty * 0.5;
+    score -= startGap * 0.2;
+    score -= endGap * 0.15;
 
-    if (rangeMatch?.inRange) {
-        score += 120;
-        score += Math.max(0, rangeMatch.radiusKm - rangeMatch.distanceKm) * 2;
+    if (rangeMatch) {
+        score += rangeMatch.inRange ? LOCATION_BONUS : LOCATION_BONUS * 0.6;
+        score += Math.max(0, rangeMatch.radiusKm - rangeMatch.distanceKm) * DISTANCE_BONUS_PER_KM;
     } else if (locationMatch) {
-        score += 80;
+        score += LOCATION_BONUS * 0.8;
     } else {
-        score += 10;
+        score -= LOCATION_PENALTY;
+    }
+
+    if (certificationMatched) {
+        score += CERTIFICATION_BONUS;
+    } else {
+        score -= CERTIFICATION_PENALTY;
     }
 
     if (typeof availData.rating === 'number') {
-        score += availData.rating * 3;
+        score += availData.rating * 4;
+    }
+
+    if (requestData?.requiredCertificationName && !certificationMatched) {
+        score -= 15;
     }
 
     return score;
@@ -483,6 +506,9 @@ const executeMatch = async (reqId: string, reqData: any, availId: string, availD
             matchDistanceKm: matchMeta.matchDistanceKm ?? null,
             matchRadiusKm: matchMeta.matchRadiusKm ?? null,
             matchMode: matchMeta.matchMode ?? 'auto',
+            certificationMatched: matchMeta.certificationMatched ?? null,
+            locationMatched: matchMeta.locationMatched ?? null,
+            matchScore: matchMeta.matchScore ?? null,
             manualOverride: matchMeta.manualOverride ?? false,
             manualReason: matchMeta.manualReason ?? null,
             manualLock: matchMeta.manualOverride ?? false,
@@ -497,6 +523,9 @@ const executeMatch = async (reqId: string, reqData: any, availId: string, availD
             matchDistanceKm: matchMeta.matchDistanceKm ?? null,
             matchRadiusKm: matchMeta.matchRadiusKm ?? null,
             matchMode: matchMeta.matchMode ?? 'auto',
+            certificationMatched: matchMeta.certificationMatched ?? null,
+            locationMatched: matchMeta.locationMatched ?? null,
+            matchScore: matchMeta.matchScore ?? null,
             manualOverride: matchMeta.manualOverride ?? false,
             manualReason: matchMeta.manualReason ?? null,
             manualLock: matchMeta.manualOverride ?? false,
@@ -543,6 +572,86 @@ const executeMatch = async (reqId: string, reqData: any, availId: string, availD
  * Transitions a match from 'matched' to 'confirmed' (locked-in).
  * Both parties must confirm before the status changes.
  */
+export const rejectMatch = async (
+    reqId: string,
+    availId: string,
+    role: 'patient' | 'volunteer',
+    reason: string,
+    details: string | null,
+    initiatorName: string
+) => {
+    try {
+        const reqRef = doc(db, 'escort', 'request', 'entries', reqId);
+        const availRef = doc(db, 'escort', 'availability', 'entries', availId);
+        const [reqSnap, availSnap] = await Promise.all([getDoc(reqRef), getDoc(availRef)]);
+
+        if (!reqSnap.exists() || !availSnap.exists()) {
+            throw new Error('Request or availability not found.');
+        }
+
+        const reqData = reqSnap.data();
+        const availData = availSnap.data();
+        const otherUserId = role === 'patient' ? availData?.providerId : reqData?.userId;
+
+        await Promise.all([
+            updateDoc(reqRef, {
+                status: 'pending',
+                matchedAvailabilityId: null,
+                matchedProviderId: null,
+                matchedProviderName: null,
+                matchedByLocation: false,
+                matchDistanceKm: null,
+                matchRadiusKm: null,
+                matchMode: null,
+                certificationMatched: null,
+                locationMatched: null,
+                matchScore: null,
+                manualOverride: false,
+                manualReason: null,
+                manualLock: false,
+                lastMatchRejectedAt: serverTimestamp(),
+                lastMatchRejectedBy: role,
+                lastMatchRejectionReason: reason,
+                lastMatchRejectionDetails: details,
+            }),
+            updateDoc(availRef, {
+                status: 'available',
+                matchedRequestId: null,
+                matchedUserId: null,
+                matchedByLocation: false,
+                matchDistanceKm: null,
+                matchRadiusKm: null,
+                matchMode: null,
+                certificationMatched: null,
+                locationMatched: null,
+                matchScore: null,
+                manualOverride: false,
+                manualReason: null,
+                manualLock: false,
+                lastMatchRejectedAt: serverTimestamp(),
+                lastMatchRejectedBy: role,
+                lastMatchRejectionReason: reason,
+                lastMatchRejectionDetails: details,
+            }),
+        ]);
+
+        await logEscortRejection(reqId, availId, role, reason, details, initiatorName);
+
+        if (otherUserId) {
+            const otherToken = await getUserPushToken(otherUserId);
+            if (otherToken) {
+                await sendPushNotification(otherToken, 'Match Rejected', 'A match was rejected and we will rematch you soon.', { reqId, availId, type: 'rejection' });
+            }
+        }
+
+        await sendLocalNotification('Match Rejected', 'The match was declined and will be reprocessed.');
+        return true;
+    } catch (error) {
+        console.error('Error rejecting match:', error);
+        return false;
+    }
+};
+
 export const lockInJob = async (reqId: string, availId: string, role: 'patient' | 'volunteer') => {
     console.log(`🔐 LOCKING IN JOB (By ${role}): Req ${reqId} + Avail ${availId}`);
     try {

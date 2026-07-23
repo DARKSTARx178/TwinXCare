@@ -3,8 +3,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
-export type Language = 'en' | 'zh';
-
+export type Language = 'en' | 'zh' | 'ms' | 'ta';
 interface LanguageContextProps {
   lang: Language;
   setLang: (lang: Language) => void;
@@ -32,7 +31,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
         const userDoc = await getDoc(userDocRef);
         const savedLanguage = userDoc.exists() ? userDoc.data()?.language : null;
 
-        if (savedLanguage === 'en' || savedLanguage === 'zh') {
+        if (savedLanguage === 'en' || savedLanguage === 'zh' || savedLanguage === 'ms' || savedLanguage === 'ta') {
           setLang(savedLanguage);
         } else {
           setLang('en');

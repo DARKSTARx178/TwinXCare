@@ -23,7 +23,7 @@ export default function HomeScreen() {
   const [userName, setUserName] = useState<string | null>(null);
   const { lang } = useLanguage();
   const t = homeTranslations[lang];
-  const welcomeText = userName ? `Welcome ${userName}` : t.welcome;
+  const welcomeText = userName ? `${t.welcome} ${userName}` : t.welcome;
 
   useEffect(() => {
     const checkUser = async () => {
@@ -76,7 +76,7 @@ export default function HomeScreen() {
           <View style={[styles.iconContainer, { backgroundColor: theme.primaryGlow }]}>
             <MaterialCommunityIcons name="car-side" size={32} color={theme.primary} />
           </View>
-          <Text style={[styles.cardText, { fontSize: responsiveText(textSize - 2), color: theme.text, fontWeight: '600' }]}>{t.services}</Text>
+          <Text style={[styles.cardText, { fontSize: responsiveText(textSize - 2), color: theme.text, fontWeight: '600' }]}>{t.escort}</Text>
         </TouchableOpacity>
       </View>
 

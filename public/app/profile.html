@@ -213,6 +213,7 @@
 
     <script type="module">
         import { auth, db, onAuthStateChanged, signOut, doc, getDoc, collection, getDocs, query, where, clearSessionStamp } from '/app/firebase.js';
+        import { Analytics } from "@vercel/analytics/next"
 
         const header = document.getElementById('profile-header');
         const menuSection = document.getElementById('menu-section');

@@ -177,6 +177,7 @@
 
     <script type="module">
         import { auth, db, onAuthStateChanged, doc, getDoc, collection, addDoc, serverTimestamp } from '/app/firebase.js';
+        import { Analytics } from "@vercel/analytics/next"
 
         let username = 'Anonymous';
         onAuthStateChanged(auth, async (user) => {

@@ -285,6 +285,8 @@
 
     <script type="module">
         import { auth, db, doc, getDoc, collection, query, where, getDocs, onAuthStateChanged } from '/app/firebase.js';
+        import { Analytics } from "@vercel/analytics/next"
+        
         const GEOAPIFY_API_KEY = (window.TWINXCARE_GEOAPIFY_API_KEY || '333dd9a8121f4bfe8173cae287ecf657').trim();
         const GEOAPIFY_AUTOCOMPLETE_URL = (window.TWINXCARE_GEOAPIFY_AUTOCOMPLETE_URL || '').trim();
 

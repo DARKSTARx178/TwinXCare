@@ -205,6 +205,7 @@
 
     <script type="module">
         import { auth, onAuthStateChanged, db, doc, getDoc, serverTimestamp, setDoc } from '/app/firebase.js';
+        import { Analytics } from "@vercel/analytics/next"
 
         const HOSPITAL_DOC_PATH = ['escort', 'hospital'];
 

@@ -134,6 +134,7 @@
 
     <script type="module">
         import { auth, db, doc, getDoc, onAuthStateChanged } from '/app/firebase.js';
+        import { Analytics } from "@vercel/analytics/next"
 
         const userNameEl = document.getElementById('user-name');
         const userAvatarEl = document.getElementById('user-avatar');

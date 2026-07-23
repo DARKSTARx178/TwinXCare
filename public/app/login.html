@@ -204,6 +204,7 @@
 
     <script type="module">
         import { auth, markSessionStarted, onAuthStateChanged, signInWithEmailAndPassword } from '/app/firebase.js';
+        import { Analytics } from "@vercel/analytics/next"
 
         const loginForm = document.getElementById('login-form');
         const errorBox = document.getElementById('error-box');

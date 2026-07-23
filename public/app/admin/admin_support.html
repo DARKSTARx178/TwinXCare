@@ -120,6 +120,7 @@
 
     <script type="module">
         import { auth, onAuthStateChanged, db, doc, getDoc, collection, getDocs, query, orderBy, updateDoc, deleteDoc } from '/app/firebase.js';
+        import { Analytics } from "@vercel/analytics/next"
 
         const listEl = document.getElementById('list');
         const summaryEl = document.getElementById('summary');

@@ -214,6 +214,7 @@
 
     <script type="module">
         import { auth, onAuthStateChanged, db, doc, getDoc, collection, getDocs, updateDoc } from '/app/firebase.js';
+        import { Analytics } from "@vercel/analytics/next"
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {

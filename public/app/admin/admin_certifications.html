@@ -250,6 +250,7 @@
 
     <script type="module">
         import { auth, onAuthStateChanged, db, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp } from '/app/firebase.js';
+        import { Analytics } from "@vercel/analytics/next"
 
         const CERT_CATALOG_PATH = 'escort/certifications/catalog';
         const CERT_SUBMISSIONS_PATH = 'escort/certifications/submissions';

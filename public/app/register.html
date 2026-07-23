@@ -237,6 +237,7 @@
 
     <script type="module">
         import { auth, db, onAuthStateChanged, createUserWithEmailAndPassword, doc, setDoc } from '/app/firebase.js';
+        import { Analytics } from "@vercel/analytics/next"
 
         let selectedType = 'standard';
         window.setType = (type) => {

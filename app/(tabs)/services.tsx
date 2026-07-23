@@ -101,7 +101,7 @@ export default function Services() {
     return (
       <View style={[styles.statusBadge, { backgroundColor: bgColor }]}>
         <View style={[styles.statusDot, { backgroundColor: color }]} />
-        <Text style={[styles.statusText, { color }]}>{status.toUpperCase()}</Text>
+        <Text style={[styles.statusText, { color, fontSize: textSize - 6 }]}>{status.toUpperCase()}</Text>
       </View>
     );
   };
@@ -114,20 +114,15 @@ export default function Services() {
     >
       <View style={styles.header}>
         <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
-          <Ionicons name="shield-outline" size={32} color={theme.primary} />
+          <Ionicons name="car" size={32} color={theme.primary} />
         </View>
-        <Text style={[styles.title, { color: theme.text }]}>{t.escort}</Text>
-        <Text style={[styles.subtitle, { color: theme.textDim }]}>
-          {(userRole === 'admin' || userType === 'escort')
-            ? t.escort
-            : t.requestEscort}
-        </Text>
+        <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>{t.escort}</Text>
       </View>
 
       {userRole === 'admin' && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t.adminOnly}</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text, fontSize: textSize + 2 }]}>{t.adminOnly}</Text>
             <Ionicons name="lock-closed-outline" size={16} color={theme.primary} />
           </View>
           <TouchableOpacity
@@ -140,7 +135,7 @@ export default function Services() {
             activeOpacity={0.8}
           >
             <Ionicons name="refresh-circle-outline" size={24} color={theme.primary} />
-            <Text style={[styles.adminCardText, { color: theme.primary }]}>{t.reload}</Text>
+            <Text style={[styles.adminCardText, { color: theme.primary, fontSize: textSize }]}>{t.reload}</Text>
             <Ionicons name="play" size={18} color={theme.primary} />
           </TouchableOpacity>
         </View>
@@ -149,7 +144,7 @@ export default function Services() {
       {((userType === 'standard') || (userRole === 'admin') || (!userType && !userRole)) && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t.requests}</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text, fontSize: textSize + 2 }]}>{t.requests}</Text>
             <TouchableOpacity onPress={() => router.push('/escorts/require-escort')}>
               <View style={[styles.addButton, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}>
                 <Ionicons name="add" size={20} color={theme.primary} />
@@ -160,7 +155,7 @@ export default function Services() {
           {myRequests.length === 0 ? (
             <View style={[styles.emptyCard, { backgroundColor: theme.surface }]}>
               <Ionicons name="document-text-outline" size={40} color={theme.textDim} style={{ opacity: 0.3 }} />
-              <Text style={[styles.emptyText, { color: theme.textDim }]}>No active requests found.</Text>
+              <Text style={[styles.emptyText, { color: theme.textDim, fontSize: textSize - 2 }]}>{t.noItemsMatch}</Text>
             </View>
           ) : (
             myRequests.map((req) => (
@@ -171,17 +166,17 @@ export default function Services() {
                 onPress={() => router.push({ pathname: '/escorts/escort', params: { jobId: req.id, type: 'request' } })}
               >
                 <View style={styles.cardInfo}>
-                  <Text style={[styles.hospitalName, { color: theme.text }]}>{req.hospital}</Text>
+                  <Text style={[styles.hospitalName, { color: theme.text, fontSize: textSize }]}>{req.hospital}</Text>
                   <View style={styles.detailRow}>
                     <Ionicons name="calendar-outline" size={14} color={theme.textDim} />
-                    <Text style={[styles.detailText, { color: theme.textDim }]}>{req.date} at {req.time}</Text>
+                    <Text style={[styles.detailText, { color: theme.textDim, fontSize: textSize - 3 }]}>{req.date} at {req.time}</Text>
                   </View>
                 </View>
                 {renderStatusBadge(req.status)}
                 {req.status === 'matched' && (
                   <View style={[styles.matchInfo, { backgroundColor: theme.primaryGlow }]}>
                     <Ionicons name="checkmark-circle" size={16} color={theme.primary} />
-                    <Text style={[styles.matchText, { color: theme.primary }]}>
+                    <Text style={[styles.matchText, { color: theme.primary, fontSize: textSize - 4 }]}>
                       Volunteer Assigned
                     </Text>
                   </View>
@@ -189,7 +184,7 @@ export default function Services() {
                 {req.status === 'confirmed' && (
                   <View style={[styles.matchInfo, { backgroundColor: '#dcfce7' }]}>
                     <Ionicons name="lock-closed" size={16} color="#059669" />
-                    <Text style={[styles.matchText, { color: '#059669' }]}>Job Confirmed & Locked</Text>
+                    <Text style={[styles.matchText, { color: '#059669', fontSize: textSize - 4 }]}>Job Confirmed & Locked</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -203,11 +198,11 @@ export default function Services() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Volunteering Slots</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text, fontSize: textSize + 2 }]}>Volunteering Slots</Text>
               {userRating !== null && (
                 <View style={styles.inlineRating}>
                   <Ionicons name="star" size={12} color="#f59e0b" />
-                  <Text style={styles.inlineRatingText}>{userRating.toFixed(1)}</Text>
+                  <Text style={[styles.inlineRatingText, { fontSize: textSize - 4 }]}>{userRating.toFixed(1)}</Text>
                 </View>
               )}
             </View>
@@ -221,7 +216,7 @@ export default function Services() {
           {myAvailabilities.length === 0 ? (
             <View style={[styles.emptyCard, { backgroundColor: theme.surface }]}>
               <Ionicons name="calendar-clear-outline" size={40} color={theme.textDim} style={{ opacity: 0.3 }} />
-              <Text style={[styles.emptyText, { color: theme.textDim }]}>No slots specified.</Text>
+              <Text style={[styles.emptyText, { color: theme.textDim, fontSize: textSize - 2 }]}>No slots specified.</Text>
             </View>
           ) : (
             myAvailabilities.map((avail) => (
@@ -232,23 +227,23 @@ export default function Services() {
                 onPress={() => router.push({ pathname: '/escorts/escort', params: { jobId: avail.id, type: 'availability' } })}
               >
                 <View style={styles.cardInfo}>
-                  <Text style={[styles.hospitalName, { color: theme.text }]}>{avail.location}</Text>
+                  <Text style={[styles.hospitalName, { color: theme.text, fontSize: textSize }]}>{avail.location}</Text>
                   <View style={styles.detailRow}>
                     <Ionicons name="time-outline" size={14} color={theme.textDim} />
-                    <Text style={[styles.detailText, { color: theme.textDim }]}>{avail.date} • {avail.fromTime} - {avail.toTime}</Text>
+                    <Text style={[styles.detailText, { color: theme.textDim, fontSize: textSize - 3 }]}>{avail.date} • {avail.fromTime} - {avail.toTime}</Text>
                   </View>
                 </View>
                 {renderStatusBadge(avail.status)}
                 {avail.status === 'matched' && (
                   <View style={[styles.matchInfo, { backgroundColor: theme.primaryGlow }]}>
                     <Ionicons name="heart" size={16} color={theme.primary} />
-                    <Text style={[styles.matchText, { color: theme.primary }]}>Patient assigned</Text>
+                    <Text style={[styles.matchText, { color: theme.primary, fontSize: textSize - 4 }]}>Patient assigned</Text>
                   </View>
                 )}
                 {avail.status === 'confirmed' && (
                   <View style={[styles.matchInfo, { backgroundColor: '#dcfce7' }]}>
                     <Ionicons name="lock-closed" size={16} color="#059669" />
-                    <Text style={[styles.matchText, { color: '#059669' }]}>Job Confirmed & Locked</Text>
+                    <Text style={[styles.matchText, { color: '#059669', fontSize: textSize - 4 }]}>Job Confirmed & Locked</Text>
                   </View>
                 )}
               </TouchableOpacity>

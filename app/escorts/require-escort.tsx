@@ -1,7 +1,9 @@
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
 import LocationAutocomplete, { SelectedLocation } from '@/components/LocationAutocomplete';
 import { auth, db } from '@/firebase/firebase';
 import { checkMatchForRequest } from '@/services/matchingService';
+import { getFontSizeValue } from '@/utils/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
@@ -15,6 +17,8 @@ const CERT_CATALOG_PATH = 'escort/certifications/catalog';
 export default function RequireEscort() {
 	const router = useRouter();
 	const { theme } = useContext(ThemeContext);
+	const { fontSize } = useAccessibility();
+	const textSize = getFontSizeValue(fontSize);
 
 	const [date, setDate] = useState(new Date());
 	const [time, setTime] = useState(new Date());
@@ -169,45 +173,45 @@ export default function RequireEscort() {
 				<View style={[styles.iconCircle, { backgroundColor: '#fdf2f2' }]}>
 					<Ionicons name="medical-outline" size={32} color="#ef4444" />
 				</View>
-				<Text style={[styles.title, { color: theme.text }]}>Request Escort</Text>
-				<Text style={[styles.subtitle, { color: theme.textDim }]}>
+				<Text style={[styles.title, { color: theme.text, fontSize: textSize + 8 }]}>Request Escort</Text>
+				<Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>
 					Request a volunteer to assist you for your medical appointments
 				</Text>
 			</View>
 
 			<View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
-				<Text style={[styles.cardHeading, { color: theme.text }]}>Time & Schedule</Text>
+				<Text style={[styles.cardHeading, { color: theme.text, fontSize: textSize + 2 }]}>Time & Schedule</Text>
 
 				<View style={styles.inputWrapper}>
-					<Text style={[styles.label, { color: theme.textDim }]}>Appointment Date</Text>
+					<Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Appointment Date</Text>
 					<TouchableOpacity
 						onPress={() => setShowDatePicker(true)}
 						style={[styles.datePicker, { backgroundColor: '#F1F5F9' }]}
 					>
 						<Ionicons name="calendar-outline" size={20} color={theme.primary} style={{ marginRight: 10 }} />
-						<Text style={[styles.dateText, { color: theme.text }]}>{formatDate(date)}</Text>
+						<Text style={[styles.dateText, { color: theme.text, fontSize: textSize - 1 }]}>{formatDate(date)}</Text>
 					</TouchableOpacity>
 				</View>
 
 				<View style={[styles.formRow, { gap: 12 }]}>
 					<View style={styles.inputWrapper}>
-						<Text style={[styles.label, { color: theme.textDim }]}>Starts At</Text>
+						<Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Starts At</Text>
 						<TouchableOpacity
 							onPress={() => setShowTimePicker(true)}
 							style={[styles.timePicker, { backgroundColor: '#F1F5F9' }]}
 						>
 							<Ionicons name="time-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
-							<Text style={[styles.timeText, { color: theme.text }]}>{formatTime(time)}</Text>
+							<Text style={[styles.timeText, { color: theme.text, fontSize: textSize - 2 }]}>{formatTime(time)}</Text>
 						</TouchableOpacity>
 					</View>
 					<View style={styles.inputWrapper}>
-						<Text style={[styles.label, { color: theme.textDim }]}>Estimated End</Text>
+						<Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Estimated End</Text>
 						<TouchableOpacity
 							onPress={() => setShowEndTimePicker(true)}
 							style={[styles.timePicker, { backgroundColor: '#F1F5F9' }]}
 						>
 							<Ionicons name="time-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
-							<Text style={[styles.timeText, { color: theme.text }]}>{formatTime(endTime)}</Text>
+							<Text style={[styles.timeText, { color: theme.text, fontSize: textSize - 2 }]}>{formatTime(endTime)}</Text>
 						</TouchableOpacity>
 					</View>
 				</View>
@@ -253,12 +257,12 @@ export default function RequireEscort() {
 			</View>
 
 			<View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
-				<Text style={[styles.cardHeading, { color: theme.text }]}>Patient & Appointment Info</Text>
+				<Text style={[styles.cardHeading, { color: theme.text, fontSize: textSize + 2 }]}>Patient & Appointment Info</Text>
 
 				<View style={styles.inputWrapper}>
-					<Text style={[styles.label, { color: theme.textDim }]}>Hospital / Clinic</Text>
+					<Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Hospital / Clinic</Text>
 					<TextInput
-						style={[styles.input, { color: theme.text }]}
+						style={[styles.input, { color: theme.text, fontSize: textSize - 1 }]}
 						placeholder="Name of health facility"
 						placeholderTextColor="#94a3b8"
 						value={hospital}
@@ -279,9 +283,9 @@ export default function RequireEscort() {
 				</View>
 
 				<View style={styles.inputWrapper}>
-					<Text style={[styles.label, { color: theme.textDim }]}>Appointment Info</Text>
+					<Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Appointment Info</Text>
 					<TextInput
-						style={[styles.input, { color: theme.text }]}
+						style={[styles.input, { color: theme.text, fontSize: textSize - 1 }]}
 						placeholder="e.g. back pain, joint pain"
 						placeholderTextColor="#94a3b8"
 						value={appointmentInfo}
@@ -291,9 +295,9 @@ export default function RequireEscort() {
 
 				<View style={styles.formRow}>
 					<View style={[styles.inputWrapper, { flex: 1, marginRight: 12 }]}>
-						<Text style={[styles.label, { color: theme.textDim }]}>Patient Age</Text>
+						<Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Patient Age</Text>
 						<TextInput
-							style={[styles.input, { color: theme.text }]}
+							style={[styles.input, { color: theme.text, fontSize: textSize - 1 }]}
 							placeholder="70"
 							value={age}
 							onChangeText={setAge}
@@ -301,9 +305,9 @@ export default function RequireEscort() {
 						/>
 					</View>
 					<View style={[styles.inputWrapper, { flex: 2 }]}>
-						<Text style={[styles.label, { color: theme.textDim }]}>Contact Phone</Text>
+						<Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Contact Phone</Text>
 						<TextInput
-							style={[styles.input, { color: theme.text }]}
+							style={[styles.input, { color: theme.text, fontSize: textSize - 1 }]}
 							placeholder="Mobile number"
 							placeholderTextColor="#94a3b8"
 							value={contactPhone}
@@ -314,9 +318,9 @@ export default function RequireEscort() {
 				</View>
 
 				<View style={styles.inputWrapper}>
-					<Text style={[styles.label, { color: theme.textDim }]}>Emergency Contact Number</Text>
+					<Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Emergency Contact Number</Text>
 					<TextInput
-						style={[styles.input, { color: theme.text }]}
+						style={[styles.input, { color: theme.text, fontSize: textSize - 1 }]}
 						placeholder="Emergency contact number"
 						placeholderTextColor="#94a3b8"
 						value={emergencyContactPhone}
@@ -326,9 +330,9 @@ export default function RequireEscort() {
 				</View>
 
 				<View style={styles.inputWrapper}>
-					<Text style={[styles.label, { color: theme.textDim }]}>Medical Details / Notes / Constraints</Text>
+					<Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Medical Details / Notes / Constraints</Text>
 					<TextInput
-						style={[styles.input, { color: theme.text, minHeight: 80, textAlignVertical: 'top' }]}
+						style={[styles.input, { color: theme.text, fontSize: textSize - 1, minHeight: 80, textAlignVertical: 'top' }]}
 						placeholder="Mobility constraints, medications, etc."
 						placeholderTextColor="#94a3b8"
 						value={medicalDetails}
@@ -338,13 +342,13 @@ export default function RequireEscort() {
 				</View>
 
 				<View style={styles.inputWrapper}>
-					<Text style={[styles.label, { color: theme.textDim }]}>Required Certification</Text>
+					<Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Required Certification</Text>
 					<View style={[styles.pickerWrap, { borderColor: theme.border }]}>
 						<Picker
 							enabled={!submitting && certCatalog.length > 0}
 							selectedValue={selectedCertId}
 							onValueChange={(value) => setSelectedCertId(String(value))}
-							style={{ color: theme.text }}
+							style={{ color: theme.text, fontSize: textSize - 1 }}
 						>
 							{certCatalog.length === 0 ? (
 								<Picker.Item label="No certification types configured by admin" value="" />
@@ -356,16 +360,16 @@ export default function RequireEscort() {
 						</Picker>
 					</View>
 					{selectedCertId ? (
-						<Text style={[styles.helperText, { color: theme.textDim }]}>
+						<Text style={[styles.helperText, { color: theme.textDim, fontSize: textSize - 4 }]}>
 							{certCatalog.find((item) => item.id === selectedCertId)?.description || 'Selected certification will be shared with volunteers.'}
 						</Text>
 					) : null}
 				</View>
 
 				<View style={styles.inputWrapper}>
-					<Text style={[styles.label, { color: theme.textDim }]}>Instructions</Text>
+					<Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Instructions</Text>
 					<TextInput
-						style={[styles.input, { color: theme.text, minHeight: 60, textAlignVertical: 'top' }]}
+						style={[styles.input, { color: theme.text, fontSize: textSize - 1, minHeight: 60, textAlignVertical: 'top' }]}
 						placeholder="Anything else we should know?"
 						placeholderTextColor="#94a3b8"
 						value={instructions}
@@ -384,7 +388,7 @@ export default function RequireEscort() {
 					disabled={submitting}
 					activeOpacity={0.8}
 				>
-					<Text style={[styles.submitText, { color: submitting ? '#94B3B8' : theme.primary }]}>
+					<Text style={[styles.submitText, { color: submitting ? '#94B3B8' : theme.primary, fontSize: textSize }]}>
 						{submitting ? 'Processing...' : 'Submit Request'}
 					</Text>
 					{!submitting && <Ionicons name="send-outline" size={18} color={theme.primary} style={{ marginLeft: 8 }} />}

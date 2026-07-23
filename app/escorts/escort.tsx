@@ -1,7 +1,9 @@
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
 import LocationAutocomplete, { SelectedLocation } from '@/components/LocationAutocomplete';
 import { auth, db } from '@/firebase/firebase';
 import { checkMatchForAvailability, finalizeEscortJob, lockInJob } from '@/services/matchingService';
+import { getFontSizeValue } from '@/utils/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -19,6 +21,8 @@ const HITTING_POINT = SLIDER_WIDTH - KNOB_SIZE - 20;
 export default function EscortAvailability() {
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
+  const { fontSize } = useAccessibility();
+  const textSize = getFontSizeValue(fontSize);
   const { jobId, type } = useLocalSearchParams<{ jobId: string, type: 'request' | 'availability' }>();
 
   const [jobData, setJobData] = useState<any>(null);
@@ -302,16 +306,16 @@ export default function EscortAvailability() {
         <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
           <Ionicons name="calendar-outline" size={32} color={theme.primary} />
         </View>
-        <Text style={[styles.title, { color: theme.text }]}>Volunteer Availability</Text>
+        <Text style={[styles.title, { color: theme.text, fontSize: textSize + 8 }]}>Volunteer Availability</Text>
         {userRating !== null && (
           <View style={styles.ratingRow}>
             <Ionicons name="star" size={16} color="#f59e0b" />
-            <Text style={[styles.ratingText, { color: theme.text }]}>
+            <Text style={[styles.ratingText, { color: theme.text, fontSize: textSize - 2 }]}>
               {userRating.toFixed(1)} ({ratingCount} reviews)
             </Text>
           </View>
         )}
-        <Text style={[styles.subtitle, { color: theme.textDim }]}>
+        <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>
           Offer escort services to patients
         </Text>
       </View>
@@ -320,7 +324,7 @@ export default function EscortAvailability() {
         <View style={{ paddingHorizontal: 20 }}>
           <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <Text style={[styles.cardHeading, { color: theme.text, marginBottom: 0 }]}>Assignment Overview</Text>
+              <Text style={[styles.cardHeading, { color: theme.text, fontSize: textSize + 2, marginBottom: 0 }]}>Assignment Overview</Text>
               <View style={[styles.statusBadge, {
                 backgroundColor:
                   jobData?.status === 'confirmed' ? '#ecfdf5' :
@@ -328,7 +332,7 @@ export default function EscortAvailability() {
                       (jobData?.status === 'available' || jobData?.status === 'pending') ? '#fef2f2' : '#f8fafc'
               }]}>
                 <Text style={{
-                  fontSize: 10, fontWeight: '800',
+                  fontSize: textSize - 6, fontWeight: '800',
                   color:
                     jobData?.status === 'confirmed' ? '#10b981' :
                       jobData?.status === 'matched' ? '#f59e0b' :
@@ -343,22 +347,22 @@ export default function EscortAvailability() {
               <View style={[styles.detailRow, { marginBottom: 15 }]}>
                 <Ionicons name="finger-print" size={20} color={theme.primary} />
                 <View>
-                  <Text style={[styles.detailLabel, { color: theme.textDim }]}>REFERENCE ID</Text>
-                  <Text style={[styles.detailValue, { color: theme.text, fontSize: 13, fontFamily: 'Courier' }]}>{jobId}</Text>
+                  <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>REFERENCE ID</Text>
+                  <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 3, fontFamily: 'Courier' }]}>{jobId}</Text>
                 </View>
               </View>
               <View style={styles.detailRow}>
                 <Ionicons name="location" size={20} color={theme.primary} />
                 <View>
-                  <Text style={[styles.detailLabel, { color: theme.textDim }]}>LOCATION</Text>
-                  <Text style={[styles.detailValue, { color: theme.text }]}>{jobData?.location || jobData?.hospital || 'N/A'}</Text>
+                  <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>LOCATION</Text>
+                  <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 1 }]}>{jobData?.location || jobData?.hospital || 'N/A'}</Text>
                 </View>
               </View>
               <View style={[styles.detailRow, { marginTop: 15 }]}>
                 <Ionicons name="calendar" size={20} color={theme.primary} />
                 <View>
-                  <Text style={[styles.detailLabel, { color: theme.textDim }]}>DATE & TIME</Text>
-                  <Text style={[styles.detailValue, { color: theme.text }]}>
+                  <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>DATE & TIME</Text>
+                  <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 1 }]}>
                     {jobData?.date} • {jobData?.fromTime || jobData?.time} - {jobData?.toTime || jobData?.endTime}
                   </Text>
                 </View>
@@ -367,8 +371,8 @@ export default function EscortAvailability() {
                 <View style={[styles.detailRow, { marginTop: 15 }]}>
                   <Ionicons name="document-text" size={20} color={theme.primary} />
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.detailLabel, { color: theme.textDim }]}>NOTES</Text>
-                    <Text style={[styles.detailValue, { color: theme.text }]}>{jobData?.notes}</Text>
+                    <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>NOTES</Text>
+                    <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 1 }]}>{jobData?.notes}</Text>
                   </View>
                 </View>
               )}
@@ -376,13 +380,13 @@ export default function EscortAvailability() {
 
             {type === 'availability' && jobData?.matchedRequestId && (
               <View style={[styles.detailBox, { marginTop: 16 }]}>
-                <Text style={[styles.cardHeading, { color: theme.text, fontSize: 18, marginBottom: 14 }]}>Patient Details</Text>
+                <Text style={[styles.cardHeading, { color: theme.text, fontSize: textSize + 2, marginBottom: 14 }]}>Patient Details</Text>
 
                 <View style={styles.detailRow}>
                   <Ionicons name="person" size={20} color={theme.primary} />
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.detailLabel, { color: theme.textDim }]}>PATIENT</Text>
-                    <Text style={[styles.detailValue, { color: theme.text }]}>
+                    <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>PATIENT</Text>
+                    <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 1 }]}>
                       {matchedRequestData?.caregiverName || matchedRequestData?.patientName || matchedRequestData?.userEmail || 'N/A'}
                     </Text>
                   </View>
@@ -391,8 +395,8 @@ export default function EscortAvailability() {
                 <View style={[styles.detailRow, { marginTop: 12 }]}>
                   <Ionicons name="call" size={20} color={theme.primary} />
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.detailLabel, { color: theme.textDim }]}>CONTACT PHONE</Text>
-                    <Text style={[styles.detailValue, { color: theme.text }]}>
+                    <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>CONTACT PHONE</Text>
+                    <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 1 }]}>
                       {matchedRequestData?.contactPhone || 'N/A'}
                     </Text>
                   </View>
@@ -401,8 +405,8 @@ export default function EscortAvailability() {
                 <View style={[styles.detailRow, { marginTop: 12 }]}>
                   <Ionicons name="warning" size={20} color={theme.primary} />
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.detailLabel, { color: theme.textDim }]}>EMERGENCY CONTACT</Text>
-                    <Text style={[styles.detailValue, { color: theme.text }]}>
+                    <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>EMERGENCY CONTACT</Text>
+                    <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 1 }]}>
                       {matchedRequestData?.emergencyContactPhone || 'N/A'}
                     </Text>
                   </View>
@@ -412,8 +416,8 @@ export default function EscortAvailability() {
                   <View style={[styles.detailRow, { marginTop: 12 }]}>
                     <Ionicons name="person-outline" size={20} color={theme.primary} />
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.detailLabel, { color: theme.textDim }]}>AGE</Text>
-                      <Text style={[styles.detailValue, { color: theme.text }]}>
+                      <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>AGE</Text>
+                      <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 1 }]}>
                         {String(matchedRequestData.age)}
                       </Text>
                     </View>
@@ -424,8 +428,8 @@ export default function EscortAvailability() {
                   <View style={[styles.detailRow, { marginTop: 12 }]}>
                     <Ionicons name="ribbon" size={20} color={theme.primary} />
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.detailLabel, { color: theme.textDim }]}>REQUIRED CERTIFICATION</Text>
-                      <Text style={[styles.detailValue, { color: theme.text }]}>
+                      <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>REQUIRED CERTIFICATION</Text>
+                      <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 1 }]}>
                         {matchedRequestData.requiredCertificationName}
                       </Text>
                     </View>
@@ -435,8 +439,8 @@ export default function EscortAvailability() {
                 <View style={[styles.detailRow, { marginTop: 12 }]}>
                   <Ionicons name="medkit" size={20} color={theme.primary} />
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.detailLabel, { color: theme.textDim }]}>MEDICAL DETAILS</Text>
-                    <Text style={[styles.detailValue, { color: theme.text }]}>
+                    <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>MEDICAL DETAILS</Text>
+                    <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 1 }]}>
                       {matchedRequestData?.medicalDetails || 'N/A'}
                     </Text>
                   </View>
@@ -445,8 +449,8 @@ export default function EscortAvailability() {
                 <View style={[styles.detailRow, { marginTop: 12 }]}>
                   <Ionicons name="chatbox-ellipses" size={20} color={theme.primary} />
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.detailLabel, { color: theme.textDim }]}>APPOINTMENT INFO</Text>
-                    <Text style={[styles.detailValue, { color: theme.text }]}>
+                    <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>APPOINTMENT INFO</Text>
+                    <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 1 }]}>
                       {matchedRequestData?.appointmentInfo || matchedRequestData?.appointmentReason || 'N/A'}
                     </Text>
                   </View>
@@ -455,8 +459,8 @@ export default function EscortAvailability() {
                 <View style={[styles.detailRow, { marginTop: 12 }]}>
                   <Ionicons name="document-text-outline" size={20} color={theme.primary} />
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.detailLabel, { color: theme.textDim }]}>INSTRUCTIONS</Text>
-                    <Text style={[styles.detailValue, { color: theme.text }]}>
+                    <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>INSTRUCTIONS</Text>
+                    <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 1 }]}>
                       {matchedRequestData?.instructions || matchedRequestData?.additionalNotes || 'N/A'}
                     </Text>
                   </View>
@@ -468,12 +472,12 @@ export default function EscortAvailability() {
               <View style={{ marginTop: 40 }}>
                 {type === 'request' && (
                   <View style={[styles.detailBox, { marginBottom: 16 }]}>
-                    <Text style={[styles.cardHeading, { color: theme.text, fontSize: 18, marginBottom: 14 }]}>Assigned Volunteer</Text>
+                    <Text style={[styles.cardHeading, { color: theme.text, fontSize: textSize + 2, marginBottom: 14 }]}>Assigned Volunteer</Text>
                     <View style={styles.detailRow}>
                       <Ionicons name="person-circle" size={20} color={theme.primary} />
                       <View style={{ flex: 1 }}>
-                        <Text style={[styles.detailLabel, { color: theme.textDim }]}>VOLUNTEER</Text>
-                        <Text style={[styles.detailValue, { color: theme.text }]}>
+                        <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>VOLUNTEER</Text>
+                        <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 1 }]}>
                           {jobData?.matchedProviderName || matchedProviderData?.username || matchedProviderData?.email || 'N/A'}
                         </Text>
                       </View>
@@ -481,8 +485,8 @@ export default function EscortAvailability() {
                     <View style={[styles.detailRow, { marginTop: 12 }]}>
                       <Ionicons name="star" size={20} color={theme.primary} />
                       <View style={{ flex: 1 }}>
-                        <Text style={[styles.detailLabel, { color: theme.textDim }]}>RATING</Text>
-                        <Text style={[styles.detailValue, { color: theme.text }]}>
+                        <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>RATING</Text>
+                        <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 1 }]}>
                           {typeof matchedProviderData?.rating === 'number'
                             ? `${matchedProviderData.rating.toFixed(1)} (${matchedProviderData?.ratingCount || 0} reviews)`
                             : 'No ratings yet'}
@@ -492,8 +496,8 @@ export default function EscortAvailability() {
                     <View style={[styles.detailRow, { marginTop: 12 }]}>
                       <Ionicons name="ribbon" size={20} color={theme.primary} />
                       <View style={{ flex: 1 }}>
-                        <Text style={[styles.detailLabel, { color: theme.textDim }]}>APPROVED CERTIFICATIONS</Text>
-                        <Text style={[styles.detailValue, { color: theme.text }]}>
+                        <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>APPROVED CERTIFICATIONS</Text>
+                        <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 1 }]}>
                           {matchedProviderCerts.length ? matchedProviderCerts.join(', ') : 'No approved certifications'}
                         </Text>
                       </View>
@@ -504,17 +508,17 @@ export default function EscortAvailability() {
                 {(type === 'request' ? jobData?.patientConfirmed : jobData?.volunteerConfirmed) ? (
                   <View style={styles.confirmedBox}>
                     <Ionicons name="time" size={32} color={theme.primary} />
-                    <Text style={{ fontWeight: '800', color: theme.text, marginTop: 10 }}>WAITING FOR COUNTERPART</Text>
-                    <Text style={{ fontSize: 13, color: theme.textDim, textAlign: 'center', marginTop: 5 }}>
+                    <Text style={{ fontWeight: '800', color: theme.text, fontSize: textSize - 2, marginTop: 10 }}>WAITING FOR COUNTERPART</Text>
+                    <Text style={{ fontSize: textSize - 3, color: theme.textDim, textAlign: 'center', marginTop: 5 }}>
                       You have confirmed. Status will update once the other person slides to agree.
                     </Text>
                   </View>
                 ) : (
                   <>
-                    <Text style={[styles.label, { color: theme.textDim, textAlign: 'center', marginBottom: 20 }]}>Slide to Agree & Confirm Match</Text>
+                    <Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5, textAlign: 'center', marginBottom: 20 }]}>Slide to Agree & Confirm Match</Text>
                     <View style={styles.sliderContainer}>
                       <Animated.View style={[styles.sliderTrack, animatedTrackStyle]}>
-                        <Text style={[styles.sliderHint, { color: theme.textDim }]}>Confirming...</Text>
+                        <Text style={[styles.sliderHint, { color: theme.textDim, fontSize: textSize - 2 }]}>Confirming...</Text>
                       </Animated.View>
                       <GestureDetector gesture={panGesture}>
                         <Animated.View style={[styles.sliderKnob, animatedKnobStyle]}>
@@ -532,8 +536,8 @@ export default function EscortAvailability() {
                 {(type === 'request' ? jobData?.patientCompleted : jobData?.volunteerCompleted) ? (
                   <View style={styles.confirmedBox}>
                     <Ionicons name="time" size={32} color={theme.primary} />
-                    <Text style={{ fontWeight: '800', color: theme.text, marginTop: 10 }}>WAITING FOR COUNTERPART</Text>
-                    <Text style={{ fontSize: 13, color: theme.textDim, textAlign: 'center', marginTop: 5 }}>
+                    <Text style={{ fontWeight: '800', color: theme.text, fontSize: textSize - 2, marginTop: 10 }}>WAITING FOR COUNTERPART</Text>
+                    <Text style={{ fontSize: textSize - 3, color: theme.textDim, textAlign: 'center', marginTop: 5 }}>
                       You have ended the job. Status will update once the other person confirms completion.
                     </Text>
                   </View>
@@ -541,7 +545,7 @@ export default function EscortAvailability() {
                   <>
                     {type === 'request' && (
                       <>
-                        <Text style={[styles.label, { color: theme.textDim, textAlign: 'center', marginBottom: 10 }]}>Rate your Experience</Text>
+                        <Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5, textAlign: 'center', marginBottom: 10 }]}>Rate your Experience</Text>
                         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 30 }}>
                           {[1, 2, 3, 4, 5].map(v => (
                             <TouchableOpacity key={v} onPress={() => setSelectedRating(v)}>
@@ -552,10 +556,10 @@ export default function EscortAvailability() {
                       </>
                     )}
 
-                    <Text style={[styles.label, { color: theme.textDim, textAlign: 'center', marginBottom: 20 }]}>Slide to End Job</Text>
+                    <Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5, textAlign: 'center', marginBottom: 20 }]}>Slide to End Job</Text>
                     <View style={styles.sliderContainer}>
                       <Animated.View style={[styles.sliderTrack, animatedTrackStyle]}>
-                        <Text style={[styles.sliderHint, { color: theme.textDim }]}>Ending Job...</Text>
+                        <Text style={[styles.sliderHint, { color: theme.textDim, fontSize: textSize - 2 }]}>Ending Job...</Text>
                       </Animated.View>
                       <GestureDetector gesture={panGesture}>
                         <Animated.View style={[styles.sliderKnob, animatedKnobStyle]}>
@@ -571,8 +575,8 @@ export default function EscortAvailability() {
             {jobData?.status === 'completed' && (
               <View style={[styles.confirmedBox, { backgroundColor: '#f1f5f9' }]}>
                 <Ionicons name="flag" size={40} color="#64748b" />
-                <Text style={{ fontWeight: '800', color: '#334155', marginTop: 10 }}>ASSIGNMENT COMPLETED</Text>
-                <Text style={{ fontSize: 13, color: '#64748b', textAlign: 'center', marginTop: 5 }}>
+                <Text style={{ fontWeight: '800', color: '#334155', fontSize: textSize - 2, marginTop: 10 }}>ASSIGNMENT COMPLETED</Text>
+                <Text style={{ fontSize: textSize - 3, color: '#64748b', textAlign: 'center', marginTop: 5 }}>
                   Thank you for using TwinXCare. This case is now closed.
                 </Text>
               </View>
@@ -582,16 +586,16 @@ export default function EscortAvailability() {
       ) : (
         <>
           <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
-            <Text style={[styles.cardHeading, { color: theme.text }]}>Service Schedule</Text>
+            <Text style={[styles.cardHeading, { color: theme.text, fontSize: textSize + 2 }]}>Service Schedule</Text>
 
             <View style={styles.inputWrapper}>
-              <Text style={[styles.label, { color: theme.textDim }]}>Escort Date</Text>
+              <Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Escort Date</Text>
               <TouchableOpacity
                 onPress={() => setShowDatePicker(true)}
                 style={[styles.datePicker, { backgroundColor: '#F1F5F9' }]}
               >
                 <Ionicons name="calendar-outline" size={20} color={theme.primary} style={{ marginRight: 10 }} />
-                <Text style={[styles.dateText, { color: theme.text }]}>{formatDate(date)}</Text>
+                <Text style={[styles.dateText, { color: theme.text, fontSize: textSize - 1 }]}>{formatDate(date)}</Text>
               </TouchableOpacity>
             </View>
 
@@ -610,23 +614,23 @@ export default function EscortAvailability() {
 
             <View style={[styles.formRow, { gap: 12 }]}>
               <View style={styles.inputWrapper}>
-                <Text style={[styles.label, { color: theme.textDim }]}>Available From</Text>
+                <Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Available From</Text>
                 <TouchableOpacity
                   onPress={() => setShowFromPicker(true)}
                   style={[styles.timePicker, { backgroundColor: '#F1F5F9' }]}
                 >
                   <Ionicons name="time-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
-                  <Text style={[styles.timeText, { color: theme.text }]}>{formatTime(fromTime)}</Text>
+                  <Text style={[styles.timeText, { color: theme.text, fontSize: textSize - 2 }]}>{formatTime(fromTime)}</Text>
                 </TouchableOpacity>
               </View>
               <View style={styles.inputWrapper}>
-                <Text style={[styles.label, { color: theme.textDim }]}>Available Until</Text>
+                <Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Available Until</Text>
                 <TouchableOpacity
                   onPress={() => setShowToPicker(true)}
                   style={[styles.timePicker, { backgroundColor: '#F1F5F9' }]}
                 >
                   <Ionicons name="time-outline" size={20} color={theme.primary} style={{ marginRight: 8 }} />
-                  <Text style={[styles.timeText, { color: theme.text }]}>{formatTime(toTime)}</Text>
+                  <Text style={[styles.timeText, { color: theme.text, fontSize: textSize - 2 }]}>{formatTime(toTime)}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -661,7 +665,7 @@ export default function EscortAvailability() {
           </View>
 
           <View style={[styles.card, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
-            <Text style={[styles.cardHeading, { color: theme.text }]}>Volunteer Details</Text>
+            <Text style={[styles.cardHeading, { color: theme.text, fontSize: textSize + 2 }]}>Volunteer Details</Text>
 
             <View style={styles.inputWrapper}>
               <LocationAutocomplete
@@ -677,9 +681,9 @@ export default function EscortAvailability() {
 
             <View style={styles.formRow}>
               <View style={[styles.inputWrapper, { flex: 1, marginRight: 12 }]}>
-                <Text style={[styles.label, { color: theme.textDim }]}>Max location radius travelled (KM)</Text>
+                <Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Max location radius travelled (KM)</Text>
                 <TextInput
-                  style={[styles.input, { color: theme.text }]}
+                  style={[styles.input, { color: theme.text, fontSize: textSize - 1 }]}
                   placeholder="5"
                   value={serviceRadiusKm}
                   onChangeText={setServiceRadiusKm}
@@ -687,9 +691,9 @@ export default function EscortAvailability() {
                 />
               </View>
               <View style={[styles.inputWrapper, { flex: 1.2 }]}>
-                <Text style={[styles.label, { color: theme.textDim }]}>Contact Phone</Text>
+                <Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Contact Phone</Text>
                 <TextInput
-                  style={[styles.input, { color: theme.text }]}
+                  style={[styles.input, { color: theme.text, fontSize: textSize - 1 }]}
                   placeholder="Your active number"
                   placeholderTextColor="#94a3b8"
                   value={contactPhone}
@@ -709,7 +713,7 @@ export default function EscortAvailability() {
               disabled={submitting}
               activeOpacity={0.8}
             >
-              <Text style={[styles.submitText, { color: submitting ? '#94B3B8' : theme.primary }]}>
+              <Text style={[styles.submitText, { color: submitting ? '#94B3B8' : theme.primary, fontSize: textSize }]}>
                 {submitting ? 'Registering...' : 'Register Availability'}
               </Text>
               {!submitting && <Ionicons name="checkmark-circle-outline" size={20} color={theme.primary} style={{ marginLeft: 8 }} />}
@@ -717,10 +721,10 @@ export default function EscortAvailability() {
           </View>
 
           <View style={{ paddingHorizontal: 20, marginTop: 10 }}>
-            <Text style={[styles.cardHeading, { color: theme.text, marginLeft: 10 }]}>Recent Slots</Text>
+            <Text style={[styles.cardHeading, { color: theme.text, fontSize: textSize + 2, marginLeft: 10 }]}>Recent Slots</Text>
             {mySlots.length === 0 ? (
               <View style={[styles.emptyInline, { backgroundColor: theme.surface }]}>
-                <Text style={{ color: theme.textDim }}>No slots yet.</Text>
+                <Text style={{ color: theme.textDim, fontSize: textSize - 2 }}>No slots yet.</Text>
               </View>
             ) : (
               mySlots.map(slot => (
@@ -730,10 +734,10 @@ export default function EscortAvailability() {
                   onPress={() => router.setParams({ jobId: slot.id, type: 'availability' })}
                 >
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.slotTitle, { color: theme.text }]}>{slot.location || 'No Location'}</Text>
-                    <Text style={[styles.slotSub, { color: theme.textDim, fontSize: 10, marginTop: 4 }]}>ID: {slot.id}</Text>
-                    <Text style={[styles.slotSub, { color: theme.textDim }]}>{slot.date} • {slot.fromTime}</Text>
-                    {slot.notes ? <Text style={[styles.slotSub, { color: theme.textDim, fontStyle: 'italic' }]} numberOfLines={1}>{slot.notes}</Text> : null}
+                    <Text style={[styles.slotTitle, { color: theme.text, fontSize: textSize - 2 }]}>{slot.location || 'No Location'}</Text>
+                    <Text style={[styles.slotSub, { color: theme.textDim, fontSize: textSize - 6, marginTop: 4 }]}>ID: {slot.id}</Text>
+                    <Text style={[styles.slotSub, { color: theme.textDim, fontSize: textSize - 4 }]}>{slot.date} • {slot.fromTime}</Text>
+                    {slot.notes ? <Text style={[styles.slotSub, { color: theme.textDim, fontSize: textSize - 4, fontStyle: 'italic' }]} numberOfLines={1}>{slot.notes}</Text> : null}
                   </View>
                   <View style={[styles.statusTag, {
                     backgroundColor:
@@ -742,7 +746,7 @@ export default function EscortAvailability() {
                           (slot.status === 'available' || slot.status === 'pending') ? '#fef2f2' : '#f8fafc'
                   }]}>
                     <Text style={{
-                      fontSize: 9, fontWeight: '800',
+                      fontSize: textSize - 7, fontWeight: '800',
                       color:
                         slot.status === 'confirmed' ? '#10b981' :
                           slot.status === 'matched' ? '#f59e0b' :

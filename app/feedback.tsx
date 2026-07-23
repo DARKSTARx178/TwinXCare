@@ -1,4 +1,6 @@
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
+import { getFontSizeValue } from '@/utils/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -14,6 +16,8 @@ export default function Feedback() {
   const [username, setUsername] = useState('Anonymous');
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
+  const { fontSize } = useAccessibility();
+  const textSize = getFontSizeValue(fontSize);
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -93,13 +97,13 @@ export default function Feedback() {
           <Ionicons name="chatbubble-ellipses-outline" size={32} color={theme.primary} />
         </View>
 
-        <Text style={[styles.title, { color: theme.text }]}>Share Your Feedback</Text>
-        <Text style={[styles.subtitle, { color: theme.textDim }]}>
-          Tell us how we're doing.
+        <Text style={[styles.title, { color: theme.text, fontSize: textSize + 8 }]}>Share Your Feedback</Text>
+        <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 1 }]}>
+          Tell us how we are doing.
         </Text>
 
         <View style={styles.ratingSection}>
-          <Text style={[styles.label, { color: theme.textDim, textAlign: 'center' }]}>Overall Rating</Text>
+          <Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5, textAlign: 'center' }]}>Overall Rating</Text>
           <View style={styles.ratingRow}>
             {[1, 2, 3, 4, 5].map((star) => (
               <TouchableOpacity
@@ -119,9 +123,9 @@ export default function Feedback() {
         </View>
 
         <View style={styles.inputWrapper}>
-          <Text style={[styles.label, { color: theme.textDim }]}>Your Comments</Text>
+          <Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Your Comments</Text>
           <TextInput
-            style={[styles.input, { borderColor: theme.border, color: theme.text }]}
+            style={[styles.input, { borderColor: theme.border, color: theme.text, fontSize: textSize - 1 }]}
             placeholder="Tell us what's on your mind..."
             placeholderTextColor="#94a3b8"
             value={message}
@@ -138,7 +142,7 @@ export default function Feedback() {
           disabled={submitting}
           activeOpacity={0.8}
         >
-          <Text style={[styles.submitText, { color: theme.primary }]}>
+          <Text style={[styles.submitText, { color: theme.primary, fontSize: textSize }]}>
             {submitting ? 'Submitting...' : 'Submit Feedback'}
           </Text>
           {!submitting && <Ionicons name="send-outline" size={18} color={theme.primary} style={{ marginLeft: 8 }} />}

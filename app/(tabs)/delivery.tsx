@@ -1,15 +1,13 @@
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { homeTranslations } from '@/utils/translations';
 import { Ionicons } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
-import { useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import {
-  Dimensions,
   LayoutAnimation,
   Platform,
   RefreshControl,
@@ -29,23 +27,20 @@ if (Platform.OS === 'android') {
 export default function DeliveryPage() {
   const { lang } = useLanguage();
   const t = homeTranslations[lang];
-  const router = useRouter();
   const { theme } = useContext(ThemeContext);
-  const textSize = getFontSizeValue('medium');
-  const screenWidth = Dimensions.get('window').width;
+  const { fontSize } = useAccessibility();
+  const textSize = getFontSizeValue(fontSize);
 
-  const [user, setUser] = useState<any>(null);
   const [orderHistory, setOrderHistory] = useState<any[]>([]);
   const [expandedOrders, setExpandedOrders] = useState<Set<number>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
-  const [filterBy, setFilterBy] = useState<'type' | 'status'>('type');
   const [filterValue, setFilterValue] = useState<'all' | 'orders' | 'bookings' | 'processing' | 'pending' | 'confirmed'>('all');
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
 
   const fetchUserHistory = async () => {
     const currentUser = auth.currentUser;
     if (!currentUser) return;
-    setUser(currentUser);
     const userRef = doc(db, 'users', currentUser.uid);
     const userSnap = await getDoc(userRef);
     if (userSnap.exists()) {
@@ -101,11 +96,8 @@ export default function DeliveryPage() {
       return !(status.includes('completed') || status.includes('delivered'));
     })
     .filter((entry) => {
-      if (filterBy === 'type') {
-        if (filterValue === 'orders') return entry.type === 'order';
-        if (filterValue === 'bookings') return entry.type === 'booking';
-        return true;
-      }
+      if (filterValue === 'orders') return entry.type === 'order';
+      if (filterValue === 'bookings') return entry.type === 'booking';
       const status = String(entry.status || '').toLowerCase();
       if (filterValue === 'processing') return status.includes('processing');
       if (filterValue === 'pending') return status.includes('pending');
@@ -133,94 +125,77 @@ export default function DeliveryPage() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />
       }
     >
-      <TouchableOpacity style={styles.backButton} onPress={() => router.replace('/(tabs)')}>
-        <Ionicons name="arrow-back" size={28} color={theme.text} />
-      </TouchableOpacity>
-
-      <View style={styles.header}>
-        <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
-          <Ionicons name="receipt-outline" size={32} color={theme.primary} />
-        </View>
-        <Text style={[styles.title, { color: theme.text }]}>{t.delivery}</Text>
-        <Text style={[styles.subtitle, { color: theme.textDim }]}>
+      <View style={styles.headerArea}>
+        <Text style={[styles.screenTitle, { color: theme.text, fontSize: textSize + 16 }]}>{t.delivery}</Text>
+        <Text style={[styles.screenSubtitle, { color: theme.textDim, fontSize: textSize - 3 }]}>
           {t.equipmentDeliveryStatus}
         </Text>
-      </View>
 
-      <View style={styles.searchSection}>
         <View style={[styles.searchBox, { backgroundColor: theme.unselectedTab }]}>
-          <Ionicons name="search" size={18} color={theme.textDim} />
+          <Ionicons name="search" size={20} color={theme.textDim} />
           <TextInput
-            style={[styles.searchInput, { color: theme.text }]}
+            style={[styles.searchInput, { color: theme.text, fontSize: textSize - 1 }]}
             placeholder={t.searchOrdersBookingsReference}
-            placeholderTextColor={theme.textDim}
+            placeholderTextColor={theme.textDim + '80'}
             value={search}
             onChangeText={setSearch}
           />
+          <TouchableOpacity
+            style={[styles.searchFilterBtn, { borderColor: theme.primary, backgroundColor: theme.surface }]}
+            onPress={() => setShowFilterMenu((v) => !v)}
+          >
+            <Ionicons name="options-outline" size={20} color={theme.primary} />
+          </TouchableOpacity>
         </View>
-      </View>
 
-      <View style={styles.dropdownRow}>
-        <View style={[styles.dropdownBox, { borderColor: theme.border, backgroundColor: theme.surface }]}>
-          <Picker
-            selectedValue={filterBy}
-            onValueChange={(v) => {
-              const next = v as 'type' | 'status';
-              setFilterBy(next);
-              setFilterValue('all');
-            }}
-            style={{ color: theme.text }}
-          >
-            <Picker.Item label="Filter by Type" value="type" />
-            <Picker.Item label="Filter by Status" value="status" />
-          </Picker>
-        </View>
-        <View style={[styles.dropdownBox, { borderColor: theme.border, backgroundColor: theme.surface }]}>
-          <Picker
-            selectedValue={filterValue}
-            onValueChange={(v) => setFilterValue(v)}
-            style={{ color: theme.text }}
-          >
-            <Picker.Item label="All" value="all" />
-            {filterBy === 'type' ? (
-              <>
-                <Picker.Item label="Orders" value="orders" />
-                <Picker.Item label="Bookings" value="bookings" />
-              </>
-            ) : (
-              <>
-                <Picker.Item label="Processing" value="processing" />
-                <Picker.Item label="Pending" value="pending" />
-                <Picker.Item label="Confirmed" value="confirmed" />
-              </>
-            )}
-          </Picker>
-        </View>
+        {showFilterMenu && (
+          <View style={[styles.filterMenu, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            {[
+              ['all', 'All Active'],
+              ['orders', 'Orders'],
+              ['bookings', 'Bookings'],
+              ['processing', 'Processing'],
+              ['pending', 'Pending'],
+              ['confirmed', 'Confirmed'],
+            ].map(([value, label]) => (
+              <TouchableOpacity
+                key={value}
+                style={[styles.filterOption, filterValue === value && { backgroundColor: theme.primaryGlow }]}
+                onPress={() => {
+                  setFilterValue(value as typeof filterValue);
+                  setShowFilterMenu(false);
+                }}
+              >
+                <Text style={{ color: theme.text, fontWeight: '700', fontSize: textSize - 4 }}>{label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </View>
 
       {latest ? (
         <View style={[styles.heroCard, { backgroundColor: theme.surface, borderWidth: 2, borderColor: theme.primary }]}>
           <View style={styles.heroHeader}>
-            <Text style={[styles.heroType, { color: theme.primary }]}>
+            <Text style={[styles.heroType, { color: theme.primary, fontSize: textSize - 6 }]}>
               {latest.type === 'order' ? 'LATEST ORDER' : 'LATEST BOOKING'}
             </Text>
             <View style={[styles.pulseDot, { backgroundColor: theme.primary }]} />
           </View>
 
-          <Text style={[styles.heroTitle, { color: theme.text }]}>
+          <Text style={[styles.heroTitle, { color: theme.text, fontSize: textSize + 6 }]}>
             {latest.type === 'order' ? latest.name : latest.title}
           </Text>
 
           <View style={styles.heroGrid}>
             <View style={styles.heroItem}>
-              <Text style={[styles.heroLabel, { color: theme.textDim }]}>STATUS</Text>
-              <Text style={[styles.heroValue, { color: theme.primary }]}>
+              <Text style={[styles.heroLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>STATUS</Text>
+              <Text style={[styles.heroValue, { color: theme.primary, fontSize: textSize - 1 }]}>
                 {latest.status || (latest.type === 'order' ? 'Processing' : 'Confirmed')}
               </Text>
             </View>
             <View style={styles.heroItem}>
-              <Text style={[styles.heroLabel, { color: theme.textDim }]}>DATE</Text>
-              <Text style={[styles.heroValue, { color: theme.text }]}>
+              <Text style={[styles.heroLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>DATE</Text>
+              <Text style={[styles.heroValue, { color: theme.text, fontSize: textSize - 1 }]}>
                 {latest.type === 'order' ? formatDate(latest.orderTime).split(',')[0] : formatDate(latest.bookingDate).split(',')[0]}
               </Text>
             </View>
@@ -229,7 +204,7 @@ export default function DeliveryPage() {
           {latest.type === 'order' && latest.deliveryEta && (
             <View style={[styles.etaBanner, { backgroundColor: theme.primaryGlow }]}>
               <Ionicons name="time" size={18} color={theme.primary} />
-              <Text style={[styles.etaText, { color: theme.primary }]}>
+              <Text style={[styles.etaText, { color: theme.primary, fontSize: textSize - 3 }]}>
                 Delivery ETA: {latest.deliveryEta}
               </Text>
             </View>
@@ -238,7 +213,7 @@ export default function DeliveryPage() {
           {latest.type === 'order' && latest.warehouseLocationName && (
             <View style={[styles.etaBanner, { backgroundColor: '#f8fafc' }]}>
               <Ionicons name="business-outline" size={18} color={theme.primary} />
-              <Text style={[styles.etaText, { color: theme.text }]}>
+              <Text style={[styles.etaText, { color: theme.text, fontSize: textSize - 3 }]}>
                 From: {latest.warehouseLocationName}
               </Text>
             </View>
@@ -247,15 +222,15 @@ export default function DeliveryPage() {
       ) : (
         <View style={[styles.heroCard, { backgroundColor: theme.surface, padding: 40, alignItems: 'center', borderWidth: 2, borderColor: theme.border }]}>
           <Ionicons name="basket-outline" size={48} color={theme.textDim} style={{ opacity: 0.2 }} />
-          <Text style={[styles.emptyHeroText, { color: theme.textDim }]}>No active deliveries.</Text>
+          <Text style={[styles.emptyHeroText, { color: theme.textDim, fontSize: textSize - 2 }]}>No active deliveries.</Text>
         </View>
       )}
 
       <View style={styles.historySection}>
         <View style={styles.historyHeader}>
-          <Text style={[styles.historyTitle, { color: theme.text }]}>Timeline</Text>
+          <Text style={[styles.historyTitle, { color: theme.text, fontSize: textSize + 4 }]}>Timeline</Text>
           <View style={[styles.countBadge, { backgroundColor: '#F1F5F9' }]}>
-            <Text style={styles.countText}>{visibleHistory.length}</Text>
+            <Text style={[styles.countText, { fontSize: textSize - 4 }]}>{visibleHistory.length}</Text>
           </View>
         </View>
 
@@ -278,10 +253,10 @@ export default function DeliveryPage() {
                   />
                 </View>
                 <View style={{ flex: 1, marginLeft: 16 }}>
-                  <Text style={[styles.timelineName, { color: theme.text }]}>
+                  <Text style={[styles.timelineName, { color: theme.text, fontSize: textSize - 2 }]}>
                     {isOrder ? `${entry.name} (x${entry.quantity})` : entry.title}
                   </Text>
-                  <Text style={[styles.timelineDate, { color: theme.textDim }]}>
+                  <Text style={[styles.timelineDate, { color: theme.textDim, fontSize: textSize - 4 }]}>
                     {isOrder ? formatDate(entry.orderTime) : formatDate(entry.bookingDate)}
                   </Text>
                 </View>
@@ -296,35 +271,35 @@ export default function DeliveryPage() {
                 <View style={[styles.expandedContent, { borderTopColor: '#f1f5f9' }]}>
                   <View style={styles.detailGrid}>
                     <View style={styles.detailItem}>
-                      <Text style={[styles.detailLabel, { color: theme.textDim }]}>Reference</Text>
-                      <Text style={[styles.detailValue, { color: theme.text }]}>{isOrder ? entry.transactionId : 'N/A'}</Text>
+                      <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>Reference</Text>
+                      <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 3 }]}>{isOrder ? entry.transactionId : 'N/A'}</Text>
                     </View>
                     <View style={styles.detailItem}>
-                      <Text style={[styles.detailLabel, { color: theme.textDim }]}>Total</Text>
-                      <Text style={[styles.detailValue, { color: theme.text }]}>{isOrder ? `$${entry.totalPrice}` : 'Prepaid/Included'}</Text>
+                      <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>Total</Text>
+                      <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 3 }]}>{isOrder ? `$${entry.totalPrice}` : 'Prepaid/Included'}</Text>
                     </View>
                   </View>
 
                   <View style={styles.descriptionBox}>
-                    <Text style={[styles.detailLabel, { color: theme.textDim }]}>{isOrder ? 'Delivery Address' : 'Slot Details'}</Text>
-                    <Text style={[styles.detailValue, { color: theme.text }]}>
+                    <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>{isOrder ? 'Delivery Address' : 'Slot Details'}</Text>
+                    <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 3 }]}>
                       {isOrder ? entry.deliveryAddress : `${entry.timeSlot || 'Anytime'} • ${entry.description || 'No notes'}`}
                     </Text>
                   </View>
 
                   {isOrder && entry.warehouseLocationName && (
                     <View style={styles.descriptionBox}>
-                      <Text style={[styles.detailLabel, { color: theme.textDim }]}>Warehouse Location</Text>
-                      <Text style={[styles.detailValue, { color: theme.text }]}>
+                      <Text style={[styles.detailLabel, { color: theme.textDim, fontSize: textSize - 6 }]}>Warehouse Location</Text>
+                      <Text style={[styles.detailValue, { color: theme.text, fontSize: textSize - 3 }]}>
                         {entry.warehouseLocationName}{entry.warehouseLocationAddress ? ` • ${entry.warehouseLocationAddress}` : ''}
                       </Text>
                     </View>
                   )}
 
                   <View style={[styles.statusRow, { backgroundColor: '#f8fafc' }]}>
-                    <Text style={[styles.statusLabel, { color: theme.textDim }]}>Final Status</Text>
+                    <Text style={[styles.statusLabel, { color: theme.textDim, fontSize: textSize - 5 }]}>Final Status</Text>
                     <View style={[styles.statusBadge, { backgroundColor: theme.primaryGlow }]}>
-                      <Text style={[styles.statusText, { color: theme.primary }]}>{entry.status || 'Confirmed'}</Text>
+                      <Text style={[styles.statusText, { color: theme.primary, fontSize: textSize - 6 }]}>{entry.status || 'Confirmed'}</Text>
                     </View>
                   </View>
                 </View>
@@ -335,7 +310,7 @@ export default function DeliveryPage() {
         {visibleHistory.length === 0 && (
           <View style={[styles.timelineCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border, alignItems: 'center' }]}>
             <Ionicons name="hourglass-outline" size={32} color={theme.textDim} style={{ opacity: 0.4 }} />
-            <Text style={[styles.emptyHeroText, { color: theme.textDim, marginTop: 8 }]}>No active deliveries.</Text>
+            <Text style={[styles.emptyHeroText, { color: theme.textDim, fontSize: textSize - 2, marginTop: 8 }]}>No active deliveries.</Text>
           </View>
         )}
       </View>
@@ -344,63 +319,42 @@ export default function DeliveryPage() {
 }
 
 const styles = StyleSheet.create({
-  backButton: {
-    position: "absolute",
-    top: 50,
-    left: 20,
-    zIndex: 10,
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0,0,0,0.03)',
-  },
-  header: {
-    marginTop: 100,
-    marginBottom: 30,
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  title: { fontSize: 26, fontWeight: '900' },
-  subtitle: { fontSize: 13, fontWeight: '500', marginTop: 4, textAlign: 'center', maxWidth: '85%' },
-  searchSection: {
-    marginHorizontal: 20,
-    marginBottom: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
+  headerArea: { marginTop: 80, marginBottom: 20, paddingHorizontal: 20 },
+  screenTitle: { fontSize: 32, fontWeight: '900', letterSpacing: -0.5 },
+  screenSubtitle: { fontSize: 13, fontWeight: '600', marginTop: 4, marginBottom: 24 },
   searchBox: {
-    flex: 1,
-    height: 46,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    alignItems: 'center',
     flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    height: 54,
+    borderRadius: 18,
+    marginBottom: 14,
   },
   searchInput: {
     flex: 1,
-    marginLeft: 8,
-    fontSize: 13,
+    marginLeft: 12,
+    fontSize: 15,
     fontWeight: '600',
   },
-  dropdownRow: {
-    marginHorizontal: 20,
-    marginBottom: 18,
-    flexDirection: 'row',
-    gap: 10,
-  },
-  dropdownBox: {
-    flex: 1,
-    borderWidth: 1,
+  searchFilterBtn: {
+    width: 38,
+    height: 38,
     borderRadius: 12,
-    overflow: 'hidden',
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
+  },
+  filterMenu: {
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 8,
+    marginBottom: 14,
+  },
+  filterOption: {
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 10,
   },
   heroCard: {
     marginHorizontal: 20,

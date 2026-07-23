@@ -10,45 +10,65 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
     <meta name="theme-color" content="#F8FAFC">
     <style>
-        .toolbar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-
         .search-box {
-            flex: 1;
             display: flex;
             align-items: center;
-            padding: 0 12px;
-            height: 44px;
-            border-radius: 14px;
+            padding: 0 16px;
+            height: 54px;
+            border-radius: 18px;
             background: #E2E8F0;
+            margin-bottom: 14px;
         }
 
         .search-input {
             flex: 1;
-            margin-left: 8px;
+            margin-left: 12px;
             border: none;
             outline: none;
             background: transparent;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             font-weight: 600;
             color: var(--text);
             font-family: inherit;
         }
 
-        .filter-select {
-            height: 44px;
-            border-radius: 14px;
-            border: 1.5px solid var(--border);
+        .search-filter-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            border: 1.5px solid var(--primary);
             background: var(--surface);
-            color: var(--text);
-            padding: 0 10px;
-            font-size: 0.8rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        .filter-menu {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 8px;
+            margin-bottom: 14px;
+            background: var(--surface);
+        }
+
+        .filter-option {
+            width: 100%;
+            border: none;
+            background: transparent;
+            text-align: left;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.78rem;
             font-weight: 700;
-            font-family: inherit;
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        .filter-option.active {
+            background: var(--primary-glow);
         }
     </style>
 </head>
@@ -60,30 +80,24 @@
         </a>
     </div>
 
-    <main class="fade-in">
-        <div class="section-title">
-            <i class="mdi mdi-history" style="color: var(--primary);"></i>
-            My Rentals & Bookings
-        </div>
-
-        <div class="toolbar">
-            <div class="search-box">
-                <i class="mdi mdi-magnify" style="color: var(--text-dim); font-size: 18px;"></i>
-                <input id="search-input" class="search-input" placeholder="Search orders, bookings, reference..." />
+    <main class="fade-in" style="padding-top: 60px; padding-bottom: 100px;">
+        <div style="margin-bottom: 20px;">
+            <div style="font-size: 2rem; font-weight: 900; letter-spacing: -0.5px; color: var(--text);">History</div>
+            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-dim); margin-top: 4px; margin-bottom: 24px;">
+                Equipment delivery status
             </div>
-            <select id="filter-by" class="filter-select">
-                <option value="type">Filter by Type</option>
-                <option value="status">Filter by Status</option>
-            </select>
-            <select id="filter-value" class="filter-select">
-                <option value="all">All</option>
-                <option value="orders">Orders</option>
-                <option value="bookings">Bookings</option>
-            </select>
-        </div>
+            <div class="search-box">
+                <i class="mdi mdi-magnify" style="color: var(--text-dim); font-size: 20px;"></i>
+                <input id="search-input" class="search-input" placeholder="Search orders, bookings, reference..." />
+                <button id="filter-btn" class="search-filter-btn" aria-label="Filter">
+                    <i class="mdi mdi-tune" style="font-size: 20px;"></i>
+                </button>
+            </div>
+            <div id="filter-menu" class="filter-menu" style="display:none;"></div>
 
-        <div id="result-count" style="margin-bottom: 12px; color: var(--text-dim); font-size: 0.8rem; font-weight: 700;">
-            0 active items
+            <div id="result-count" style="margin-bottom: 12px; color: var(--text-dim); font-size: 0.8rem; font-weight: 700;">
+                0 active items
+            </div>
         </div>
 
         <div id="history-grid" style="margin-bottom: 40px;">
@@ -123,28 +137,31 @@
 
         const grid = document.getElementById('history-grid');
         const searchInput = document.getElementById('search-input');
-        const filterBySelect = document.getElementById('filter-by');
-        const filterValueSelect = document.getElementById('filter-value');
+        const filterBtn = document.getElementById('filter-btn');
+        const filterMenu = document.getElementById('filter-menu');
         const resultCount = document.getElementById('result-count');
         let allEntries = [];
-        let filterBy = 'type';
         let activeFilter = 'all';
 
-        function syncFilterValueOptions() {
-            const options = filterBy === 'type'
-                ? [
-                    { label: 'All', value: 'all' },
-                    { label: 'Orders', value: 'orders' },
-                    { label: 'Bookings', value: 'bookings' },
-                ]
-                : [
-                    { label: 'All', value: 'all' },
-                    { label: 'Processing', value: 'processing' },
-                    { label: 'Pending', value: 'pending' },
-                    { label: 'Confirmed', value: 'confirmed' },
-                ];
-            filterValueSelect.innerHTML = options.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
-            activeFilter = 'all';
+        function renderFilterMenu() {
+            const options = [
+                { label: 'All Active', value: 'all' },
+                { label: 'Orders', value: 'orders' },
+                { label: 'Bookings', value: 'bookings' },
+                { label: 'Processing', value: 'processing' },
+                { label: 'Pending', value: 'pending' },
+                { label: 'Confirmed', value: 'confirmed' },
+            ];
+            filterMenu.innerHTML = options.map(o =>
+                `<button class="filter-option ${activeFilter === o.value ? 'active' : ''}" data-filter="${o.value}">${o.label}</button>`
+            ).join('');
+            filterMenu.querySelectorAll('.filter-option').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    activeFilter = btn.getAttribute('data-filter');
+                    filterMenu.style.display = 'none';
+                    renderEntries();
+                });
+            });
         }
 
         function formatDate(dateStr) {
@@ -169,11 +186,8 @@
                     return !(status.includes('completed') || status.includes('delivered'));
                 })
                 .filter((entry) => {
-                    if (filterBy === 'type') {
-                        if (activeFilter === 'orders') return entry.type === 'order';
-                        if (activeFilter === 'bookings') return entry.type === 'booking';
-                        return true;
-                    }
+                    if (activeFilter === 'orders') return entry.type === 'order';
+                    if (activeFilter === 'bookings') return entry.type === 'booking';
                     const status = String(entry.status || '').toLowerCase();
                     if (activeFilter === 'processing') return status.includes('processing');
                     if (activeFilter === 'pending') return status.includes('pending');
@@ -224,16 +238,14 @@
         }
 
         searchInput.addEventListener('input', renderEntries);
-        filterBySelect.addEventListener('change', () => {
-            filterBy = filterBySelect.value;
-            syncFilterValueOptions();
-            renderEntries();
+        filterBtn.addEventListener('click', () => {
+            if (filterMenu.style.display === 'none') {
+                renderFilterMenu();
+                filterMenu.style.display = 'block';
+            } else {
+                filterMenu.style.display = 'none';
+            }
         });
-        filterValueSelect.addEventListener('change', () => {
-            activeFilter = filterValueSelect.value;
-            renderEntries();
-        });
-        syncFilterValueOptions();
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {

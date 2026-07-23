@@ -2,10 +2,11 @@ import OrderHistoryWidget from '@/components/OrderHistoryWidget';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
-import { auth } from '@/firebase/firebase';
+import { auth, db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { homeTranslations } from '@/utils/translations';
 import { useRouter } from 'expo-router';
+import { doc, getDoc } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -19,13 +20,36 @@ export default function HomeScreen() {
   const responsiveText = (base: number) => Math.max(base * (screenWidth / 400), base * 0.85);
 
   const [user, setUser] = useState<any>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const { lang } = useLanguage();
   const t = homeTranslations[lang];
+  const welcomeText = userName ? `Welcome ${userName}` : t.welcome;
 
   useEffect(() => {
-    const checkUser = () => {
+    const checkUser = async () => {
       const currentUser = auth.currentUser;
+      if (!currentUser) {
+        setUser(null);
+        setUserName(null);
+        return;
+      }
+
       setUser(currentUser);
+
+      try {
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+          setUserName(data.username || currentUser.displayName || null);
+        } else {
+          setUserName(currentUser.displayName || null);
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+        setUserName(currentUser.displayName || null);
+      }
     };
 
     checkUser();
@@ -33,11 +57,11 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ alignItems: 'center', justifyContent: 'flex-start', paddingBottom: 40, paddingHorizontal: 20 }}>
-      <Image source={require('@/assets/images/logo_transparent.png')} style={{ height: 120, marginTop: 40, marginBottom: 10, width: 140 }} resizeMode='contain' />
+      <Image source={require('@/assets/images/logo_transparent.png')} style={{ height: 120, marginTop: 10, marginBottom: 10, width: 140 }} resizeMode='contain' />
 
       <View style={styles.headerContainer}>
         <Text style={[styles.title, { fontSize: responsiveText(textSize + 14), color: theme.text }]}>{t.home}</Text>
-        <Text style={[styles.subtitle, { fontSize: responsiveText(textSize - 2), color: theme.textDim }]}>{t.welcome}</Text>
+        <Text style={[styles.subtitle, { fontSize: responsiveText(textSize - 2), color: theme.textDim }]}>{welcomeText}</Text>
       </View>
 
       <View style={styles.row}>
@@ -66,13 +90,6 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity
-        onPress={() => router.push('../bookings' as any)}
-        style={[styles.fullButton, { backgroundColor: theme.surface, borderWidth: 2, borderColor: theme.primary, width: screenWidth - 40 }]}
-      >
-        <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: theme.primary }]}>{t.myRentals}</Text>
-      </TouchableOpacity>
-
       {!user ? (
         <View style={styles.authSection}>
           <Text style={[styles.welcome, { fontSize: responsiveText(textSize + 4), color: theme.text }]}>{t.welcome}</Text>
@@ -90,11 +107,12 @@ export default function HomeScreen() {
         </View>
       ) : (
         <View style={styles.row}>
-          <TouchableOpacity
-            onPress={() => router.push('/feedback' as any)}
-            style={[styles.button, { backgroundColor: theme.surface, borderWidth: 2, borderColor: theme.primary, width: screenWidth - 40, marginTop: 20 }]}
-          >
-            <Text style={[styles.buttonText, { fontSize: responsiveText(textSize), color: theme.primary }]}>{t.submitFeedback}</Text>
+          <TouchableOpacity onPress={() => router.push('/feedback')} style={[styles.card, { backgroundColor: theme.surface, width: screenWidth - 40, flexDirection: 'row', justifyContent: 'flex-start', paddingHorizontal: 25, borderWidth: 1, borderColor: theme.border }]}>
+            <View style={[styles.iconContainer, { backgroundColor: theme.primaryGlow, marginRight: 20 }]}>
+              <MaterialCommunityIcons name="message-text" size={32} color={theme.primary} />
+            </View>
+            <Text style={[styles.cardText, { fontSize: responsiveText(textSize), color: theme.text, fontWeight: '600', marginTop: 0 }]}>{t.submitFeedback}</Text>
+            <MaterialCommunityIcons name="chevron-right" size={24} color={theme.textDim} style={{ marginLeft: 'auto' }} />
           </TouchableOpacity>
         </View>
       )}

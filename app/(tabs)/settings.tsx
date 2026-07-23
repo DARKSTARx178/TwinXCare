@@ -1,3 +1,4 @@
+import { FontSizeOption, useAccessibility } from '@/contexts/AccessibilityContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,11 +8,9 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 
 import { db } from '@/firebase/firebase';
 import { getThemeColors as getDefaultTheme } from '@/utils/theme';
+import { getFontSizeValue } from '@/utils/fontSizes';
 import { doc, getDoc } from 'firebase/firestore';
 import { homeTranslations } from '@/utils/translations';
-
-const { lang } = useLanguage();
-const t = homeTranslations[lang];
 
 const COLOR_OPTIONS = [
   '#ffffff', '#000000', '#4a90e2', '#f5f5f5', '#ff5252', '#00c853', '#ffd54f', '#9e9e9e', '#2196f3', '#e0e0e0'
@@ -19,10 +18,12 @@ const COLOR_OPTIONS = [
 
 const COLOR_KEYS = ['background', 'text', 'primary', 'unselected', 'unselectedTab', 'icon'];
 
-const A11Y_PRESETS = [
+type SettingsTranslation = Pick<typeof homeTranslations.en, 'standard' | 'balancedForGeneralUse'>;
+
+const getA11yPresets = (t: SettingsTranslation) => [
   {
-    name: 'Standard',
-    description: 'Balanced for general use',
+    name: t.standard,
+    description: t.balancedForGeneralUse,
     icon: 'apps-outline',
     theme: {
       background: '#F8FAFC',
@@ -96,11 +97,14 @@ const A11Y_PRESETS = [
 
 const SettingsScreen = () => {
   const [version, setVersion] = useState<string>('...');
-  const [fontSize, setFontSizeState] = React.useState<'small' | 'medium' | 'large'>('medium');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const { theme, setTheme } = useContext(ThemeContext);
   const colors = theme ?? getDefaultTheme();
   const { lang, setLang } = useLanguage();
+  const { fontSize, setFontSize } = useAccessibility();
+  const textSize = getFontSizeValue(fontSize);
+  const t = homeTranslations[lang];
+  const a11yPresets = getA11yPresets(t);
 
   useEffect(() => {
     const fetchVersion = async () => {
@@ -112,7 +116,7 @@ const SettingsScreen = () => {
           const ver = Object.values(data)[0];
           if (typeof ver === 'string') setVersion(ver);
         }
-      } catch (e) { }
+      } catch { }
     };
     fetchVersion();
   }, []);
@@ -129,7 +133,7 @@ const SettingsScreen = () => {
   const isPresetMatch = (presetTheme: any) =>
     COLOR_KEYS.every((k) => (colors as any)[k] === presetTheme[k]);
 
-  const activePreset = A11Y_PRESETS.find((p) => isPresetMatch(p.theme));
+  const activePreset = a11yPresets.find((p) => isPresetMatch(p.theme));
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={{ paddingBottom: 60 }}>
@@ -137,13 +141,13 @@ const SettingsScreen = () => {
         <View style={[styles.iconCircle, { backgroundColor: colors.unselectedTab }]}>
           <Ionicons name="settings-sharp" size={32} color={colors.primary} />
         </View>
-        <Text style={[styles.headerText, { color: colors.text }]}>{labels.header}</Text>
+        <Text style={[styles.headerText, { color: colors.text, fontSize: textSize + 12 }]}>{labels.header}</Text>
       </View>
 
       {/* Accessibility Presets */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>{labels.accessibility}</Text>
-        {A11Y_PRESETS.map((preset) => (
+        <Text style={[styles.sectionTitle, { color: colors.text, fontSize: textSize + 2 }]}>{labels.accessibility}</Text>
+        {a11yPresets.map((preset) => (
           <TouchableOpacity
             key={preset.name}
             style={[
@@ -161,8 +165,8 @@ const SettingsScreen = () => {
               <Ionicons name={preset.icon as any} size={24} color={preset.theme.primary} />
             </View>
             <View style={{ flex: 1, marginLeft: 16 }}>
-              <Text style={[styles.presetName, { color: colors.text }]}>{preset.name}</Text>
-              <Text style={[styles.presetDesc, { color: colors.text + '80' }]}>{preset.description}</Text>
+              <Text style={[styles.presetName, { color: colors.text, fontSize: textSize }]}>{preset.name}</Text>
+              <Text style={[styles.presetDesc, { color: colors.text + '80', fontSize: textSize - 4 }]}>{preset.description}</Text>
             </View>
             {activePreset?.name === preset.name && (
               <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
@@ -173,13 +177,13 @@ const SettingsScreen = () => {
 
       {/* Core Settings */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.preferences}</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text, fontSize: textSize + 2 }]}>{t.preferences}</Text>
 
         <View style={[styles.controlCard, { backgroundColor: colors.unselectedTab }]}>
           <View style={styles.controlRow}>
             <View style={styles.controlInfo}>
               <Ionicons name="language-outline" size={20} color={colors.text} />
-              <Text style={[styles.controlLabel, { color: colors.text }]}>{labels.language}</Text>
+              <Text style={[styles.controlLabel, { color: colors.text, fontSize: textSize - 2 }]}>{labels.language}</Text>
             </View>
             <View style={styles.pickerWrap}>
               <Picker
@@ -199,7 +203,7 @@ const SettingsScreen = () => {
           <View style={styles.controlRow}>
             <View style={styles.controlInfo}>
               <Ionicons name="text-outline" size={20} color={colors.text} />
-              <Text style={[styles.controlLabel, { color: colors.text }]}>{labels.textSize}</Text>
+              <Text style={[styles.controlLabel, { color: colors.text, fontSize: textSize - 2 }]}>{labels.textSize}</Text>
             </View>
             <View style={styles.sizeToggle}>
               {['S', 'M', 'L'].map((s, idx) => {
@@ -208,10 +212,10 @@ const SettingsScreen = () => {
                 return (
                   <TouchableOpacity
                     key={s}
-                    onPress={() => setFontSizeState(val as any)}
+                    onPress={() => setFontSize(val as FontSizeOption)}
                     style={[styles.sizeBtn, active && { borderColor: colors.primary, borderWidth: 2, backgroundColor: colors.surface }]}
                   >
-                    <Text style={[styles.sizeBtnText, { color: active ? colors.primary : colors.text }]}>{s}</Text>
+                    <Text style={[styles.sizeBtnText, { color: active ? colors.primary : colors.text, fontSize: textSize - 4 }]}>{s}</Text>
                   </TouchableOpacity>
                 )
               })}
@@ -225,18 +229,18 @@ const SettingsScreen = () => {
           style={styles.advancedToggle}
           onPress={() => setShowAdvanced(!showAdvanced)}
         >
-          <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 0 }]}>{labels.advanced}</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text, fontSize: textSize + 2, marginBottom: 0 }]}>{labels.advanced}</Text>
           <Ionicons name={showAdvanced ? "chevron-up" : "chevron-down"} size={20} color={colors.text} />
         </TouchableOpacity>
 
         {showAdvanced && (
           <View style={[styles.advancedPanel, { backgroundColor: colors.unselectedTab }]}>
-            <Text style={[styles.devNote, { color: colors.text + '70' }]}>
+            <Text style={[styles.devNote, { color: colors.text + '70', fontSize: textSize - 5 }]}>
               Modify theme individually.
             </Text>
             {COLOR_KEYS.map((key) => (
               <View key={key} style={styles.tokenRow}>
-                <Text style={[styles.tokenName, { color: colors.text }]}>{key.toUpperCase()}</Text>
+                <Text style={[styles.tokenName, { color: colors.text, fontSize: textSize - 6 }]}>{key.toUpperCase()}</Text>
                 <View style={styles.swatchGrid}>
                   {COLOR_OPTIONS.map((c) => (
                     <TouchableOpacity
@@ -252,17 +256,17 @@ const SettingsScreen = () => {
               style={[styles.resetBtn, { borderColor: colors.primary, borderWidth: 2, backgroundColor: colors.surface }]}
               onPress={() => setTheme(getDefaultTheme())}
             >
-              <Text style={[styles.resetBtnText, { color: colors.primary }]}>Restore Defaults</Text>
+              <Text style={[styles.resetBtnText, { color: colors.primary, fontSize: textSize - 3 }]}>Restore Defaults</Text>
             </TouchableOpacity>
           </View>
         )}
       </View>
 
       <View style={styles.footer}>
-        <Text style={[styles.footerText, { color: colors.text + '50' }]}>
+        <Text style={[styles.footerText, { color: colors.text + '50', fontSize: textSize - 5 }]}>
           TwinXCare alpha-{version}
         </Text>
-        <Text style={[styles.footerText, { color: colors.text + '30' }]}>
+        <Text style={[styles.footerText, { color: colors.text + '30', fontSize: textSize - 5 }]}>
           © 2026 MASSIVE Productions
         </Text>
       </View>

@@ -1,4 +1,6 @@
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
+import { getFontSizeValue } from '@/utils/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useContext } from 'react';
@@ -7,8 +9,10 @@ import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from
 export default function HelpDocs() {
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
+  const { fontSize } = useAccessibility();
+  const textSize = getFontSizeValue(fontSize);
   const screenWidth = Dimensions.get('window').width;
-  const responsiveText = (base: number) => Math.max(base * (screenWidth / 400), base * 0.85);
+  const responsiveText = (base: number) => Math.max((base + textSize - 16) * (screenWidth / 400), (base + textSize - 16) * 0.85);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -42,23 +46,23 @@ export default function HelpDocs() {
           </View>
 
           <View style={styles.navItem}>
-            <Text style={[styles.navLabel, { color: theme.text }]}>🏠 Home</Text>
-            <Text style={[styles.navText, { color: theme.textDim }]}>Quick access to all main features and history.</Text>
+            <Text style={[styles.navLabel, { color: theme.text, fontSize: responsiveText(15) }]}>🏠 Home</Text>
+            <Text style={[styles.navText, { color: theme.textDim, fontSize: responsiveText(13) }]}>Quick access to all main features and history.</Text>
           </View>
 
           <View style={styles.navItem}>
-            <Text style={[styles.navLabel, { color: theme.text }]}>🛠 Book Equipment</Text>
-            <Text style={[styles.navText, { color: theme.textDim }]}>Browse and rent medical items available for order.</Text>
+            <Text style={[styles.navLabel, { color: theme.text, fontSize: responsiveText(15) }]}>🛠 Book Equipment</Text>
+            <Text style={[styles.navText, { color: theme.textDim, fontSize: responsiveText(13) }]}>Browse and rent medical items available for order.</Text>
           </View>
 
           <View style={styles.navItem}>
-            <Text style={[styles.navLabel, { color: theme.text }]}>🤝 Services</Text>
-            <Text style={[styles.navText, { color: theme.textDim }]}>Request caregivers or tailored professional assistance.</Text>
+            <Text style={[styles.navLabel, { color: theme.text, fontSize: responsiveText(15) }]}>🤝 Services</Text>
+            <Text style={[styles.navText, { color: theme.textDim, fontSize: responsiveText(13) }]}>Request caregivers or tailored professional assistance.</Text>
           </View>
 
           <View style={styles.navItem}>
-            <Text style={[styles.navLabel, { color: theme.text }]}>📋 My Rentals</Text>
-            <Text style={[styles.navText, { color: theme.textDim }]}>Manage active bookings and return equipment.</Text>
+            <Text style={[styles.navLabel, { color: theme.text, fontSize: responsiveText(15) }]}>📋 My Rentals</Text>
+            <Text style={[styles.navText, { color: theme.textDim, fontSize: responsiveText(13) }]}>Manage active bookings and return equipment.</Text>
           </View>
         </View>
 
@@ -69,18 +73,18 @@ export default function HelpDocs() {
           </View>
 
           <View style={styles.faqItem}>
-            <Text style={[styles.question, { color: theme.text }]}>How do I reset my password?</Text>
-            <Text style={[styles.answer, { color: theme.textDim }]}>Navigate to your profile and select "Change Password" to update credentials.</Text>
+            <Text style={[styles.question, { color: theme.text, fontSize: responsiveText(15) }]}>How do I reset my password?</Text>
+            <Text style={[styles.answer, { color: theme.textDim, fontSize: responsiveText(13) }]}>Navigate to your profile and select Change Password to update credentials.</Text>
           </View>
 
           <View style={styles.faqItem}>
-            <Text style={[styles.question, { color: theme.text }]}>How do I contact support?</Text>
-            <Text style={[styles.answer, { color: theme.textDim }]}>Submit an assistance request via the Assistance page or use the floating help button.</Text>
+            <Text style={[styles.question, { color: theme.text, fontSize: responsiveText(15) }]}>How do I contact support?</Text>
+            <Text style={[styles.answer, { color: theme.textDim, fontSize: responsiveText(13) }]}>Submit an assistance request via the Assistance page or use the floating help button.</Text>
           </View>
 
           <View style={[styles.faqItem, { borderBottomWidth: 0 }]}>
-            <Text style={[styles.question, { color: theme.text }]}>What is Escort Mode?</Text>
-            <Text style={[styles.answer, { color: theme.textDim }]}>A specialized view for volunteers to manage their availability and matches.</Text>
+            <Text style={[styles.question, { color: theme.text, fontSize: responsiveText(15) }]}>What is Escort Mode?</Text>
+            <Text style={[styles.answer, { color: theme.textDim, fontSize: responsiveText(13) }]}>A specialized view for volunteers to manage their availability and matches.</Text>
           </View>
         </View>
 

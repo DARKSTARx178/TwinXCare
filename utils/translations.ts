@@ -5,7 +5,7 @@ export const homeTranslations = {
     escort: 'Escort',
     exploreDesc: 'Explore medical equipment and professional services',
     bookEquipment: 'Book Equipment',
-    services: 'Escort',
+    services: 'Services',
     from: 'From',
     update: 'Update',
     requireAssistance: 'Require Assistance',
@@ -40,7 +40,7 @@ export const homeTranslations = {
     small: 'Small',
     normal: 'Normal',
     large: 'Large',
-    delivery: 'My Rentals',
+    delivery: 'Delivery',
     deliveryHistory: 'Rental History',
     deliveryStatus: 'Delivery status',
     deliveryDate: 'Date',
@@ -66,7 +66,10 @@ export const homeTranslations = {
     adminAccessRequired: 'Admin access required',
     onlyAvailableAdmin: 'This page is only available to admin accounts.',
     escortCerts: 'Escort Certs',
-    manageCerts: 'Manage certifications and review submissions'
+    manageCerts: 'Manage certifications and review submissions',
+    standard: 'Standard',
+    balancedForGeneralUse: 'Balanced for general use',
+    highContrast: 'High contrast'
   },
   zh: {
     home: '首页',
@@ -134,6 +137,9 @@ export const homeTranslations = {
     adminAccessRequired: '需要管理员权限',
     onlyAvailableAdmin: '此页面仅供管理员账户访问。',
     escortCerts: '护送人员资质认证',
-    manageCerts: '管理认证并审核提交内容'
+    manageCerts: '管理认证并审核提交内容',
+    standard: '普通',
+    balancedForGeneralUse: '平衡型，适用于一般用途',
+    highContrast: '高对比度'
   }
 };

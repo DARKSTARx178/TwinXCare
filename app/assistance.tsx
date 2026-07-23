@@ -1,4 +1,6 @@
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
+import { getFontSizeValue } from '@/utils/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -13,6 +15,8 @@ export default function Assistance() {
   const [username, setUsername] = useState('Anonymous');
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
+  const { fontSize } = useAccessibility();
+  const textSize = getFontSizeValue(fontSize);
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -81,15 +85,15 @@ export default function Assistance() {
           <Ionicons name="megaphone-outline" size={32} color={theme.primary} />
         </View>
 
-        <Text style={[styles.title, { color: theme.text }]}>Request Assistance</Text>
-        <Text style={[styles.subtitle, { color: theme.textDim }]}>
+        <Text style={[styles.title, { color: theme.text, fontSize: textSize + 8 }]}>Request Assistance</Text>
+        <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 1 }]}>
           Tell us what you need.
         </Text>
 
         <View style={styles.inputWrapper}>
-          <Text style={[styles.label, { color: theme.textDim }]}>Request Details</Text>
+          <Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 4 }]}>Request Details</Text>
           <TextInput
-            style={[styles.input, { borderColor: theme.border, color: theme.text }]}
+            style={[styles.input, { borderColor: theme.border, color: theme.text, fontSize: textSize }]}
             placeholder="Describe how we can help you today..."
             placeholderTextColor="#94a3b8"
             value={message}
@@ -106,7 +110,7 @@ export default function Assistance() {
           disabled={submitting}
           activeOpacity={0.8}
         >
-          <Text style={[styles.submitText, { color: theme.primary }]}>
+          <Text style={[styles.submitText, { color: theme.primary, fontSize: textSize }]}>
             {submitting ? 'Sending Request...' : 'Send Request'}
           </Text>
           {!submitting && <Ionicons name="paper-plane-outline" size={20} color={theme.primary} style={{ marginLeft: 8 }} />}
@@ -114,7 +118,7 @@ export default function Assistance() {
 
         <View style={styles.infoBox}>
           <Ionicons name="information-circle-outline" size={18} color={theme.primary} />
-          <Text style={[styles.infoText, { color: theme.textDim }]}>
+          <Text style={[styles.infoText, { color: theme.textDim, fontSize: textSize - 4 }]}>
             Your request will be sent directly to our support team.
           </Text>
         </View>

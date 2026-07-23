@@ -1,7 +1,9 @@
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
 import app from '@/firebase/firebase';
 import { EquipmentStockLocation, getNearestStockLocation, getTotalEquipmentStock, normalizeEquipmentLocations } from '@/utils/equipmentStock';
+import { getFontSizeValue } from '@/utils/fontSizes';
 import { homeTranslations } from '@/utils/translations';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
@@ -41,6 +43,8 @@ export interface ServiceItem {
 export default function Explore() {
   const { lang } = useLanguage();
   const t = homeTranslations[lang];
+  const { fontSize } = useAccessibility();
+  const textSize = getFontSizeValue(fontSize);
 
   const [refreshing, setRefreshing] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -147,7 +151,7 @@ export default function Explore() {
     loadUserLocation();
 
     return () => { mounted = false; };
-  }, []);
+  }, [t.locationLookupFailed, t.showingStockNearestWarehouse, t.showingTotalStock]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -217,22 +221,22 @@ export default function Explore() {
         <View style={styles.imageWrap}>
           <Image source={{ uri: item.image }} style={styles.cardImage} />
           <View style={[styles.priceTag, { backgroundColor: theme.primary }]}>
-            <Text style={styles.priceText}>${item.price}</Text>
+            <Text style={[styles.priceText, { fontSize: textSize - 4 }]}>${item.price}</Text>
           </View>
         </View>
         <View style={styles.cardContent}>
-          <Text style={[styles.itemName, { color: theme.text }]} numberOfLines={1}>{item.name}</Text>
-          <Text style={[styles.itemBrand, { color: theme.textDim }]} numberOfLines={1}>
+          <Text style={[styles.itemName, { color: theme.text, fontSize: textSize - 2 }]} numberOfLines={1}>{item.name}</Text>
+          <Text style={[styles.itemBrand, { color: theme.textDim, fontSize: textSize - 5 }]} numberOfLines={1}>
             {isEquipment ? item.brand : item.company}
           </Text>
           <View style={styles.cardFooter}>
             <Ionicons name={isEquipment ? "cube-outline" : "time-outline"} size={12} color={theme.primary} />
-            <Text style={[styles.footerText, { color: theme.primary }]}>
+            <Text style={[styles.footerText, { color: theme.primary, fontSize: textSize - 6 }]}>
               {isEquipment ? `${displayedStock} in stock` : item.duration}
             </Text>
           </View>
           {isEquipment && (
-            <Text style={[styles.locationStockText, { color: theme.textDim }]} numberOfLines={1}>
+            <Text style={[styles.locationStockText, { color: theme.textDim, fontSize: textSize - 6 }]} numberOfLines={1}>
               {displayedWarehouseName}
             </Text>
           )}
@@ -252,20 +256,26 @@ export default function Explore() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
         ListHeaderComponent={
           <View style={styles.headerArea}>
-            <Text style={[styles.screenTitle, { color: theme.text }]}>{t.equipment}</Text>
-            <Text style={[styles.screenSubtitle, { color: theme.textDim }]}>
+            <Text style={[styles.screenTitle, { color: theme.text, fontSize: textSize + 16 }]}>{t.equipment}</Text>
+            <Text style={[styles.screenSubtitle, { color: theme.textDim, fontSize: textSize - 3 }]}>
               {t.exploreDesc}
             </Text>
 
             <View style={[styles.searchBox, { backgroundColor: theme.unselectedTab }]}>
               <Ionicons name="search" size={20} color={theme.textDim} />
               <TextInput
-                style={[styles.searchInput, { color: theme.text }]}
+                style={[styles.searchInput, { color: theme.text, fontSize: textSize - 1 }]}
                 placeholder={t.searchPlaceholder}
                 placeholderTextColor={theme.textDim + '80'}
                 value={search}
                 onChangeText={setSearch}
               />
+              <TouchableOpacity
+                style={[styles.searchFilterBtn, { borderColor: theme.primary, backgroundColor: theme.surface }]}
+                onPress={() => setShowFilterMenu((v) => !v)}
+              >
+                <Ionicons name="options-outline" size={20} color={theme.primary} />
+              </TouchableOpacity>
             </View>
 
             <View style={[styles.tabContainer, { backgroundColor: theme.unselectedTab }]}>
@@ -274,32 +284,26 @@ export default function Explore() {
                 onPress={() => { setViewMode('equipment'); setFilterValue('all'); setShowFilterMenu(false); }}
               >
                 <Ionicons name="medkit-outline" size={18} color={viewMode === 'equipment' ? theme.primary : theme.text} />
-                <Text style={[styles.tabText, { color: viewMode === 'equipment' ? theme.primary : theme.text }]}>{t.equipment}</Text>
+                <Text style={[styles.tabText, { color: viewMode === 'equipment' ? theme.primary : theme.text, fontSize: textSize - 2 }]}>{t.equipment}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.tab, viewMode === 'services' && { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
                 onPress={() => { setViewMode('services'); setFilterValue('all'); setShowFilterMenu(false); }}
               >
-                <Ionicons name="sparkles-outline" size={18} color={viewMode === 'services' ? theme.primary : theme.text} />
-                <Text style={[styles.tabText, { color: viewMode === 'services' ? theme.primary : theme.text }]}>{t.services}</Text>
+                <Ionicons name="construct-outline" size={18} color={viewMode === 'services' ? theme.primary : theme.text} />
+                <Text style={[styles.tabText, { color: viewMode === 'services' ? theme.primary : theme.text, fontSize: textSize - 2 }]}>{t.services}</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.sectionHeader}>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.resultsCount, { color: theme.text }]}>
+                <Text style={[styles.resultsCount, { color: theme.text, fontSize: textSize - 3 }]}>
                   {filteredItems.length} {viewMode} 
                 </Text>
                 {viewMode === 'equipment' && (
-                  <Text style={[styles.locationHint, { color: theme.textDim }]}>{locationLabel}</Text>
+                  <Text style={[styles.locationHint, { color: theme.textDim, fontSize: textSize - 5 }]}>{locationLabel}</Text>
                 )}
               </View>
-              <TouchableOpacity
-                style={[styles.filterBtn, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}
-                onPress={() => setShowFilterMenu((v) => !v)}
-              >
-                <Ionicons name="options-outline" size={20} color={theme.primary} />
-              </TouchableOpacity>
             </View>
             {showFilterMenu && (
               <View style={[styles.filterMenu, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -325,7 +329,7 @@ export default function Explore() {
                         setShowFilterMenu(false);
                       }}
                     >
-                      <Text style={{ color: theme.text, fontWeight: '700', fontSize: 12 }}>{label}</Text>
+                      <Text style={{ color: theme.text, fontWeight: '700', fontSize: textSize - 4 }}>{label}</Text>
                     </TouchableOpacity>
                   ))}
               </View>
@@ -335,8 +339,8 @@ export default function Explore() {
         ListEmptyComponent={
           <View style={styles.emptyWrap}>
             <Ionicons name="search-outline" size={64} color={theme.textDim} style={{ opacity: 0.2 }} />
-            <Text style={[styles.emptyTitle, { color: theme.text }]}>{t.noItemsMatch}</Text>
-            <Text style={[styles.emptySubtitle, { color: theme.textDim }]}>{t.tryGeneralTerms}</Text>
+            <Text style={[styles.emptyTitle, { color: theme.text, fontSize: textSize + 2 }]}>{t.noItemsMatch}</Text>
+            <Text style={[styles.emptySubtitle, { color: theme.textDim, fontSize: textSize - 2 }]}>{t.tryGeneralTerms}</Text>
           </View>
         }
       />
@@ -358,6 +362,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   searchInput: { flex: 1, marginLeft: 12, fontSize: 15, fontWeight: '600' },
+  searchFilterBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
+  },
   tabContainer: {
     flexDirection: 'row',
     padding: 6,
@@ -386,11 +399,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     marginTop: 3,
-  },
-  filterBtn: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0,0,0,0.03)',
   },
   filterMenu: {
     borderWidth: 1,

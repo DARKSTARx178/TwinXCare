@@ -46,7 +46,8 @@ export default function Register() {
         createdAt: new Date(),
         history: [],
         booking: [],
-        theme: getThemeColors()
+        theme: getThemeColors(),
+        language: 'en'
       });
 
       router.replace('/profile');

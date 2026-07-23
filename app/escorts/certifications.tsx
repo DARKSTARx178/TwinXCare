@@ -2,8 +2,10 @@
 
 
 
+import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
+import { getFontSizeValue } from '@/utils/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -49,6 +51,8 @@ const toDateLabel = (value: any) => {
 export default function EscortCertifications() {
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
+  const { fontSize } = useAccessibility();
+  const textSize = getFontSizeValue(fontSize);
 
   const [catalog, setCatalog] = useState<CertOption[]>([]);
   const [submissions, setSubmissions] = useState<CertSubmission[]>([]);
@@ -169,20 +173,20 @@ export default function EscortCertifications() {
         <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
           <Ionicons name="ribbon-outline" size={30} color={theme.primary} />
         </View>
-        <Text style={[styles.title, { color: theme.text }]}>Certifications</Text>
-        <Text style={[styles.subtitle, { color: theme.textDim }]}>Upload your certs for approval</Text>
+        <Text style={[styles.title, { color: theme.text, fontSize: textSize + 8 }]}>Certifications</Text>
+        <Text style={[styles.subtitle, { color: theme.textDim, fontSize: textSize - 3 }]}>Upload your certs for approval</Text>
       </View>
 
       <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
-        <Text style={[styles.cardTitle, { color: theme.text }]}>Submit</Text>
+        <Text style={[styles.cardTitle, { color: theme.text, fontSize: textSize + 1 }]}>Submit</Text>
 
-        <Text style={[styles.label, { color: theme.textDim }]}>Certification Type</Text>
+        <Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Certification Type</Text>
         <View style={[styles.pickerWrap, { borderColor: theme.border, backgroundColor: '#F1F5F9' }]}>
           <Picker
             enabled={!submitting && catalog.length > 0}
             selectedValue={selectedCertId}
             onValueChange={(value) => setSelectedCertId(String(value))}
-            style={{ color: theme.text }}
+            style={{ color: theme.text, fontSize: textSize - 2 }}
           >
             {catalog.length === 0 ? (
               <Picker.Item label="No certifications configured by admin" value="" />
@@ -195,12 +199,12 @@ export default function EscortCertifications() {
         </View>
 
         {selectedCert?.description ? (
-          <Text style={[styles.helperText, { color: theme.textDim }]}>{selectedCert.description}</Text>
+          <Text style={[styles.helperText, { color: theme.textDim, fontSize: textSize - 4 }]}>{selectedCert.description}</Text>
         ) : null}
 
-        <Text style={[styles.label, { color: theme.textDim }]}>Certificate URL</Text>
+        <Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Certificate URL</Text>
         <TextInput
-          style={[styles.input, { color: theme.text }]}
+          style={[styles.input, { color: theme.text, fontSize: textSize - 2 }]}
           placeholder="https://drive.google.com/..."
           placeholderTextColor="#94a3b8"
           autoCapitalize="none"
@@ -209,9 +213,9 @@ export default function EscortCertifications() {
           onChangeText={setCertificateLink}
         />
 
-        <Text style={[styles.label, { color: theme.textDim }]}>Notes (Optional)</Text>
+        <Text style={[styles.label, { color: theme.textDim, fontSize: textSize - 5 }]}>Notes (Optional)</Text>
         <TextInput
-          style={[styles.input, styles.notesInput, { color: theme.text }]}
+          style={[styles.input, styles.notesInput, { color: theme.text, fontSize: textSize - 2 }]}
           placeholder="Certificate number, issuing body, expiry date..."
           placeholderTextColor="#94a3b8"
           multiline
@@ -228,36 +232,36 @@ export default function EscortCertifications() {
             (submitting || loading || catalog.length === 0) && { opacity: 0.6 },
           ]}
         >
-          <Text style={[styles.submitText, { color: theme.primary }]}>{submitting ? 'Submitting...' : 'Submit for Review'}</Text>
+          <Text style={[styles.submitText, { color: theme.primary, fontSize: textSize - 1 }]}>{submitting ? 'Submitting...' : 'Submit for Review'}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
-        <Text style={[styles.cardTitle, { color: theme.text }]}>Submission History</Text>
+        <Text style={[styles.cardTitle, { color: theme.text, fontSize: textSize + 1 }]}>Submission History</Text>
         {loading ? (
-          <Text style={{ color: theme.textDim }}>Loading submissions...</Text>
+          <Text style={{ color: theme.textDim, fontSize: textSize - 2 }}>Loading submissions...</Text>
         ) : submissions.length === 0 ? (
-          <Text style={{ color: theme.textDim }}>No certification submissions.</Text>
+          <Text style={{ color: theme.textDim, fontSize: textSize - 2 }}>No certification submissions.</Text>
         ) : (
           submissions.map((item) => {
             const status = statusColor(item.status);
             return (
               <View key={item.id} style={[styles.historyItem, { borderColor: theme.border }]}> 
                 <View style={styles.historyHeader}>
-                  <Text style={[styles.historyTitle, { color: theme.text }]}>{item.certTypeName || 'Certification'}</Text>
+                  <Text style={[styles.historyTitle, { color: theme.text, fontSize: textSize - 2 }]}>{item.certTypeName || 'Certification'}</Text>
                   <View style={[styles.badge, { backgroundColor: status.bg }]}> 
-                    <Text style={[styles.badgeText, { color: status.text }]}>{item.status.toUpperCase()}</Text>
+                    <Text style={[styles.badgeText, { color: status.text, fontSize: textSize - 6 }]}>{item.status.toUpperCase()}</Text>
                   </View>
                 </View>
-                <Text style={[styles.historyMeta, { color: theme.textDim }]}>Submitted: {toDateLabel(item.createdAt)}</Text>
+                <Text style={[styles.historyMeta, { color: theme.textDim, fontSize: textSize - 4 }]}>Submitted: {toDateLabel(item.createdAt)}</Text>
                 {item.reviewedAt ? (
-                  <Text style={[styles.historyMeta, { color: theme.textDim }]}>Reviewed: {toDateLabel(item.reviewedAt)}</Text>
+                  <Text style={[styles.historyMeta, { color: theme.textDim, fontSize: textSize - 4 }]}>Reviewed: {toDateLabel(item.reviewedAt)}</Text>
                 ) : null}
                 {item.reviewedByEmail ? (
-                  <Text style={[styles.historyMeta, { color: theme.textDim }]}>Reviewer: {item.reviewedByEmail}</Text>
+                  <Text style={[styles.historyMeta, { color: theme.textDim, fontSize: textSize - 4 }]}>Reviewer: {item.reviewedByEmail}</Text>
                 ) : null}
                 {!!item.certificateLink && (
-                  <Text style={[styles.historyLink, { color: theme.primary }]} numberOfLines={1}>{item.certificateLink}</Text>
+                  <Text style={[styles.historyLink, { color: theme.primary, fontSize: textSize - 4 }]} numberOfLines={1}>{item.certificateLink}</Text>
                 )}
               </View>
             );

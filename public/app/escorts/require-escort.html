@@ -266,19 +266,7 @@
         const GEOAPIFY_API_KEY = (window.TWINXCARE_GEOAPIFY_API_KEY || '333dd9a8121f4bfe8173cae287ecf657').trim();
         const GEOAPIFY_AUTOCOMPLETE_URL = (window.TWINXCARE_GEOAPIFY_AUTOCOMPLETE_URL || '').trim();
         const CERT_CATALOG_PATH = 'escort/certifications/catalog';
-        const HOSPITAL_CATALOG_PATH = 'escort/hospitals/catalog';
-        const DEFAULT_HOSPITALS = [
-            { id: 'singapore-general-hospital', name: 'Singapore General Hospital' },
-            { id: 'national-university-hospital', name: 'National University Hospital' },
-            { id: 'tan-tock-seng-hospital', name: 'Tan Tock Seng Hospital' },
-            { id: 'changi-general-hospital', name: 'Changi General Hospital' },
-            { id: 'khoo-teck-puat-hospital', name: 'Khoo Teck Puat Hospital' },
-            { id: 'nanyang-polyclinic', name: 'Nanyang Polyclinic' },
-            { id: 'alexandra-hospital', name: 'Alexandra Hospital' },
-            { id: 'kkwomens-hospital', name: "KK Women's and Children's Hospital" },
-            { id: 'sengkang-general-hospital', name: 'Sengkang General Hospital' },
-            { id: 'ng-teng-fong-general-hospital', name: 'Ng Teng Fong General Hospital' },
-        ];
+        const HOSPITAL_DOC_PATH = ['escort', 'hospital'];
         let pickupCoordinates = null;
         let certificationCatalog = [];
         let hospitalCatalog = [];
@@ -286,17 +274,15 @@
 
         async function loadHospitalCatalog() {
             try {
-                const snap = await getDocs(collection(db, HOSPITAL_CATALOG_PATH));
-                const items = snap.docs
-                    .map((d) => ({ id: d.id, ...d.data() }))
-                    .filter((item) => item.active !== false)
-                    .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
-
-                hospitalCatalog = items.length ? items : DEFAULT_HOSPITALS;
+                const snap = await getDoc(doc(db, ...HOSPITAL_DOC_PATH));
+                const data = snap.exists() ? snap.data() : {};
+                hospitalCatalog = Array.isArray(data.list)
+                    ? data.list.filter((item) => item.active !== false)
+                    : [];
                 renderHospitalOptions();
             } catch (error) {
                 console.error('Failed to load hospital catalog:', error);
-                hospitalCatalog = DEFAULT_HOSPITALS;
+                hospitalCatalog = [];
                 renderHospitalOptions();
             }
         }

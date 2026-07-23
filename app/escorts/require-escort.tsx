@@ -11,32 +11,20 @@ import { useRouter } from 'expo-router';
 import { addDoc, collection, doc, getDoc, getDocs, serverTimestamp } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+	Alert,
+	KeyboardAvoidingView,
+	Platform,
+	ScrollView,
+	StyleSheet,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	View,
 } from 'react-native';
 
 const CERT_CATALOG_PATH = 'escort/certifications/catalog';
-const HOSPITAL_CATALOG_PATH = 'escort/hospitals/catalog';
+const HOSPITAL_DOC_PATH = ['escort', 'hospital'];
 
-const DEFAULT_HOSPITALS = [
-	{ id: 'singapore-general-hospital', name: "Singapore General Hospital" },
-	{ id: 'national-university-hospital', name: 'National University Hospital' },
-	{ id: 'tan-tock-seng-hospital', name: 'Tan Tock Seng Hospital' },
-	{ id: 'changi-general-hospital', name: 'Changi General Hospital' },
-	{ id: 'khoo-teck-puat-hospital', name: 'Khoo Teck Puat Hospital' },
-	{ id: 'nanyang-polyclinic', name: 'Nanyang Polyclinic' },
-	{ id: 'alexandra-hospital', name: 'Alexandra Hospital' },
-	{ id: 'kkwomens-hospital', name: "KK Women's and Children's Hospital" },
-	{ id: 'sengkang-general-hospital', name: 'Sengkang General Hospital' },
-	{ id: 'ng-teng-fong-general-hospital', name: 'Ng Teng Fong General Hospital' },
-];
 
 type HospitalItem = {
 	id: string;
@@ -91,20 +79,19 @@ export default function RequireEscort() {
 
 		const loadHospitals = async () => {
 			try {
-				const snap = await getDocs(collection(db, HOSPITAL_CATALOG_PATH));
-				const items = snap.docs
-					.map((d) => ({ id: d.id, ...(d.data() as any) }))
-					.filter((item) => item.active !== false)
-					.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
-				const catalog = items.length ? items : DEFAULT_HOSPITALS;
-				setHospitalCatalog(catalog);
-				if (catalog.length) {
-					setSelectedHospitalId(catalog[0].id);
+				const snap = await getDoc(doc(db, 'escort', 'hospital'));
+				const data = snap.exists() ? (snap.data() as any) : {};
+				const items = Array.isArray(data.list)
+					? data.list.filter((item: any) => item.active !== false).map((item: any, index: number) => ({ id: item.id || `hospital-${index}`, ...item }))
+					: [];
+				setHospitalCatalog(items);
+				if (items.length) {
+					setSelectedHospitalId(items[0].id);
 				}
 			} catch (error) {
 				console.error('Failed to load hospital catalog:', error);
-				setHospitalCatalog(DEFAULT_HOSPITALS);
-				setSelectedHospitalId(DEFAULT_HOSPITALS[0].id);
+				setHospitalCatalog([]);
+				setSelectedHospitalId('');
 			}
 		};
 

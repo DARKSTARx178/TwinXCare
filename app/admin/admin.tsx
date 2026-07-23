@@ -17,6 +17,7 @@ export default function Admin() {
         { title: 'Manage Users', icon: 'people-outline', route: './admin_userMgt', color: '#f59e0b' },
         { title: 'Escort Matching', icon: 'hand-left-outline', route: './admin_escort_match', color: '#8b5cf6' },
         { title: 'Escort Certs', icon: 'ribbon-outline', route: './admin_certifications', color: '#06b6d4' },
+        { title: 'Hospital Catalog', icon: 'hospital-outline', route: './admin_hospitals', color: '#10b981' },
         { title: 'Inbox', icon: 'mail-open-outline', route: './admin_support', color: '#ec4899' },
     ];
 

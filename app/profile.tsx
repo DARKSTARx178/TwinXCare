@@ -1,10 +1,11 @@
 import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { ThemeContext } from "@/contexts/ThemeContext";
 import { getFontSizeValue } from "@/utils/fontSizes";
+import { clearSessionStamp } from "@/utils/sessionSecurity";
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { clearSessionStamp } from "@/utils/sessionSecurity";
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import React, { useContext, useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -88,8 +89,12 @@ export default function Profile() {
 
   const handleAdminMode = () => router.push("/admin/admin");
 
+  const handleCopyRef = async () => {
+    if (!firestoreId) return;
+    await Clipboard.setStringAsync(firestoreId);
+  };
+
   const menuItems = [
-    { icon: "settings-outline", label: "Settings", onPress: () => router.push("/settings") },
     { icon: "key-outline", label: "Change Password", onPress: () => router.push("/change-password") },
     { icon: "help-circle-outline", label: "Help", onPress: () => router.push("/helpdocs") },
     user && { icon: "ribbon-outline", label: "My Certifications", onPress: () => router.push("/escorts/certifications") },
@@ -179,7 +184,12 @@ export default function Profile() {
       </View>
 
       {user && firestoreId && (
-        <Text style={[styles.footerId, { color: theme.textDim }]}>USER REF: {firestoreId.substring(0, 12).toUpperCase()}...</Text>
+        <View style={styles.copyRow}>
+          <Text style={[styles.footerId, { color: theme.textDim, marginRight: 10 }]}>USER REF: {firestoreId}</Text>
+          <TouchableOpacity style={[styles.copyButton, { borderColor: theme.primary }]} onPress={handleCopyRef}>
+            <Ionicons name="clipboard-outline" size={16} color={theme.primary} style={{ marginTop: 30 }} />
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );
@@ -278,6 +288,16 @@ const styles = StyleSheet.create({
   },
   menuLabel: {
     fontWeight: '600',
+  },
+  copyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  copyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   footerId: {
     textAlign: 'center',

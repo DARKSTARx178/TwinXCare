@@ -193,7 +193,6 @@
         <div class="card" style="margin-bottom: 16px;">
             <div style="font-size: 1.1rem; font-weight: 800; margin-bottom: 14px;">Add Hospital / Clinic</div>
             <input id="new-hospital-name" class="input" type="text" placeholder="Hospital name" style="margin-bottom:10px;">
-            <textarea id="new-hospital-address" class="textarea" placeholder="Address or location (optional)" style="margin-bottom:10px;"></textarea>
             <button id="add-hospital-btn" class="btn">Add Hospital</button>
             <div id="hospital-helper" class="meta" style="margin-top: 10px;">This list is used in the patient escort request hospital dropdown.</div>
         </div>
@@ -205,15 +204,14 @@
     </main>
 
     <script type="module">
-        import { auth, onAuthStateChanged, db, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp } from '/app/firebase.js';
+        import { auth, onAuthStateChanged, db, doc, getDoc, serverTimestamp, setDoc } from '/app/firebase.js';
 
-        const HOSPITAL_CATALOG_PATH = 'escort/hospitals/catalog';
+        const HOSPITAL_DOC_PATH = ['escort', 'hospital'];
 
         const loader = document.getElementById('loader');
         const addHospitalBtn = document.getElementById('add-hospital-btn');
         const hospitalListEl = document.getElementById('hospital-list');
         const newHospitalNameEl = document.getElementById('new-hospital-name');
-        const newHospitalAddressEl = document.getElementById('new-hospital-address');
 
         let hospitals = [];
 
@@ -221,7 +219,6 @@
             return {
                 id: item.id,
                 name: item.name || 'Unnamed hospital',
-                address: item.address || '',
                 active: item.active !== false,
             };
         }
@@ -237,7 +234,6 @@
                     <div class="item-row">
                         <div style="flex: 1; min-width: 0;">
                             <div style="font-weight: 800; color: var(--text);">${item.name}</div>
-                            ${item.address ? `<div class="meta">${item.address}</div>` : ''}
                             <div class="badge ${item.active ? 'active' : 'inactive'}">${item.active ? 'Active' : 'Inactive'}</div>
                         </div>
                         <div class="item-actions">
@@ -251,8 +247,10 @@
 
         async function loadHospitalCatalog() {
             try {
-                const snap = await getDocs(collection(db, HOSPITAL_CATALOG_PATH));
-                hospitals = snap.docs.map((d) => formatHospitalItem({ id: d.id, ...d.data() }));
+                const snap = await getDoc(doc(db, ...HOSPITAL_DOC_PATH));
+                const data = snap.exists() ? snap.data() : {};
+                const list = Array.isArray(data.list) ? data.list : [];
+                hospitals = list.filter((item) => item.active !== false).map((item, index) => formatHospitalItem({ id: item.id || `hospital-${index}`, ...item }));
                 hospitals.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
                 renderHospitalList();
             } catch (error) {
@@ -265,22 +263,29 @@
 
         async function addHospital() {
             const name = newHospitalNameEl.value.trim();
-            const address = newHospitalAddressEl.value.trim();
             if (!name) {
                 alert('Please enter a hospital name.');
                 return;
             }
             addHospitalBtn.disabled = true;
             try {
-                await addDoc(collection(db, HOSPITAL_CATALOG_PATH), {
+                const hospitalDocRef = doc(db, ...HOSPITAL_DOC_PATH);
+                const hospitalDoc = await getDoc(hospitalDocRef);
+                const data = hospitalDoc.exists() ? hospitalDoc.data() : {};
+                const list = Array.isArray(data.list) ? data.list : [];
+                const nextItem = {
+                    id: `hospital-${Date.now()}`,
                     name,
-                    address,
                     active: true,
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp(),
-                });
+                };
+                await setDoc(hospitalDocRef, {
+                    ...data,
+                    list: [...list, nextItem],
+                    updatedAt: serverTimestamp(),
+                }, { merge: true });
                 newHospitalNameEl.value = '';
-                newHospitalAddressEl.value = '';
                 await loadHospitalCatalog();
             } catch (error) {
                 console.error(error);
@@ -301,10 +306,18 @@
                 const item = hospitals.find((h) => h.id === id);
                 if (!item) return;
                 try {
-                    await updateDoc(doc(db, HOSPITAL_CATALOG_PATH, id), {
-                        active: !item.active,
+                    const hospitalDocRef = doc(db, ...HOSPITAL_DOC_PATH);
+                    const hospitalDoc = await getDoc(hospitalDocRef);
+                    const data = hospitalDoc.exists() ? hospitalDoc.data() : {};
+                    const list = Array.isArray(data.list) ? data.list : [];
+                    const nextList = list.map((entry) =>
+                        entry.id === id ? { ...entry, active: !item.active, updatedAt: serverTimestamp() } : entry
+                    );
+                    await setDoc(hospitalDocRef, {
+                        ...data,
+                        list: nextList,
                         updatedAt: serverTimestamp(),
-                    });
+                    }, { merge: true });
                     await loadHospitalCatalog();
                 } catch (error) {
                     console.error(error);
@@ -316,7 +329,16 @@
             if (action === 'delete') {
                 if (!confirm('Delete this hospital from the catalog?')) return;
                 try {
-                    await deleteDoc(doc(db, HOSPITAL_CATALOG_PATH, id));
+                    const hospitalDocRef = doc(db, ...HOSPITAL_DOC_PATH);
+                    const hospitalDoc = await getDoc(hospitalDocRef);
+                    const data = hospitalDoc.exists() ? hospitalDoc.data() : {};
+                    const list = Array.isArray(data.list) ? data.list : [];
+                    const nextList = list.filter((entry) => entry.id !== id);
+                    await setDoc(hospitalDocRef, {
+                        ...data,
+                        list: nextList,
+                        updatedAt: serverTimestamp(),
+                    }, { merge: true });
                     await loadHospitalCatalog();
                 } catch (error) {
                     console.error(error);

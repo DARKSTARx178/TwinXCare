@@ -12,6 +12,10 @@ import { collection, getDocs, getFirestore } from 'firebase/firestore';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Dimensions, FlatList, Image, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+export const aiExploreFilterControl = {
+  setSearch: (_value: string) => {},
+};
+
 interface EquipmentItem {
   docId: string;
   name: string;
@@ -57,6 +61,13 @@ export default function Explore() {
   const { theme } = useContext(ThemeContext);
   const [search, setSearch] = useState('');
   const [filterValue, setFilterValue] = useState<string>('all');
+
+  useEffect(() => {
+    aiExploreFilterControl.setSearch = setSearch;
+    return () => {
+      aiExploreFilterControl.setSearch = () => {};
+    };
+  }, []);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
 
   const router = useRouter();
@@ -216,7 +227,7 @@ export default function Explore() {
           }
         }}
         activeOpacity={0.9}
-        style={[styles.gridCard, { width: itemWidth, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}
+        style={[styles.gridCard, { width: itemWidth, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border, padding: Math.max(12, textSize - 1) }]}
       >
         <View style={styles.imageWrap}>
           <Image source={{ uri: item.image }} style={styles.cardImage} />

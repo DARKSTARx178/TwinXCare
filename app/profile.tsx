@@ -1,5 +1,6 @@
 import { useAccessibility } from "@/contexts/AccessibilityContext";
 import { ThemeContext } from "@/contexts/ThemeContext";
+import { useTour } from "@/contexts/TourContext";
 import { getFontSizeValue } from "@/utils/fontSizes";
 import { clearSessionStamp } from "@/utils/sessionSecurity";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,6 +18,7 @@ export default function Profile() {
   const { theme } = useContext(ThemeContext);
   const textSize = getFontSizeValue(fontSize);
 
+  const { startTour } = useTour();
   const [user, setUser] = useState<any>(null);
   const [username, setUsername] = useState<string | null>(null);
   const [role, setRole] = useState<string>("user");
@@ -183,6 +185,11 @@ export default function Profile() {
         ))}
       </View>
 
+          <TouchableOpacity style={[styles.tourButton, { borderColor: theme.primary, backgroundColor: theme.surface }]} onPress={() => startTour(true)}>
+        <Ionicons name="sparkles-outline" size={20} color={theme.primary} style={{ marginRight: 10 }} />
+        <Text style={[styles.tourButtonText, { color: theme.primary, fontSize: textSize }]}>Start Beginner Guide</Text>
+      </TouchableOpacity>
+
       {user && firestoreId && (
         <View style={styles.copyRow}>
           <Text style={[styles.footerId, { color: theme.textDim, marginRight: 10 }]}>USER REF: {firestoreId}</Text>
@@ -257,6 +264,18 @@ const styles = StyleSheet.create({
   authButtonText: {
     color: '#fff',
     fontWeight: '800',
+  },
+  tourButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    marginVertical: 12,
+  },
+  tourButtonText: {
+    fontWeight: '700',
   },
   authButtonOutline: {
     paddingVertical: 14,

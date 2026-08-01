@@ -1,16 +1,15 @@
 import { useAccessibility } from '@/contexts/AccessibilityContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { ThemeContext } from '@/contexts/ThemeContext';
 import { auth, db } from '@/firebase/firebase';
-import { triggerManualMatching } from '@/services/matchingService';
 import { getFontSizeValue } from '@/utils/fontSizes';
+import { homeTranslations } from '@/utils/translations';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { homeTranslations } from '@/utils/translations';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Services() {
   const { lang } = useLanguage();
@@ -116,30 +115,8 @@ export default function Services() {
         <View style={[styles.iconCircle, { backgroundColor: theme.primaryGlow }]}>
           <Ionicons name="car" size={32} color={theme.primary} />
         </View>
-        <Text style={[styles.title, { color: theme.text, fontSize: textSize + 10 }]}>{t.escort}</Text>
+        <Text style={[styles.title, { color: theme.text, fontSize: Math.max(24, textSize + 4) }]}>{t.escort}</Text>
       </View>
-
-      {userRole === 'admin' && (
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text, fontSize: textSize + 2 }]}>{t.adminOnly}</Text>
-            <Ionicons name="lock-closed-outline" size={16} color={theme.primary} />
-          </View>
-          <TouchableOpacity
-            style={[styles.adminCard, { borderColor: theme.primary, borderWidth: 2, backgroundColor: theme.surface }]}
-            onPress={async () => {
-              const count = await triggerManualMatching();
-              Alert.alert('Matching Complete', `Re evaluated ${count} requests.`);
-              onRefresh();
-            }}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="refresh-circle-outline" size={24} color={theme.primary} />
-            <Text style={[styles.adminCardText, { color: theme.primary, fontSize: textSize }]}>{t.reload}</Text>
-            <Ionicons name="play" size={18} color={theme.primary} />
-          </TouchableOpacity>
-        </View>
-      )}
 
       {((userType === 'standard') || (userRole === 'admin') || (!userType && !userRole)) && (
         <View style={styles.section}>
@@ -166,10 +143,10 @@ export default function Services() {
                 onPress={() => router.push({ pathname: '/escorts/escort', params: { jobId: req.id, type: 'request' } })}
               >
                 <View style={styles.cardInfo}>
-                  <Text style={[styles.hospitalName, { color: theme.text, fontSize: textSize }]}>{req.hospital}</Text>
+                  <Text style={[styles.hospitalName, { color: theme.text, fontSize: Math.max(15, textSize) }]}>{req.hospital}</Text>
                   <View style={styles.detailRow}>
                     <Ionicons name="calendar-outline" size={14} color={theme.textDim} />
-                    <Text style={[styles.detailText, { color: theme.textDim, fontSize: textSize - 3 }]}>{req.date} at {req.time}</Text>
+                    <Text style={[styles.detailText, { color: theme.textDim, fontSize: Math.max(12, textSize - 3) }]}>{req.date} at {req.time}</Text>
                   </View>
                 </View>
                 {renderStatusBadge(req.status)}
@@ -198,7 +175,7 @@ export default function Services() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Text style={[styles.sectionTitle, { color: theme.text, fontSize: textSize + 2 }]}>Volunteering Slots</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text, fontSize: Math.max(16, textSize + 1) }]}>Volunteering Slots</Text>
               {userRating !== null && (
                 <View style={styles.inlineRating}>
                   <Ionicons name="star" size={12} color="#f59e0b" />
@@ -216,7 +193,7 @@ export default function Services() {
           {myAvailabilities.length === 0 ? (
             <View style={[styles.emptyCard, { backgroundColor: theme.surface }]}>
               <Ionicons name="calendar-clear-outline" size={40} color={theme.textDim} style={{ opacity: 0.3 }} />
-              <Text style={[styles.emptyText, { color: theme.textDim, fontSize: textSize - 2 }]}>No slots specified.</Text>
+              <Text style={[styles.emptyText, { color: theme.textDim, fontSize: Math.max(13, textSize - 2) }]}>No slots specified.</Text>
             </View>
           ) : (
             myAvailabilities.map((avail) => (
@@ -227,17 +204,17 @@ export default function Services() {
                 onPress={() => router.push({ pathname: '/escorts/escort', params: { jobId: avail.id, type: 'availability' } })}
               >
                 <View style={styles.cardInfo}>
-                  <Text style={[styles.hospitalName, { color: theme.text, fontSize: textSize }]}>{avail.location}</Text>
+                  <Text style={[styles.hospitalName, { color: theme.text, fontSize: Math.max(15, textSize) }]}>{avail.location}</Text>
                   <View style={styles.detailRow}>
                     <Ionicons name="time-outline" size={14} color={theme.textDim} />
-                    <Text style={[styles.detailText, { color: theme.textDim, fontSize: textSize - 3 }]}>{avail.date} • {avail.fromTime} - {avail.toTime}</Text>
+                    <Text style={[styles.detailText, { color: theme.textDim, fontSize: Math.max(12, textSize - 3) }]}>{avail.date} • {avail.fromTime} - {avail.toTime}</Text>
                   </View>
                 </View>
                 {renderStatusBadge(avail.status)}
                 {avail.status === 'matched' && (
                   <View style={[styles.matchInfo, { backgroundColor: theme.primaryGlow }]}>
                     <Ionicons name="heart" size={16} color={theme.primary} />
-                    <Text style={[styles.matchText, { color: theme.primary, fontSize: textSize - 4 }]}>Patient assigned</Text>
+                    <Text style={[styles.matchText, { color: theme.primary, fontSize: Math.max(11, textSize - 4) }]}>Patient assigned</Text>
                   </View>
                 )}
                 {avail.status === 'confirmed' && (

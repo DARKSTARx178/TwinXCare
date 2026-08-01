@@ -3,7 +3,7 @@ import { auth, db } from '@/firebase/firebase';
 import { getFontSizeValue } from '@/utils/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, getDoc, serverTimestamp, setDoc, Timestamp } from 'firebase/firestore';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -78,12 +78,13 @@ export default function AdminHospitals() {
 			const hospitalDoc = await getDoc(hospitalDocRef);
 			const currentData = hospitalDoc.exists() ? (hospitalDoc.data() as any) : {};
 			const existingList = Array.isArray(currentData.list) ? currentData.list : [];
+			const now = Timestamp.now();
 			const nextItem = {
 				id: `hospital-${Date.now()}`,
 				name,
 				active: true,
-				createdAt: serverTimestamp(),
-				updatedAt: serverTimestamp(),
+				createdAt: now,
+				updatedAt: now,
 				createdBy: auth.currentUser?.uid ?? 'unknown',
 				createdByEmail: auth.currentUser?.email ?? 'unknown',
 			};
@@ -108,8 +109,9 @@ export default function AdminHospitals() {
 			const hospitalDoc = await getDoc(hospitalDocRef);
 			const currentData = hospitalDoc.exists() ? (hospitalDoc.data() as any) : {};
 			const existingList = Array.isArray(currentData.list) ? currentData.list : [];
+			const now = Timestamp.now();
 			const nextList = existingList.map((entry: any) =>
-				entry.id === item.id ? { ...entry, active: entry.active === false, updatedAt: serverTimestamp() } : entry
+				entry.id === item.id ? { ...entry, active: entry.active === false, updatedAt: now } : entry
 			);
 			await setDoc(hospitalDocRef, {
 				...currentData,

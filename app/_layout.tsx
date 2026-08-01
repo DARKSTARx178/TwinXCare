@@ -1,8 +1,11 @@
-import { AccessibilityProvider } from '@/contexts/AccessibilityContext';
+import TourOverlay from '@/components/TourOverlay';
+import { AccessibilityProvider, useAccessibility } from '@/contexts/AccessibilityContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ThemeContext, ThemeProvider } from '@/contexts/ThemeContext';
+import { TourProvider } from '@/contexts/TourContext';
 import { auth, db } from '@/firebase/firebase';
 import { APP_VERSION } from '@/utils/appversion';
+import { getFontSizeValue } from '@/utils/fontSizes';
 import { enforceSessionExpiry } from '@/utils/sessionSecurity';
 import { Slot } from 'expo-router';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -15,6 +18,8 @@ import SplashScreen from './SplashScreen';
 
 function RootLayoutContent() {
   const { theme } = useContext(ThemeContext);
+  const { fontSize } = useAccessibility();
+  const textSize = getFontSizeValue(fontSize);
   const [checking, setChecking] = useState(true);
   const [blocked, setBlocked] = useState(false);
   const [remoteVersion, setRemoteVersion] = useState<string | null>(null);
@@ -82,8 +87,8 @@ function RootLayoutContent() {
     const playStoreUrl = `https://play.google.com/store/apps/details?id=com.darkstarx178.TwinXCare`;
     return (
       <View style={[styles.center, { backgroundColor: theme.background, padding: 24 }]}>
-        <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 18, marginBottom: 12 }}>Update required</Text>
-        <Text style={{ color: theme.text, textAlign: 'center', marginBottom: 20 }}>
+        <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: Math.max(18, textSize - 2), marginBottom: 12 }}>Update required</Text>
+        <Text style={{ color: theme.text, textAlign: 'center', marginBottom: 20, fontSize: Math.max(14, textSize - 6) }}>
           {`Your app version (${APP_VERSION}) is out of date. Latest version is ${remoteVersion}. Please update to continue.`}
         </Text>
         <Button title="Update on Google Play" onPress={() => Linking.openURL(playStoreUrl)} />
@@ -100,6 +105,7 @@ function RootLayoutContent() {
       <NotificationsSetup />
       <StatusBar barStyle={theme.background === '#ffffff' ? 'dark-content' : 'light-content'} backgroundColor={theme.background} />
       <Slot />
+      <TourOverlay />
     </>
   );
 }
@@ -114,7 +120,9 @@ export default function RootLayout() {
       <AccessibilityProvider>
         <LanguageProvider>
           <ThemeProvider>
-            <RootLayoutContent />
+            <TourProvider>
+              <RootLayoutContent />
+            </TourProvider>
           </ThemeProvider>
         </LanguageProvider>
       </AccessibilityProvider>

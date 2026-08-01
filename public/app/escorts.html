@@ -211,10 +211,9 @@
                 <div style="font-size: 1.1rem; font-weight: 800; color: var(--text);">Admin Terminal</div>
                 <i class="mdi mdi-lock" style="color: var(--primary);"></i>
             </div>
-            <div class="admin-card" onclick="alert('Manual matching triggered.')">
-                <i class="mdi mdi-refresh-circle" style="font-size: 24px; color: var(--primary);"></i>
-                <div style="flex: 1; color: var(--primary); font-weight: 800;">Reload Matching Engine</div>
-                <i class="mdi mdi-play" style="font-size: 18px; color: var(--primary);"></i>
+            <div class="admin-card">
+                <i class="mdi mdi-shield-check" style="font-size: 24px; color: var(--primary);"></i>
+                <div style="flex: 1; color: var(--primary); font-weight: 800;">Matching updates automatically as new entries arrive.</div>
             </div>
         </div>
 
@@ -284,7 +283,7 @@
     </nav>
 
     <script type="module">
-        import { auth, db, doc, getDoc, collection, query, where, getDocs, onAuthStateChanged } from '/app/firebase.js';
+        import { auth, db, doc, getDoc, collection, query, where, onSnapshot, onAuthStateChanged } from '/app/firebase.js';
         import { Analytics } from "@vercel/analytics/next"
         
         const GEOAPIFY_API_KEY = (window.TWINXCARE_GEOAPIFY_API_KEY || '333dd9a8121f4bfe8173cae287ecf657').trim();
@@ -315,55 +314,26 @@
             return { cls: 'status-slate', dot: 'status-slate-dot' };
         };
 
-        onAuthStateChanged(auth, async (u) => {
-            if (!u) {
-                document.getElementById('patient-list').innerHTML = `<div class="empty-box"><i class="mdi mdi-alert-circle-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">Please log in to view.</div></div>`;
-                document.getElementById('escort-list').innerHTML = `<div class="empty-box"><i class="mdi mdi-alert-circle-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">Please log in to view.</div></div>`;
+        let currentUser = null;
+        let currentUserData = null;
+        let requestUnsub = null;
+        let availabilityUnsub = null;
+
+        const renderRequests = (reqs) => {
+            if (reqs.length === 0) {
+                document.getElementById('patient-list').innerHTML = `<div class="empty-box"><i class="mdi mdi-text-box-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">No active escort requests.</div></div>`;
                 return;
             }
 
-            try {
-                const uDoc = await getDoc(doc(db, 'users', u.uid));
-                if (!uDoc.exists()) return;
+            document.getElementById('patient-list').innerHTML = reqs.map(r => {
+                const th = getStatusTheme(r.status);
+                const mBanner = r.status === 'matched'
+                    ? `<div class="match-banner" style="background:var(--primary-glow);color:var(--primary);"><i class="mdi mdi-check-circle"></i> Volunteer Assigned</div>`
+                    : r.status === 'confirmed'
+                        ? `<div class="match-banner" style="background:#ecfdf5;color:#10b981;"><i class="mdi mdi-lock"></i> Job Confirmed & Locked</div>` : '';
+                const miniMap = buildMiniMap(r.locationCoordinates);
 
-                const uData = uDoc.data();
-                const role = uData.role;
-                const uType = uData.userType;
-
-                if (role === 'admin') document.getElementById('admin-section').style.display = 'block';
-
-                if (uType === 'escort' || role === 'admin') {
-                    if (uData.rating !== undefined) {
-                        const rPill = document.getElementById('rating-pill');
-                        document.getElementById('rating-val').innerText = Number(uData.rating).toFixed(1);
-                        rPill.style.display = 'inline-flex';
-                    }
-                }
-
-                // Hide sections where not applicable
-                if (uType === 'escort' && role !== 'admin') {
-                    document.getElementById('patient-section').style.display = 'none';
-                } else if (uType === 'standard' && role !== 'admin') {
-                    document.getElementById('escort-section').style.display = 'none';
-                }
-
-                // Fetch Requests
-                if (uType === 'standard' || role === 'admin' || !uType) {
-                    const reqSnap = await getDocs(query(collection(db, 'escort/request/entries'), where('userId', '==', u.uid)));
-                    const reqs = reqSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-                    if (reqs.length === 0) {
-                        document.getElementById('patient-list').innerHTML = `<div class="empty-box"><i class="mdi mdi-text-box-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">No active escort requests.</div></div>`;
-                    } else {
-                        document.getElementById('patient-list').innerHTML = reqs.map(r => {
-                            const th = getStatusTheme(r.status);
-                            const mBanner = r.status === 'matched'
-                                ? `<div class="match-banner" style="background:var(--primary-glow);color:var(--primary);"><i class="mdi mdi-check-circle"></i> Volunteer Assigned</div>`
-                                : r.status === 'confirmed'
-                                    ? `<div class="match-banner" style="background:#ecfdf5;color:#10b981;"><i class="mdi mdi-lock"></i> Job Confirmed & Locked</div>` : '';
-                            const miniMap = buildMiniMap(r.locationCoordinates);
-
-                            return `
+                return `
               <div class="item-card" onclick="window.location.href='/app/escorts/escort.html?jobId=${r.id}&type=request'">
                 <div style="font-size: 1rem; font-weight: 800; margin-bottom: 4px;">${r.hospital}</div>
                 <div style="display: flex; gap: 6px; align-items: center; color: var(--text-dim); font-size: 0.8rem; font-weight: 600;">
@@ -375,27 +345,24 @@
                 </div>
                 ${mBanner}
               </div>`;
-                        }).join('');
-                    }
-                }
+            }).join('');
+        };
 
-                // Fetch Availabilities
-                if (uType === 'escort' || role === 'admin') {
-                    const avSnap = await getDocs(query(collection(db, 'escort/availability/entries'), where('providerId', '==', u.uid)));
-                    const avails = avSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const renderAvailabilities = (avails) => {
+            if (avails.length === 0) {
+                document.getElementById('escort-list').innerHTML = `<div class="empty-box"><i class="mdi mdi-calendar-blank-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">No availability slots posted.</div></div>`;
+                return;
+            }
 
-                    if (avails.length === 0) {
-                        document.getElementById('escort-list').innerHTML = `<div class="empty-box"><i class="mdi mdi-calendar-blank-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">No availability slots posted.</div></div>`;
-                    } else {
-                        document.getElementById('escort-list').innerHTML = avails.map(a => {
-                            const th = getStatusTheme(a.status);
-                            const mBanner = a.status === 'matched'
-                                ? `<div class="match-banner" style="background:var(--primary-glow);color:var(--primary);"><i class="mdi mdi-heart"></i> Matched with Patient</div>`
-                                : a.status === 'confirmed'
-                                    ? `<div class="match-banner" style="background:#ecfdf5;color:#10b981;"><i class="mdi mdi-lock"></i> Job Confirmed & Locked</div>` : '';
-                            const miniMap = buildMiniMap(a.locationCoordinates);
+            document.getElementById('escort-list').innerHTML = avails.map(a => {
+                const th = getStatusTheme(a.status);
+                const mBanner = a.status === 'matched'
+                    ? `<div class="match-banner" style="background:var(--primary-glow);color:var(--primary);"><i class="mdi mdi-heart"></i> Matched with Patient</div>`
+                    : a.status === 'confirmed'
+                        ? `<div class="match-banner" style="background:#ecfdf5;color:#10b981;"><i class="mdi mdi-lock"></i> Job Confirmed & Locked</div>` : '';
+                const miniMap = buildMiniMap(a.locationCoordinates);
 
-                            return `
+                return `
               <div class="item-card" onclick="window.location.href='/app/escorts/escort.html?jobId=${a.id}&type=availability'">
                 <div style="font-size: 1rem; font-weight: 800; margin-bottom: 4px;">${a.location || 'N/A'}</div>
                 <div style="display: flex; gap: 6px; align-items: center; color: var(--text-dim); font-size: 0.8rem; font-weight: 600;">
@@ -407,10 +374,79 @@
                 </div>
                 ${mBanner}
               </div>`;
-                        }).join('');
-                    }
-                }
+            }).join('');
+        };
 
+        const attachRealtimeListeners = (u, uData) => {
+            if (requestUnsub) requestUnsub();
+            if (availabilityUnsub) availabilityUnsub();
+
+            const requestsQuery = query(collection(db, 'escort/request/entries'), where('userId', '==', u.uid));
+            const availabilitiesQuery = query(collection(db, 'escort/availability/entries'), where('providerId', '==', u.uid));
+
+            requestUnsub = onSnapshot(requestsQuery, (snapshot) => {
+                const reqs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+                renderRequests(reqs);
+            }, (error) => {
+                console.error('Escort request listener failed:', error);
+            });
+
+            availabilityUnsub = onSnapshot(availabilitiesQuery, (snapshot) => {
+                const avails = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+                renderAvailabilities(avails);
+            }, (error) => {
+                console.error('Escort availability listener failed:', error);
+            });
+        };
+
+        const refreshView = async (u) => {
+            if (!u) return;
+            const uDoc = await getDoc(doc(db, 'users', u.uid));
+            if (!uDoc.exists()) return;
+
+            currentUser = u;
+            currentUserData = uDoc.data();
+            const role = currentUserData.role;
+            const uType = currentUserData.userType;
+
+            if (role === 'admin') document.getElementById('admin-section').style.display = 'block';
+
+            if (uType === 'escort' || role === 'admin') {
+                if (currentUserData.rating !== undefined) {
+                    const rPill = document.getElementById('rating-pill');
+                    document.getElementById('rating-val').innerText = Number(currentUserData.rating).toFixed(1);
+                    rPill.style.display = 'inline-flex';
+                }
+            }
+
+            if (uType === 'escort' && role !== 'admin') {
+                document.getElementById('patient-section').style.display = 'none';
+            } else if (uType === 'standard' && role !== 'admin') {
+                document.getElementById('escort-section').style.display = 'none';
+            }
+
+            if (uType === 'standard' || role === 'admin' || !uType) {
+                attachRealtimeListeners(u, currentUserData);
+            } else {
+                renderRequests([]);
+            }
+
+            if (uType === 'escort' || role === 'admin') {
+                attachRealtimeListeners(u, currentUserData);
+            } else {
+                renderAvailabilities([]);
+            }
+        };
+
+        onAuthStateChanged(auth, async (u) => {
+            if (!u) {
+                document.getElementById('patient-list').innerHTML = `<div class="empty-box"><i class="mdi mdi-alert-circle-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">Please log in to view.</div></div>`;
+                document.getElementById('escort-list').innerHTML = `<div class="empty-box"><i class="mdi mdi-alert-circle-outline"></i><div style="margin-top:12px;font-size:0.9rem;font-weight:600;">Please log in to view.</div></div>`;
+                return;
+            }
+
+            try {
+                await refreshView(u);
             } catch (e) {
                 console.error(e);
             }

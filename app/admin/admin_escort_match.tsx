@@ -17,8 +17,38 @@ export default function AdminEscortMatch() {
     const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
-        fetchData();
+        void fetchData();
     }, []);
+
+    const parseTimeToMinutes = (value?: string) => {
+        if (!value) return NaN;
+        const [hours, minutes] = String(value).split(':').map(Number);
+        if (Number.isNaN(hours) || Number.isNaN(minutes)) return NaN;
+        return hours * 60 + minutes;
+    };
+
+    const getRequestEndTime = (request: any) => {
+        if (request?.endTime) return request.endTime;
+        const start = parseTimeToMinutes(request?.time);
+        if (Number.isNaN(start)) return request?.time || '00:00';
+        const end = start + 60;
+        return `${String(Math.floor(end / 60)).padStart(2, '0')}:${String(end % 60).padStart(2, '0')}`;
+    };
+
+    const getMatchingAvailabilities = (request: any) => {
+        if (!request) return availabilities;
+        const requestStart = parseTimeToMinutes(request?.time);
+        const requestEnd = parseTimeToMinutes(getRequestEndTime(request));
+        if (Number.isNaN(requestStart) || Number.isNaN(requestEnd)) return [];
+
+        return availabilities.filter((item) => {
+            if (item.date !== request.date) return false;
+            const availStart = parseTimeToMinutes(item?.fromTime);
+            const availEnd = parseTimeToMinutes(item?.toTime);
+            if (Number.isNaN(availStart) || Number.isNaN(availEnd)) return false;
+            return availStart <= requestEnd && availEnd >= requestStart;
+        });
+    };
 
     const fetchData = async () => {
         try {
@@ -27,22 +57,25 @@ export default function AdminEscortMatch() {
                 setIsAdmin(false);
                 return;
             }
-            const me = (await getDoc(doc(db, 'users', uid))).data();
+
+            const userDoc = await getDoc(doc(db, 'users', uid));
+            const me = userDoc.data();
             if (me?.role !== 'admin') {
                 setIsAdmin(false);
                 return;
             }
+
             setIsAdmin(true);
+
             const reqQ = query(collection(db, 'escort', 'request', 'entries'), where('status', '==', 'pending'));
             const reqSnap = await getDocs(reqQ);
-            const reqList = reqSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const reqList = reqSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
             setRequests(reqList);
 
             const availQ = query(collection(db, 'escort', 'availability', 'entries'), where('status', '==', 'available'));
             const availSnap = await getDocs(availQ);
-            const availList = availSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const availList = availSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
             setAvailabilities(availList);
-
         } catch (e) {
             console.error('Error fetching match data:', e);
         }
@@ -103,8 +136,8 @@ export default function AdminEscortMatch() {
                         } else {
                             Alert.alert('Error', 'Provider has no push token.');
                         }
-                    }
-                }
+                    },
+                },
             ]
         );
     };
@@ -116,22 +149,28 @@ export default function AdminEscortMatch() {
                 {
                     backgroundColor: theme.surface,
                     borderColor: selectedRequest?.id === item.id ? theme.primary : theme.border,
-                    borderWidth: selectedRequest?.id === item.id ? 2 : 1
-                }
+                    borderWidth: selectedRequest?.id === item.id ? 2 : 1,
+                },
             ]}
             onPress={() => setSelectedRequest(item)}
             activeOpacity={0.7}
         >
             <View style={styles.cardHeader}>
                 <Ionicons name="medical" size={18} color="#ef4444" />
-                <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>{item.hospital}</Text>
+                <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>
+                    {item.hospital}
+                </Text>
             </View>
             <View style={styles.cardDetail}>
                 <Ionicons name="calendar-outline" size={14} color={theme.textDim} />
-                <Text style={[styles.detailText, { color: theme.text }]}>{item.date} • {item.time}</Text>
+                <Text style={[styles.detailText, { color: theme.text }]}>
+                    {item.date} • {item.time}
+                </Text>
             </View>
             <Text style={[styles.locationText, { color: theme.textDim }]}>Loc: {item.location || item.hospital}</Text>
-            <Text style={[styles.reasonText, { color: theme.textDim }]} numberOfLines={2}>{item.appointmentReason}</Text>
+            <Text style={[styles.reasonText, { color: theme.textDim }]} numberOfLines={2}>
+                {item.appointmentReason || item.notes || 'No notes provided.'}
+            </Text>
         </TouchableOpacity>
     );
 
@@ -139,15 +178,24 @@ export default function AdminEscortMatch() {
         <View style={[styles.itemCard, { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border }]}>
             <View style={styles.cardHeader}>
                 <Ionicons name="person-circle" size={18} color={theme.primary} />
-                <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>{item.providerEmail.split('@')[0]}</Text>
+                <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>
+                    {item.providerEmail?.split('@')[0] || 'Volunteer'}
+                </Text>
             </View>
             <View style={styles.cardDetail}>
                 <Ionicons name="time-outline" size={14} color={theme.textDim} />
-                <Text style={[styles.detailText, { color: theme.text }]}>{item.date} • {item.fromTime}-{item.toTime}</Text>
+                <Text style={[styles.detailText, { color: theme.text }]}>
+                    {item.date} • {item.fromTime}-{item.toTime}
+                </Text>
             </View>
-            <Text style={[styles.locationText, { color: theme.textDim }]}>Loc: {item.location}</Text>
+            <Text style={[styles.locationText, { color: theme.textDim }]}>Loc: {item.location || 'Anywhere'}</Text>
+            {item.notes ? (
+                <Text style={[styles.reasonText, { color: theme.textDim }]} numberOfLines={2}>
+                    {item.notes}
+                </Text>
+            ) : null}
 
-            {selectedRequest && (
+            {selectedRequest ? (
                 <>
                     <TouchableOpacity
                         style={[styles.matchBtn, { borderColor: theme.primary, borderWidth: 1.5, backgroundColor: theme.surface }]}
@@ -164,9 +212,11 @@ export default function AdminEscortMatch() {
                         <Text style={[styles.matchBtnText, { color: '#ef4444' }]}>Force Match</Text>
                     </TouchableOpacity>
                 </>
-            )}
+            ) : null}
         </View>
     );
+
+    const matchingAvailabilities = selectedRequest ? getMatchingAvailabilities(selectedRequest) : availabilities;
 
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -179,50 +229,69 @@ export default function AdminEscortMatch() {
                     <Ionicons name="git-pull-request-outline" size={32} color={theme.primary} />
                 </View>
                 <Text style={[styles.title, { color: theme.text }]}>Escort Matcher</Text>
-                <Text style={[styles.subtitle, { color: theme.textDim }]}>
-                    Match escorts with patients
-                </Text>
+                <Text style={[styles.subtitle, { color: theme.textDim }]}>Match escorts with patients</Text>
             </View>
 
             {!isAdmin ? (
-                <View style={[styles.hintBox, { backgroundColor: theme.surface }]}>
+                <View style={[styles.hintBox, { backgroundColor: theme.surface }]}> 
                     <Ionicons name="alert-circle-outline" size={20} color="#ef4444" />
                     <Text style={[styles.hintText, { color: theme.textDim }]}>Admin access is required for this page.</Text>
                 </View>
-            ) : <View style={styles.content}>
-                <View style={styles.column}>
-                    <View style={styles.columnHeader}>
-                        <Text style={[styles.sectionTitle, { color: theme.text }]}>Requests</Text>
-                        <View style={styles.countBadge}><Text style={styles.countText}>{requests.length}</Text></View>
+            ) : (
+                <View style={styles.content}>
+                    <View style={styles.column}>
+                        <View style={styles.columnHeader}>
+                            <Text style={[styles.sectionTitle, { color: theme.text }]}>Requests</Text>
+                            <View style={styles.countBadge}>
+                                <Text style={styles.countText}>{requests.length}</Text>
+                            </View>
+                        </View>
+                        <FlatList
+                            data={requests}
+                            renderItem={renderRequestItem}
+                            keyExtractor={(item) => item.id}
+                            showsVerticalScrollIndicator={false}
+                            contentContainerStyle={{ paddingBottom: 20 }}
+                        />
                     </View>
-                    <FlatList
-                        data={requests}
-                        renderItem={renderRequestItem}
-                        keyExtractor={item => item.id}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingBottom: 20 }}
-                    />
-                </View>
 
-                <View style={styles.column}>
-                    <View style={styles.columnHeader}>
-                        <Text style={[styles.sectionTitle, { color: theme.text }]}>Volunteers</Text>
-                        <View style={[styles.countBadge, { backgroundColor: theme.primaryGlow }]}><Text style={[styles.countText, { color: theme.primary }]}>{availabilities.length}</Text></View>
+                    <View style={styles.column}>
+                        <View style={styles.columnHeader}>
+                            <Text style={[styles.sectionTitle, { color: theme.text }]}>Matching Volunteers</Text>
+                            <View style={[styles.countBadge, { backgroundColor: theme.primaryGlow }]}> 
+                                <Text style={[styles.countText, { color: theme.primary }]}>{matchingAvailabilities.length}</Text>
+                            </View>
+                        </View>
+
+                        {selectedRequest ? (
+                            <View style={[styles.selectedCard, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
+                                <Text style={[styles.selectedTitle, { color: theme.text }]}>{selectedRequest.hospital || 'Medical Request'}</Text>
+                                <Text style={[styles.selectedSubtitle, { color: theme.textDim }]}>
+                                    {selectedRequest.date} • {selectedRequest.time}{selectedRequest.endTime ? ` - ${selectedRequest.endTime}` : ''}
+                                </Text>
+                                <Text style={[styles.selectedSubtitle, { color: theme.textDim }]}>
+                                    {selectedRequest.location || selectedRequest.hospital}
+                                </Text>
+                                <Text style={[styles.selectedSubtitle, { color: theme.textDim }]} numberOfLines={2}>
+                                    {selectedRequest.appointmentReason || selectedRequest.notes || 'No notes provided.'}
+                                </Text>
+                            </View>
+                        ) : null}
+
+                        <FlatList
+                            data={matchingAvailabilities}
+                            renderItem={renderAvailabilityItem}
+                            keyExtractor={(item) => item.id}
+                            showsVerticalScrollIndicator={false}
+                            contentContainerStyle={{ paddingBottom: 20 }}
+                            ListEmptyComponent={
+                                <View style={[styles.hintBox, { backgroundColor: theme.surface }]}> 
+                                    <Ionicons name="information-circle-outline" size={20} color={theme.primary} />
+                                    <Text style={[styles.hintText, { color: theme.textDim }]}>No matching volunteers found for the selected request yet.</Text>
+                                </View>
+                            }
+                        />
                     </View>
-                    <FlatList
-                        data={availabilities}
-                        renderItem={renderAvailabilityItem}
-                        keyExtractor={item => item.id}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingBottom: 20 }}
-                    />
-                </View>
-            </View>}
-
-            {!selectedRequest && (
-                <View style={[styles.hintBox, { backgroundColor: theme.surface }]}>
-                    <Ionicons name="information-circle-outline" size={20} color={theme.primary} />
-                    <Text style={[styles.hintText, { color: theme.textDim }]}>Select a request on the left to start matching.</Text>
                 </View>
             )}
         </View>
@@ -230,18 +299,20 @@ export default function AdminEscortMatch() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1 },
+    container: {
+        flex: 1,
+        paddingHorizontal: 16,
+        paddingTop: 24,
+        paddingBottom: 32,
+    },
     backButton: {
-        position: "absolute",
-        top: 50,
-        left: 20,
+        position: 'absolute',
+        top: 24,
+        left: 16,
         zIndex: 10,
-        padding: 8,
-        borderRadius: 12,
-        backgroundColor: 'rgba(0,0,0,0.03)',
     },
     header: {
-        marginTop: 100,
+        marginTop: 64,
         marginBottom: 20,
         alignItems: 'center',
         paddingHorizontal: 20,
@@ -256,7 +327,7 @@ const styles = StyleSheet.create({
     },
     title: { fontSize: 24, fontWeight: '900' },
     subtitle: { fontSize: 13, fontWeight: '500', marginTop: 2 },
-    content: { flex: 1, flexDirection: 'row', paddingHorizontal: 12 },
+    content: { flex: 1, flexDirection: 'row', paddingHorizontal: 4 },
     column: { flex: 1, paddingHorizontal: 6 },
     columnHeader: {
         flexDirection: 'row',
@@ -277,6 +348,22 @@ const styles = StyleSheet.create({
         padding: 14,
         borderRadius: 20,
         marginBottom: 12,
+    },
+    selectedCard: {
+        padding: 14,
+        borderRadius: 20,
+        marginBottom: 12,
+        borderWidth: 1,
+    },
+    selectedTitle: {
+        fontSize: 13,
+        fontWeight: '800',
+        marginBottom: 4,
+    },
+    selectedSubtitle: {
+        fontSize: 11,
+        fontWeight: '600',
+        marginTop: 2,
     },
     cardHeader: {
         flexDirection: 'row',

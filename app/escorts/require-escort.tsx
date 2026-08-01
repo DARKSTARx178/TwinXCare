@@ -328,7 +328,7 @@ export default function RequireEscort() {
 				</View>
 				<View style={styles.inputWrapper}>
 					<LocationAutocomplete
-						label="Pickup / Preferred Location"
+						label="Pickup Location"
 						placeholder="Block, area, MRT, or pickup point"
 						value={pickupLocation}
 						onChangeText={setPickupLocation}

@@ -80,7 +80,7 @@ function RootLayoutContent() {
   }, [checking]);
 
   if (checking) {
-    return <SplashScreen message="Checking app version..." />;
+    return <SplashScreen message="Checking version" />;
   }
 
   if (blocked) {

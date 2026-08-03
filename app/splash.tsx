@@ -31,10 +31,6 @@ export default function Splash() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Animated.View style={[
-        styles.content,
-        { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }
-      ]}>
         <View style={[styles.logoCircle, { backgroundColor: theme.primaryGlow, borderWidth: 1, borderColor: theme.border }]}>
           <Image
             source={require('@/assets/images/logo_transparent.png')}
@@ -42,9 +38,6 @@ export default function Splash() {
           />
         </View>
         <Text style={[styles.title, { color: theme.text }]}>TwinXCare</Text>
-        <Text style={[styles.subtitle, { color: theme.textDim }]}>Advanced Care</Text>
-      </Animated.View>
-
       <View style={styles.footer}>
         <View style={[styles.loadingBar, { backgroundColor: '#F1F5F9' }]}>
           <Animated.View style={[
@@ -52,13 +45,13 @@ export default function Splash() {
             {
               backgroundColor: theme.primary,
               width: fadeAnim.interpolate({
-                inputRange: [0, 1],
+                inputRange: [0, 0],
                 outputRange: ['0%', '100%']
               })
             }
           ]} />
         </View>
-        <Text style={[styles.version, { color: theme.textDim }]}>Version 1.1.10 • Alpha</Text>
+        <Text style={[styles.version, { color: theme.textDim }]}>Version 1.1.15 • Alpha</Text>
       </View>
     </View>
   );
@@ -76,7 +69,7 @@ const styles = StyleSheet.create({
   logoCircle: {
     width: 120,
     height: 120,
-    borderRadius: 40,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,

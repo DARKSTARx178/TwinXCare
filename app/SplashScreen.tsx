@@ -16,7 +16,7 @@ export default function SplashScreen({ message }: Props) {
     const logoLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(scale, { toValue: 1.03, duration: 700, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-        Animated.timing(scale, { toValue: 0.98, duration: 700, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(scale, { toValue: 1.02, duration: 700, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
       ])
     );
 
@@ -91,13 +91,13 @@ const styles = StyleSheet.create({
   logoCircle: {
     width: 100,
     height: 100,
-    borderRadius: 34,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
   },
   logo: {
-    width: 60,
-    height: 60,
+    width: 100,
+    height: 100,
     resizeMode: 'contain',
   },
   textContainer: {

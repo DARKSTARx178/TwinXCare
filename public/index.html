@@ -589,7 +589,259 @@
 
 <body>
     <!-- Premium Loader -->
-   
+    <div id="loader">
+        <div class="spinner"></div>
+        <p style="margin-top: 1.5rem; color: var(--text-dim); font-weight: 600;">Loading</p>
+    </div>
+
+    <!-- Glass Navbar -->
+    <nav>
+        <div class="container" style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+            <a href="#" class="logo">
+                <div class="logo-icon">
+                    <img src="./assets/images/logo_transparent.png" alt="TwinXCare Logo">
+                </div>
+                <h1>TwinXCare</h1>
+            </a>
+            <div class="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="escort.html" class="nav-link">Escort Portal</a>
+                <a href="#app" class="nav-link">Get the App</a>
+                <a href="#contact" class="nav-link">Contact</a>
+                <a href="app/index.html" class="btn-app">
+                    <i class="fas fa-rocket"></i>
+                    Launch Web App
+                </a>
+            </div>
+            <button class="mobile-nav-toggle" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Healthcare <br>Made Simple</h1>
+                    <p>Experience ease of access to healthcare equipment and get escorts that provide seamless care to
+                        and from hospitals.</p>
+                    <a href="app/index.html" class="btn-app hero-app-button">
+                        <i class="fas fa-rocket"></i>
+                        Launch Web App
+                    </a>
+                </div>
+                <div class="hero-image">
+                    <img src="assets/images/hero-app.png" alt="TwinXCare App Interface"
+                        onerror="this.src='https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800'">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <span class="section-tag">Core Capabilities</span>
+            <h2 class="section-title">What is TwinXCare?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Easy Access</h3>
+                    <p>TwinXCare is a mobile app that allows you to access healthcare equipment with ease and get
+                        escorts that can bring you to and from hospitals.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-halved"></i>
+                    </div>
+                    <h3>Secure & Private</h3>
+                    <p>Your health information is protected with enterprise-grade security. We use end-to-end encryption
+                        for all your medical data.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3>24/7 Support</h3>
+                    <p>Get assistance whenever you need it with our round-the-clock support team. We're always here to
+                        help you navigate your care.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Showcase Section -->
+    <section class="showcase" id="app">
+        <div class="container">
+            <span class="section-tag">Interface Design</span>
+            <h2 class="section-title">The App</h2>
+            <div class="showcase-wrapper">
+                <div class="showcase-container">
+                    <div class="showcase-slide">
+                        <img src="./assets/images/home_app_prev.jpeg" alt="Home Screen" class="showcase-image">
+                    </div>
+                    <div class="showcase-slide">
+                        <img src="./assets/images/equipment_app_prev.jpeg" alt="Equipment Screen"
+                            class="showcase-image">
+                    </div>
+                    <div class="showcase-slide">
+                        <img src="./assets/images/escort_app_prev.jpeg" alt="Escort Screen" class="showcase-image">
+                    </div>
+                    <div class="showcase-slide">
+                        <img src="./assets/images/delivery_app_prev.jpeg" alt="Delivery Screen" class="showcase-image">
+                    </div>
+                </div>
+                <div class="showcase-controls">
+                    <button class="showcase-button showcase-prev" aria-label="Previous slide">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="showcase-nav"></div>
+                    <button class="showcase-button showcase-next" aria-label="Next slide">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <a href="#" class="logo" style="margin-bottom: 1.5rem;">
+                        <div class="logo-icon">
+                            <img src="./assets/images/logo_transparent.png" alt="TwinXCare Logo">
+                        </div>
+                        <h1 style="color: white;">TwinXCare</h1>
+                    </a>
+                    <p>We're revolutionizing healthcare access, making home care easier for all.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact Us</h4>
+                    <ul>
+                        <li><a href="mailto:massive.productions.co@gmail.com"><i class="fas fa-envelope"
+                                    style="margin-right: 8px;"></i> Email Support</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                &copy; 2026 TwinXCare.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Loader
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }, 800);
+
+            // Carousel Logic
+            const showcase = document.querySelector('.showcase-container');
+            const slides = document.querySelectorAll('.showcase-slide');
+            const dotsNav = document.querySelector('.showcase-nav');
+            const prevButton = document.querySelector('.showcase-prev');
+            const nextButton = document.querySelector('.showcase-next');
+
+            let currentSlide = 0;
+
+            // Create navigation dots
+            slides.forEach((_, index) => {
+                const dot = document.createElement('button');
+                dot.classList.add('showcase-dot');
+                if (index === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => goToSlide(index));
+                dotsNav.appendChild(dot);
+            });
+
+            function goToSlide(index) {
+                showcase.style.transform = `translateX(-${index * 100}%)`;
+                currentSlide = index;
+                updateDots();
+            }
+
+            function updateDots() {
+                document.querySelectorAll('.showcase-dot').forEach((dot, index) => {
+                    dot.classList.toggle('active', index === currentSlide);
+                });
+            }
+
+            function nextSlide() {
+                currentSlide = (currentSlide + 1) % slides.length;
+                goToSlide(currentSlide);
+            }
+
+            function prevSlide() {
+                currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+                goToSlide(currentSlide);
+            }
+
+            if (prevButton) prevButton.addEventListener('click', prevSlide);
+            if (nextButton) nextButton.addEventListener('click', nextSlide);
+
+            // Mobile navigation
+            const mobileToggle = document.querySelector('.mobile-nav-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            const toggleIcon = mobileToggle?.querySelector('i');
+
+            function closeMobileMenu() {
+                navLinks?.classList.remove('active');
+                mobileToggle?.setAttribute('aria-expanded', 'false');
+                toggleIcon?.classList.remove('fa-xmark');
+                toggleIcon?.classList.add('fa-bars');
+            }
+
+            mobileToggle?.setAttribute('aria-expanded', 'false');
+            mobileToggle?.addEventListener('click', () => {
+                const isOpen = navLinks.classList.toggle('active');
+                mobileToggle.setAttribute('aria-expanded', String(isOpen));
+                toggleIcon?.classList.toggle('fa-bars', !isOpen);
+                toggleIcon?.classList.toggle('fa-xmark', isOpen);
+            });
+
+            navLinks?.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', closeMobileMenu);
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) closeMobileMenu();
+            });
+
+            // Touch events
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            showcase.addEventListener('touchstart', e => {
+                touchStartX = e.touches[0].clientX;
+            }, { passive: true });
+
+            showcase.addEventListener('touchmove', e => {
+                touchEndX = e.touches[0].clientX;
+            }, { passive: true });
+
+            showcase.addEventListener('touchend', () => {
+                const diff = touchStartX - touchEndX;
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) {
+                        nextSlide();
+                    } else {
+                        prevSlide();
+                    }
+                }
+            });
+
+            // Auto-advance
+            setInterval(nextSlide, 5000);
+        });
+    </script>
 </body>
 
 </html>

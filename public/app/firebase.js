@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { createUserWithEmailAndPassword, EmailAuthProvider, getAuth, onAuthStateChanged, reauthenticateWithCredential, signInWithEmailAndPassword, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, getFirestore, orderBy, query, serverTimestamp, setDoc, updateDoc, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, getFirestore, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const firebaseConfigResponse = await fetch('/api/firebase-config');
@@ -17,7 +17,7 @@ const storage = getStorage(app);
 const LOGIN_AT_KEY = 'twinxcare_login_at';
 
 export {
-    addDoc, app, auth, collection, createUserWithEmailAndPassword, db, deleteDoc, doc, EmailAuthProvider, getDoc, getDocs, getDownloadURL, onAuthStateChanged, orderBy, query, reauthenticateWithCredential, ref, serverTimestamp, setDoc, signInWithEmailAndPassword, signOut, storage, updateDoc, updatePassword, uploadBytes, where
+    addDoc, app, auth, collection, createUserWithEmailAndPassword, db, deleteDoc, doc, EmailAuthProvider, getDoc, getDocs, getDownloadURL, onAuthStateChanged, onSnapshot, orderBy, query, reauthenticateWithCredential, ref, serverTimestamp, setDoc, signInWithEmailAndPassword, signOut, storage, updateDoc, updatePassword, uploadBytes, where
 };
 
 export async function markSessionStarted() {
